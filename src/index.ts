@@ -44,6 +44,7 @@
 
 export { parse, default as default } from "./parse";
 export { InvalidPlaylistError, resolveUrl } from "./utils";
+export * as TAGS from "./constants";
 
 export type {
   Playlist,

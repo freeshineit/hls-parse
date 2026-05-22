@@ -46,6 +46,7 @@ import {
   Variant,
 } from "./types";
 import * as utils from "./utils";
+import * as T from "./constants";
 
 // ---------------------------------------------------------------------------
 // Internal types
@@ -95,108 +96,58 @@ interface ParseState {
 function getTagCategory(tagName: string): TagCategory {
   switch (tagName) {
     // ── Basic Tags ──────────────────────────────────────────────
-    // 基础标签 — Media Playlist 和 Master Playlist 均可使用
-    //
-    case "EXTM3U":
-    // 文件格式标识符 / Format identifier — 必须是第一行
-    case "EXT-X-VERSION":
-    // 协议兼容版本号 / Protocol compatibility version
-    case "EXT-X-CONTENT-STEERING":
-      // 内容转向服务器配置 / Content Steering server URI (RFC 8216bis)
+    case T.EXTM3U:
+    case T.EXT_X_VERSION:
+    case T.EXT_X_CONTENT_STEERING:
       return "Basic";
 
     // ── Media Segment Tags ──────────────────────────────────────
-    // 媒体片段标签 — 只能出现在 Media Playlist 中，用于描述媒体片段
-    //
-    case "EXTINF":
-    // 片段时长及标题 / Segment duration and optional title — 每个片段必须
-    case "EXT-X-BYTERANGE":
-    // 子范围字节区间 / Sub-range byte range — 片段是资源的子集
-    case "EXT-X-DISCONTINUITY":
-    // 不连续标记 / Discontinuity marker — 编码参数或格式变化
-    case "EXT-X-PREFETCH-DISCONTINUITY":
-    // LL-HLS 预取不连续 / LL-HLS prefetch segment discontinuity
-    case "EXT-X-KEY":
-    // 加密密钥 / Encryption key — AES-128 / SAMPLE-AES / NONE
-    case "EXT-X-MAP":
-    // 媒体初始化段 / Media Initialization Section — fMP4 init 等
-    case "EXT-X-PROGRAM-DATE-TIME":
-    // 绝对日期时间 / Absolute wall-clock date-time
-    case "EXT-X-DATERANGE":
-    // 日期范围元数据 / Date range metadata — 广告插播 / SCTE-35
-    case "EXT-X-CUE-OUT":
-    // 广告插播开始 / Splice-out (ad break start)
-    case "EXT-X-CUE-IN":
-    // 广告插播结束 / Splice-in (ad break end)
-    case "EXT-X-CUE-OUT-CONT":
-    // 广告插播延续 / Splice-out continuation
-    case "EXT-X-CUE":
-    // 通用提示标记 / Generic cue marker
-    case "EXT-OATCLS-SCTE35":
-    // OATCLS SCTE-35 数据 / OATCLS SCTE-35 payload
-    case "EXT-X-ASSET":
-    // 资产元数据 / Asset metadata (CAID)
-    case "EXT-X-SCTE35":
-    // SCTE-35 数据 / SCTE-35 payload
-    case "EXT-X-PART":
-    // LL-HLS 部分片段 / LL-HLS partial segment
-    case "EXT-X-PRELOAD-HINT":
-    // LL-HLS 预加载提示 / LL-HLS preload hint (PART 或 MAP)
-    case "EXT-X-GAP":
-      // 间隔片段标记 / Gap segment marker — 无内容占位
+    case T.EXTINF:
+    case T.EXT_X_BYTERANGE:
+    case T.EXT_X_DISCONTINUITY:
+    case T.EXT_X_PREFETCH_DISCONTINUITY:
+    case T.EXT_X_KEY:
+    case T.EXT_X_MAP:
+    case T.EXT_X_PROGRAM_DATE_TIME:
+    case T.EXT_X_DATERANGE:
+    case T.EXT_X_CUE_OUT:
+    case T.EXT_X_CUE_IN:
+    case T.EXT_X_CUE_OUT_CONT:
+    case T.EXT_X_CUE:
+    case T.EXT_OATCLS_SCTE35:
+    case T.EXT_X_ASSET:
+    case T.EXT_X_SCTE35:
+    case T.EXT_X_PART:
+    case T.EXT_X_PRELOAD_HINT:
+    case T.EXT_X_GAP:
       return "Segment";
 
     // ── Media Playlist Tags ─────────────────────────────────────
-    // 媒体播放列表全局标签 — 只能出现在 Media Playlist 中，描述全局参数
-    //
-    case "EXT-X-TARGETDURATION":
-    // 最大片段时长(秒) / Maximum segment duration (seconds) — 必须
-    case "EXT-X-MEDIA-SEQUENCE":
-    // 媒体序列号基数 / Base Media Sequence Number
-    case "EXT-X-DISCONTINUITY-SEQUENCE":
-    // 不连续序列号基数 / Base Discontinuity Sequence Number
-    case "EXT-X-ENDLIST":
-    // 播放列表终止标记 / End-of-playlist marker — VOD 末尾
-    case "EXT-X-PLAYLIST-TYPE":
-    // 播放列表类型 / Playlist type — EVENT 或 VOD
-    case "EXT-X-I-FRAMES-ONLY":
-    // 仅 I 帧播放列表 / I-frame only playlist — 快进/倒放
-    case "EXT-X-SERVER-CONTROL":
-    // LL-HLS 服务端控制参数 / LL-HLS server control parameters
-    case "EXT-X-PART-INF":
-    // LL-HLS 部分片段目标时长 / LL-HLS partial segment PART-TARGET
-    case "EXT-X-PREFETCH":
-    // LL-HLS 预取片段 / LL-HLS prefetch segment
-    case "EXT-X-RENDITION-REPORT":
-    // LL-HLS 呈现报告 / LL-HLS rendition report
-    case "EXT-X-SKIP":
-      // LL-HLS 跳过片段 / LL-HLS skip segments
+    case T.EXT_X_TARGETDURATION:
+    case T.EXT_X_MEDIA_SEQUENCE:
+    case T.EXT_X_DISCONTINUITY_SEQUENCE:
+    case T.EXT_X_ENDLIST:
+    case T.EXT_X_PLAYLIST_TYPE:
+    case T.EXT_X_I_FRAMES_ONLY:
+    case T.EXT_X_SERVER_CONTROL:
+    case T.EXT_X_PART_INF:
+    case T.EXT_X_PREFETCH:
+    case T.EXT_X_RENDITION_REPORT:
+    case T.EXT_X_SKIP:
       return "MediaPlaylist";
 
     // ── Master Playlist Tags ────────────────────────────────────
-    // 主播放列表标签 — 只能出现在 Master Playlist 中
-    //
-    case "EXT-X-MEDIA":
-    // 替代呈现 / Alternative Rendition — AUDIO/VIDEO/SUBTITLES/CLOSED-CAPTIONS
-    case "EXT-X-STREAM-INF":
-    // 变体流 / Variant Stream — ABR 自适应码率
-    case "EXT-X-I-FRAME-STREAM-INF":
-    // I 帧变体流 / I-frame Variant Stream — 快进的独立 I 帧
-    case "EXT-X-SESSION-DATA":
-    // 会话数据 / Session data — 键值对或 JSON URI
-    case "EXT-X-SESSION-KEY":
-      // 会话加密密钥 / Session-wide encryption key
+    case T.EXT_X_MEDIA:
+    case T.EXT_X_STREAM_INF:
+    case T.EXT_X_I_FRAME_STREAM_INF:
+    case T.EXT_X_SESSION_DATA:
+    case T.EXT_X_SESSION_KEY:
       return "MasterPlaylist";
 
     // ── Media-or-Master Tags ────────────────────────────────────
-    // 通用标签 — Media Playlist 和 Master Playlist 均可使用
-    //
-    case "EXT-X-INDEPENDENT-SEGMENTS":
-    // 独立片段声明 / All segments independently decodable
-    case "EXT-X-START":
-    // 建议起始位置 / Preferred start point
-    case "EXT-X-DEFINE":
-      // 变量定义 / Variable definition — 名值对
+    case T.EXT_X_INDEPENDENT_SEGMENTS:
+    case T.EXT_X_START:
+    case T.EXT_X_DEFINE:
       return "MediaorMasterPlaylist";
 
     default:
@@ -411,20 +362,20 @@ function parseTagParam(name: string, param: string | null): TagParam {
   }
 
   switch (name) {
-    case "EXTM3U":
-    case "EXT-X-DISCONTINUITY":
-    case "EXT-X-ENDLIST":
-    case "EXT-X-I-FRAMES-ONLY":
-    case "EXT-X-INDEPENDENT-SEGMENTS":
-    case "EXT-X-CUE-IN":
-    case "EXT-X-GAP":
+    case T.EXTM3U:
+    case T.EXT_X_DISCONTINUITY:
+    case T.EXT_X_ENDLIST:
+    case T.EXT_X_I_FRAMES_ONLY:
+    case T.EXT_X_INDEPENDENT_SEGMENTS:
+    case T.EXT_X_CUE_IN:
+    case T.EXT_X_GAP:
       return [null, null];
-    case "EXT-X-VERSION":
-    case "EXT-X-TARGETDURATION":
-    case "EXT-X-MEDIA-SEQUENCE":
-    case "EXT-X-DISCONTINUITY-SEQUENCE":
+    case T.EXT_X_VERSION:
+    case T.EXT_X_TARGETDURATION:
+    case T.EXT_X_MEDIA_SEQUENCE:
+    case T.EXT_X_DISCONTINUITY_SEQUENCE:
       return [utils.toNumber(param), null];
-    case "EXT-X-CUE-OUT":
+    case T.EXT_X_CUE_OUT:
       // For backwards compatibility: attributes list is optional.
       // If only a number is found, use it as the duration.
       if (!Number.isNaN(Number(param))) {
@@ -432,31 +383,31 @@ function parseTagParam(name: string, param: string | null): TagParam {
       }
       // If attributes are found, parse them (e.g., DURATION=...)
       return [null, parseAttributeList(param)];
-    case "EXT-X-KEY":
-    case "EXT-X-MAP":
-    case "EXT-X-DATERANGE":
-    case "EXT-X-MEDIA":
-    case "EXT-X-STREAM-INF":
-    case "EXT-X-I-FRAME-STREAM-INF":
-    case "EXT-X-SESSION-DATA":
-    case "EXT-X-SESSION-KEY":
-    case "EXT-X-START":
-    case "EXT-X-SERVER-CONTROL":
-    case "EXT-X-PART-INF":
-    case "EXT-X-PART":
-    case "EXT-X-PRELOAD-HINT":
-    case "EXT-X-RENDITION-REPORT":
-    case "EXT-X-SKIP":
-    case "EXT-X-DEFINE":
-    case "EXT-X-CONTENT-STEERING":
+    case T.EXT_X_KEY:
+    case T.EXT_X_MAP:
+    case T.EXT_X_DATERANGE:
+    case T.EXT_X_MEDIA:
+    case T.EXT_X_STREAM_INF:
+    case T.EXT_X_I_FRAME_STREAM_INF:
+    case T.EXT_X_SESSION_DATA:
+    case T.EXT_X_SESSION_KEY:
+    case T.EXT_X_START:
+    case T.EXT_X_SERVER_CONTROL:
+    case T.EXT_X_PART_INF:
+    case T.EXT_X_PART:
+    case T.EXT_X_PRELOAD_HINT:
+    case T.EXT_X_RENDITION_REPORT:
+    case T.EXT_X_SKIP:
+    case T.EXT_X_DEFINE:
+    case T.EXT_X_CONTENT_STEERING:
       return [null, parseAttributeList(param)];
-    case "EXTINF":
+    case T.EXTINF:
       return [parseEXTINF(param), null];
-    case "EXT-X-BYTERANGE":
+    case T.EXT_X_BYTERANGE:
       return [parseBYTERANGE(param), null];
-    case "EXT-X-PROGRAM-DATE-TIME":
+    case T.EXT_X_PROGRAM_DATE_TIME:
       return [new Date(param), null];
-    case "EXT-X-PLAYLIST-TYPE":
+    case T.EXT_X_PLAYLIST_TYPE:
       return [param, null]; // <EVENT|VOD>
     default:
       return [param, null]; // Unknown tag - return raw value
@@ -495,8 +446,8 @@ function parseTag(line: string, params: ParseState): Tag | null {
   // 媒体播放列表标签（RENDITION-REPORT 和 PREFETCH 除外）同一类型只能出现一次
   if (
     category === "MediaPlaylist" &&
-    name !== "EXT-X-RENDITION-REPORT" &&
-    name !== "EXT-X-PREFETCH"
+    name !== T.EXT_X_RENDITION_REPORT &&
+    name !== T.EXT_X_PREFETCH
   ) {
     if (params.hash[name]) {
       utils.INVALIDPLAYLIST(
@@ -587,7 +538,7 @@ function lexicalParse(text: string, params: ParseState): Line[] {
   if (
     lines.length === 0 ||
     typeof lines[0] !== "object" ||
-    (lines[0] as Tag).name !== "EXTM3U"
+    (lines[0] as Tag).name !== T.EXTM3U
   ) {
     utils.INVALIDPLAYLIST("The EXTM3U tag MUST be the first line.");
   }
@@ -713,7 +664,7 @@ function parseVariant(
 
   // Attach matching renditions for this variant
   for (const line of lines) {
-    if (typeof line === "object" && line.name === "EXT-X-MEDIA") {
+    if (typeof line === "object" && line.name === T.EXT_X_MEDIA) {
       const renditionAttrs = line.attributes;
       const renditionType = renditionAttrs["TYPE"];
       if (!renditionType || !renditionAttrs["GROUP-ID"]) {
@@ -769,14 +720,14 @@ function parseMasterPlaylist(
     if (typeof line === "string") continue;
     const { name, value, attributes } = line;
 
-    if (name === "EXT-X-VERSION") {
+    if (name === T.EXT_X_VERSION) {
       playlist.version = value;
-    } else if (name === "EXT-X-CONTENT-STEERING") {
+    } else if (name === T.EXT_X_CONTENT_STEERING) {
       playlist.contentSteering = {
         serverUri: attributes["SERVER-URI"],
         pathwayId: attributes["PATHWAY-ID"],
       };
-    } else if (name === "EXT-X-STREAM-INF") {
+    } else if (name === T.EXT_X_STREAM_INF) {
       const uriLine = lines[index + 1];
       if (typeof uriLine !== "string" || uriLine.startsWith("#")) {
         utils.INVALIDPLAYLIST(
@@ -799,7 +750,7 @@ function parseMasterPlaylist(
         }
       }
       playlist.variants.push(variant);
-    } else if (name === "EXT-X-I-FRAME-STREAM-INF") {
+    } else if (name === T.EXT_X_I_FRAME_STREAM_INF) {
       const variant = parseVariant(
         lines,
         attributes,
@@ -808,7 +759,7 @@ function parseMasterPlaylist(
         params,
       );
       playlist.variants.push(variant);
-    } else if (name === "EXT-X-SESSION-DATA") {
+    } else if (name === T.EXT_X_SESSION_DATA) {
       const sessionData: SessionData = {
         id: attributes["DATA-ID"],
         value: attributes["VALUE"],
@@ -827,7 +778,7 @@ function parseMasterPlaylist(
         );
       }
       playlist.sessionDataList.push(sessionData);
-    } else if (name === "EXT-X-SESSION-KEY") {
+    } else if (name === T.EXT_X_SESSION_KEY) {
       if (attributes["METHOD"] === "NONE") {
         utils.INVALIDPLAYLIST(
           "EXT-X-SESSION-KEY: The value of the METHOD attribute MUST NOT be NONE",
@@ -847,14 +798,14 @@ function parseMasterPlaylist(
       }
       setCompatibleVersionOfKey(params, attributes);
       playlist.sessionKeyList.push(sessionKey);
-    } else if (name === "EXT-X-INDEPENDENT-SEGMENTS") {
+    } else if (name === T.EXT_X_INDEPENDENT_SEGMENTS) {
       if (playlist.independentSegments) {
         utils.INVALIDPLAYLIST(
           "EXT-X-INDEPENDENT-SEGMENTS tag MUST NOT appear more than once in a Playlist",
         );
       }
       playlist.independentSegments = true;
-    } else if (name === "EXT-X-START") {
+    } else if (name === T.EXT_X_START) {
       if (playlist.start) {
         utils.INVALIDPLAYLIST(
           "EXT-X-START tag MUST NOT appear more than once in a Playlist",
@@ -867,7 +818,7 @@ function parseMasterPlaylist(
         offset: attributes["TIME-OFFSET"],
         precise: attributes["PRECISE"] || false,
       };
-    } else if (name === "EXT-X-DEFINE") {
+    } else if (name === T.EXT_X_DEFINE) {
       if (!playlist.defines) playlist.defines = [];
       playlist.defines.push(attributes);
     }
@@ -953,7 +904,7 @@ function parseSegment(
     if (typeof lines[i] === "string") continue;
     const { name, value, attributes } = lines[i] as Tag;
 
-    if (name === "EXTINF") {
+    if (name === T.EXTINF) {
       if (!Number.isInteger(value.duration) && params.compatibleVersion < 3) {
         params.compatibleVersion = 3;
       }
@@ -964,24 +915,24 @@ function parseSegment(
       }
       segment.duration = value.duration;
       segment.title = value.title;
-    } else if (name === "EXT-X-BYTERANGE") {
+    } else if (name === T.EXT_X_BYTERANGE) {
       if (params.compatibleVersion < 4) {
         params.compatibleVersion = 4;
       }
       segment.byterange = value;
-    } else if (name === "EXT-X-DISCONTINUITY") {
+    } else if (name === T.EXT_X_DISCONTINUITY) {
       if (segment.parts && segment.parts.length > 0) {
         utils.INVALIDPLAYLIST(
           "EXT-X-DISCONTINUITY must appear before the first EXT-X-PART tag of the Parent Segment.",
         );
       }
       segment.discontinuity = true;
-    } else if (name === "EXT-X-GAP") {
+    } else if (name === T.EXT_X_GAP) {
       if (params.compatibleVersion < 8) {
         params.compatibleVersion = 8;
       }
       segment.gap = true;
-    } else if (name === "EXT-X-KEY") {
+    } else if (name === T.EXT_X_KEY) {
       if (segment.parts && segment.parts.length > 0) {
         utils.INVALIDPLAYLIST(
           "EXT-X-KEY must appear before the first EXT-X-PART tag of the Parent Segment.",
@@ -995,7 +946,7 @@ function parseSegment(
         format: attributes["KEYFORMAT"],
         formatVersion: attributes["KEYFORMATVERSIONS"],
       };
-    } else if (name === "EXT-X-MAP") {
+    } else if (name === T.EXT_X_MAP) {
       if (segment.parts && segment.parts.length > 0) {
         utils.INVALIDPLAYLIST(
           "EXT-X-MAP must appear before the first EXT-X-PART tag of the Parent Segment.",
@@ -1009,25 +960,25 @@ function parseSegment(
         uri: attributes["URI"],
         byterange: attributes["BYTERANGE"],
       };
-    } else if (name === "EXT-X-PROGRAM-DATE-TIME") {
+    } else if (name === T.EXT_X_PROGRAM_DATE_TIME) {
       segment.programDateTime = value;
-    } else if (name === "EXT-X-DATERANGE") {
+    } else if (name === T.EXT_X_DATERANGE) {
       segment.dateRange = parseDateRange(attributes);
-    } else if (name === "EXT-X-CUE-OUT") {
+    } else if (name === T.EXT_X_CUE_OUT) {
       if (!segment.markers) segment.markers = [];
       segment.markers.push({
         type: "OUT",
         duration: (attributes && attributes.DURATION) || value,
       });
-    } else if (name === "EXT-X-CUE-IN") {
+    } else if (name === T.EXT_X_CUE_IN) {
       if (!segment.markers) segment.markers = [];
       segment.markers.push({ type: "IN" });
     } else if (
-      name === "EXT-X-CUE-OUT-CONT" ||
-      name === "EXT-X-CUE" ||
-      name === "EXT-OATCLS-SCTE35" ||
-      name === "EXT-X-ASSET" ||
-      name === "EXT-X-SCTE35"
+      name === T.EXT_X_CUE_OUT_CONT ||
+      name === T.EXT_X_CUE ||
+      name === T.EXT_OATCLS_SCTE35 ||
+      name === T.EXT_X_ASSET ||
+      name === T.EXT_X_SCTE35
     ) {
       if (!segment.markers) segment.markers = [];
       segment.markers.push({
@@ -1035,10 +986,10 @@ function parseSegment(
         tagName: name,
         value,
       });
-    } else if (name === "EXT-X-PRELOAD-HINT" && !attributes["TYPE"]) {
+    } else if (name === T.EXT_X_PRELOAD_HINT && !attributes["TYPE"]) {
       utils.INVALIDPLAYLIST("EXT-X-PRELOAD-HINT: TYPE attribute is mandatory");
     } else if (
-      name === "EXT-X-PRELOAD-HINT" &&
+      name === T.EXT_X_PRELOAD_HINT &&
       attributes["TYPE"] === "PART" &&
       partHint
     ) {
@@ -1046,13 +997,13 @@ function parseSegment(
         "Servers should not add more than one EXT-X-PRELOAD-HINT tag with the same TYPE attribute to a Playlist.",
       );
     } else if (
-      (name === "EXT-X-PART" || name === "EXT-X-PRELOAD-HINT") &&
+      (name === T.EXT_X_PART || name === T.EXT_X_PRELOAD_HINT) &&
       !attributes["URI"]
     ) {
       utils.INVALIDPLAYLIST(
         "EXT-X-PART / EXT-X-PRELOAD-HINT: URI attribute is mandatory",
       );
-    } else if (name === "EXT-X-PRELOAD-HINT" && attributes["TYPE"] === "MAP") {
+    } else if (name === T.EXT_X_PRELOAD_HINT && attributes["TYPE"] === "MAP") {
       params.hasMap = true;
       segment.map = {
         hint: true,
@@ -1063,21 +1014,21 @@ function parseSegment(
         },
       };
     } else if (
-      name === "EXT-X-PART" ||
-      (name === "EXT-X-PRELOAD-HINT" && attributes["TYPE"] === "PART")
+      name === T.EXT_X_PART ||
+      (name === T.EXT_X_PRELOAD_HINT && attributes["TYPE"] === "PART")
     ) {
-      if (name === "EXT-X-PART" && !attributes["DURATION"]) {
+      if (name === T.EXT_X_PART && !attributes["DURATION"]) {
         utils.INVALIDPLAYLIST("EXT-X-PART: DURATION attribute is mandatory");
       }
-      if (name === "EXT-X-PRELOAD-HINT") {
+      if (name === T.EXT_X_PRELOAD_HINT) {
         partHint = true;
       }
       if (!segment.parts) segment.parts = [];
       const partialSegment: PartialSegment = {
-        hint: name === "EXT-X-PRELOAD-HINT",
+        hint: name === T.EXT_X_PRELOAD_HINT,
         uri: attributes["URI"],
         byterange:
-          name === "EXT-X-PART"
+          name === T.EXT_X_PART
             ? attributes["BYTERANGE"]
             : {
                 length: attributes["BYTERANGE-LENGTH"],
@@ -1121,17 +1072,17 @@ function parsePrefetchSegment(
     if (typeof lines[i] === "string") continue;
     const { name, attributes } = lines[i] as Tag;
 
-    if (name === "EXTINF") {
+    if (name === T.EXTINF) {
       utils.INVALIDPLAYLIST(
         "A prefetch segment must not be advertised with an EXTINF tag.",
       );
-    } else if (name === "EXT-X-DISCONTINUITY") {
+    } else if (name === T.EXT_X_DISCONTINUITY) {
       utils.INVALIDPLAYLIST(
         "A prefetch segment must not be advertised with an EXT-X-DISCONTINUITY tag.",
       );
-    } else if (name === "EXT-X-PREFETCH-DISCONTINUITY") {
+    } else if (name === T.EXT_X_PREFETCH_DISCONTINUITY) {
       segment.discontinuity = true;
-    } else if (name === "EXT-X-KEY") {
+    } else if (name === T.EXT_X_KEY) {
       setCompatibleVersionOfKey(params, attributes);
       segment.key = {
         method: attributes["METHOD"],
@@ -1140,7 +1091,7 @@ function parsePrefetchSegment(
         format: attributes["KEYFORMAT"],
         formatVersion: attributes["KEYFORMATVERSIONS"],
       };
-    } else if (name === "EXT-X-MAP") {
+    } else if (name === T.EXT_X_MAP) {
       utils.INVALIDPLAYLIST(
         "Prefetch segments must not be advertised with an EXT-X-MAP tag.",
       );
@@ -1437,7 +1388,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
     const { name, value, attributes, category } = line as Tag;
 
     // Handle EXT-X-DATERANGE at playlist level (before category segmentation)
-    if (name === "EXT-X-DATERANGE") {
+    if (name === T.EXT_X_DATERANGE) {
       const dateRange = parseDateRange(attributes);
       playlist.dateRanges.push(dateRange);
     }
@@ -1449,7 +1400,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       continue;
     }
 
-    if (name === "EXT-X-VERSION") {
+    if (name === T.EXT_X_VERSION) {
       if (playlist.version === undefined) {
         playlist.version = value;
       } else {
@@ -1457,9 +1408,9 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
           "A Playlist file MUST NOT contain more than one EXT-X-VERSION tag.",
         );
       }
-    } else if (name === "EXT-X-TARGETDURATION") {
+    } else if (name === T.EXT_X_TARGETDURATION) {
       playlist.targetDuration = params.targetDuration = value;
-    } else if (name === "EXT-X-MEDIA-SEQUENCE") {
+    } else if (name === T.EXT_X_MEDIA_SEQUENCE) {
       if (playlist.segments.length > 0) {
         utils.INVALIDPLAYLIST(
           "The EXT-X-MEDIA-SEQUENCE tag MUST appear before the first Media Segment in the Playlist.",
@@ -1467,7 +1418,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       }
       playlist.mediaSequenceBase = value;
       mediaSequence = value;
-    } else if (name === "EXT-X-DISCONTINUITY-SEQUENCE") {
+    } else if (name === T.EXT_X_DISCONTINUITY_SEQUENCE) {
       if (playlist.segments.length > 0) {
         utils.INVALIDPLAYLIST(
           "The EXT-X-DISCONTINUITY-SEQUENCE tag MUST appear before the first Media Segment in the Playlist.",
@@ -1480,23 +1431,23 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       }
       playlist.discontinuitySequenceBase = value;
       discontinuitySequence = value;
-    } else if (name === "EXT-X-ENDLIST") {
+    } else if (name === T.EXT_X_ENDLIST) {
       playlist.endlist = true;
-    } else if (name === "EXT-X-PLAYLIST-TYPE") {
+    } else if (name === T.EXT_X_PLAYLIST_TYPE) {
       playlist.playlistType = value;
-    } else if (name === "EXT-X-I-FRAMES-ONLY") {
+    } else if (name === T.EXT_X_I_FRAMES_ONLY) {
       if (params.compatibleVersion < 4) {
         params.compatibleVersion = 4;
       }
       playlist.isIFrame = true;
-    } else if (name === "EXT-X-INDEPENDENT-SEGMENTS") {
+    } else if (name === T.EXT_X_INDEPENDENT_SEGMENTS) {
       if (playlist.independentSegments) {
         utils.INVALIDPLAYLIST(
           "EXT-X-INDEPENDENT-SEGMENTS tag MUST NOT appear more than once in a Playlist",
         );
       }
       playlist.independentSegments = true;
-    } else if (name === "EXT-X-START") {
+    } else if (name === T.EXT_X_START) {
       if (playlist.start) {
         utils.INVALIDPLAYLIST(
           "EXT-X-START tag MUST NOT appear more than once in a Playlist",
@@ -1509,7 +1460,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
         offset: attributes["TIME-OFFSET"],
         precise: attributes["PRECISE"] || false,
       };
-    } else if (name === "EXT-X-SERVER-CONTROL") {
+    } else if (name === T.EXT_X_SERVER_CONTROL) {
       if (!attributes["CAN-BLOCK-RELOAD"]) {
         utils.INVALIDPLAYLIST(
           "EXT-X-SERVER-CONTROL: CAN-BLOCK-RELOAD=YES is mandatory for Low-Latency HLS",
@@ -1521,14 +1472,14 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
         holdBack: attributes["HOLD-BACK"],
         partHoldBack: attributes["PART-HOLD-BACK"],
       };
-    } else if (name === "EXT-X-PART-INF") {
+    } else if (name === T.EXT_X_PART_INF) {
       if (!attributes["PART-TARGET"]) {
         utils.INVALIDPLAYLIST(
           "EXT-X-PART-INF: PART-TARGET attribute is mandatory",
         );
       }
       playlist.partTargetDuration = attributes["PART-TARGET"];
-    } else if (name === "EXT-X-RENDITION-REPORT") {
+    } else if (name === T.EXT_X_RENDITION_REPORT) {
       if (!attributes["URI"]) {
         utils.INVALIDPLAYLIST(
           "EXT-X-RENDITION-REPORT: URI attribute is mandatory",
@@ -1544,7 +1495,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
         lastMSN: attributes["LAST-MSN"],
         lastPart: attributes["LAST-PART"],
       });
-    } else if (name === "EXT-X-SKIP") {
+    } else if (name === T.EXT_X_SKIP) {
       if (!attributes["SKIPPED-SEGMENTS"]) {
         utils.INVALIDPLAYLIST(
           "EXT-X-SKIP: SKIPPED-SEGMENTS attribute is mandatory",
@@ -1555,7 +1506,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       }
       playlist.skip = attributes["SKIPPED-SEGMENTS"];
       mediaSequence += playlist.skip!;
-    } else if (name === "EXT-X-PREFETCH") {
+    } else if (name === T.EXT_X_PREFETCH) {
       const segment = parsePrefetchSegment(
         lines,
         value,
@@ -1575,7 +1526,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       playlist.prefetchSegments.push(segment);
       prefetchFound = true;
       segmentStart = -1;
-    } else if (name === "EXT-X-DEFINE") {
+    } else if (name === T.EXT_X_DEFINE) {
       if (!playlist.defines) playlist.defines = [];
       playlist.defines.push(attributes);
     }
