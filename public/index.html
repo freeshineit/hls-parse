@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>HLS M3U8 解析器</title>
+        <link href="./style.css" rel="stylesheet" />
+    </head>
+    <body>
+        <header class="app-header">
+            <h1>📺 HLS M3U8 解析器</h1>
+            <span class="badge">hls-parse</span>
+            <span class="version">v1.0.0 · RFC 8216 · LL-HLS</span>
+        </header>
+        <div class="container">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="url">
+                    🌐 从 URL 获取
+                </button>
+                <button class="tab-btn" data-tab="text">📝 粘贴文本</button>
+            </div>
+            <div class="tab-panel active" id="tab-url">
+                <div class="form-group">
+                    <label>M3U8 播放列表地址</label>
+                    <div class="form-row">
+                        <input
+                            type="url"
+                            id="url-input"
+                            value="https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
+                        />
+                        <button class="btn btn-primary" id="fetch-btn">
+                            📥 获取并解析
+                        </button>
+                    </div>
+                </div>
+                <div class="samples">
+                    <label>示例 URL</label>
+                    <div class="sample-btns">
+                        <button
+                            class="sample-btn"
+                            data-url="https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
+                        >
+                            Sintel Master
+                        </button>
+                        <button
+                            class="sample-btn"
+                            data-url="https://bitdash-a.akamaihd.net/content/sintel/hls/video/1000k.m3u8"
+                        >
+                            Sintel Media
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-panel" id="tab-text">
+                <div class="form-group">
+                    <label>粘贴 M3U8 内容</label>
+                    <textarea id="text-input" rows="12"></textarea>
+                </div>
+                <div class="samples">
+                    <label>示例内容</label>
+                    <div class="sample-btns">
+                        <button class="sample-btn" data-sample="master">
+                            Master
+                        </button>
+                        <button class="sample-btn" data-sample="media">
+                            Media
+                        </button>
+                        <button class="sample-btn" data-sample="llhls">
+                            LL-HLS
+                        </button>
+                        <button class="sample-btn" data-sample="encrypted">
+                            加密
+                        </button>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="parse-btn">🔍 解析</button>
+            </div>
+            <div class="status-bar" id="status"></div>
+            <div id="results">
+                <div id="empty-placeholder">
+                    <div class="icon">📋</div>
+                    <h3>输入 M3U8 内容开始解析</h3>
+                    <p>从 URL 获取或直接粘贴播放列表文本</p>
+                </div>
+            </div>
+        </div>
+        <script src="./browser/hls-parse.umd.js"></script>
+        <script src="./demo.js"></script>
+    </body>
+</html>
