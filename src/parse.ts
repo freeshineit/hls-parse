@@ -88,55 +88,119 @@ interface ParseState {
 /**
  * Determines the category of an HLS tag based on RFC 8216.
  * Categories determine which playlist type the tag belongs to.
+ *
+ * 根据 RFC 8216 判断 HLS tag 的分类。
+ * 分类决定了该 tag 属于哪种播放列表类型。
  */
 function getTagCategory(tagName: string): TagCategory {
   switch (tagName) {
+    // ── Basic Tags ──────────────────────────────────────────────
+    // 基础标签 — Media Playlist 和 Master Playlist 均可使用
+    //
     case "EXTM3U":
+    // 文件格式标识符 / Format identifier — 必须是第一行
     case "EXT-X-VERSION":
+    // 协议兼容版本号 / Protocol compatibility version
     case "EXT-X-CONTENT-STEERING":
+      // 内容转向服务器配置 / Content Steering server URI (RFC 8216bis)
       return "Basic";
+
+    // ── Media Segment Tags ──────────────────────────────────────
+    // 媒体片段标签 — 只能出现在 Media Playlist 中，用于描述媒体片段
+    //
     case "EXTINF":
+    // 片段时长及标题 / Segment duration and optional title — 每个片段必须
     case "EXT-X-BYTERANGE":
+    // 子范围字节区间 / Sub-range byte range — 片段是资源的子集
     case "EXT-X-DISCONTINUITY":
+    // 不连续标记 / Discontinuity marker — 编码参数或格式变化
     case "EXT-X-PREFETCH-DISCONTINUITY":
+    // LL-HLS 预取不连续 / LL-HLS prefetch segment discontinuity
     case "EXT-X-KEY":
+    // 加密密钥 / Encryption key — AES-128 / SAMPLE-AES / NONE
     case "EXT-X-MAP":
+    // 媒体初始化段 / Media Initialization Section — fMP4 init 等
     case "EXT-X-PROGRAM-DATE-TIME":
+    // 绝对日期时间 / Absolute wall-clock date-time
     case "EXT-X-DATERANGE":
+    // 日期范围元数据 / Date range metadata — 广告插播 / SCTE-35
     case "EXT-X-CUE-OUT":
+    // 广告插播开始 / Splice-out (ad break start)
     case "EXT-X-CUE-IN":
+    // 广告插播结束 / Splice-in (ad break end)
     case "EXT-X-CUE-OUT-CONT":
+    // 广告插播延续 / Splice-out continuation
     case "EXT-X-CUE":
+    // 通用提示标记 / Generic cue marker
     case "EXT-OATCLS-SCTE35":
+    // OATCLS SCTE-35 数据 / OATCLS SCTE-35 payload
     case "EXT-X-ASSET":
+    // 资产元数据 / Asset metadata (CAID)
     case "EXT-X-SCTE35":
+    // SCTE-35 数据 / SCTE-35 payload
     case "EXT-X-PART":
+    // LL-HLS 部分片段 / LL-HLS partial segment
     case "EXT-X-PRELOAD-HINT":
+    // LL-HLS 预加载提示 / LL-HLS preload hint (PART 或 MAP)
     case "EXT-X-GAP":
+      // 间隔片段标记 / Gap segment marker — 无内容占位
       return "Segment";
+
+    // ── Media Playlist Tags ─────────────────────────────────────
+    // 媒体播放列表全局标签 — 只能出现在 Media Playlist 中，描述全局参数
+    //
     case "EXT-X-TARGETDURATION":
+    // 最大片段时长(秒) / Maximum segment duration (seconds) — 必须
     case "EXT-X-MEDIA-SEQUENCE":
+    // 媒体序列号基数 / Base Media Sequence Number
     case "EXT-X-DISCONTINUITY-SEQUENCE":
+    // 不连续序列号基数 / Base Discontinuity Sequence Number
     case "EXT-X-ENDLIST":
+    // 播放列表终止标记 / End-of-playlist marker — VOD 末尾
     case "EXT-X-PLAYLIST-TYPE":
+    // 播放列表类型 / Playlist type — EVENT 或 VOD
     case "EXT-X-I-FRAMES-ONLY":
+    // 仅 I 帧播放列表 / I-frame only playlist — 快进/倒放
     case "EXT-X-SERVER-CONTROL":
+    // LL-HLS 服务端控制参数 / LL-HLS server control parameters
     case "EXT-X-PART-INF":
+    // LL-HLS 部分片段目标时长 / LL-HLS partial segment PART-TARGET
     case "EXT-X-PREFETCH":
+    // LL-HLS 预取片段 / LL-HLS prefetch segment
     case "EXT-X-RENDITION-REPORT":
+    // LL-HLS 呈现报告 / LL-HLS rendition report
     case "EXT-X-SKIP":
+      // LL-HLS 跳过片段 / LL-HLS skip segments
       return "MediaPlaylist";
+
+    // ── Master Playlist Tags ────────────────────────────────────
+    // 主播放列表标签 — 只能出现在 Master Playlist 中
+    //
     case "EXT-X-MEDIA":
+    // 替代呈现 / Alternative Rendition — AUDIO/VIDEO/SUBTITLES/CLOSED-CAPTIONS
     case "EXT-X-STREAM-INF":
+    // 变体流 / Variant Stream — ABR 自适应码率
     case "EXT-X-I-FRAME-STREAM-INF":
+    // I 帧变体流 / I-frame Variant Stream — 快进的独立 I 帧
     case "EXT-X-SESSION-DATA":
+    // 会话数据 / Session data — 键值对或 JSON URI
     case "EXT-X-SESSION-KEY":
+      // 会话加密密钥 / Session-wide encryption key
       return "MasterPlaylist";
+
+    // ── Media-or-Master Tags ────────────────────────────────────
+    // 通用标签 — Media Playlist 和 Master Playlist 均可使用
+    //
     case "EXT-X-INDEPENDENT-SEGMENTS":
+    // 独立片段声明 / All segments independently decodable
     case "EXT-X-START":
+    // 建议起始位置 / Preferred start point
     case "EXT-X-DEFINE":
+      // 变量定义 / Variable definition — 名值对
       return "MediaorMasterPlaylist";
+
     default:
+      // 未知标签 — 按 RFC 8216 要求应忽略 / Unknown tag — MUST be ignored per RFC
       return "Unknown";
   }
 }
@@ -402,6 +466,8 @@ function parseTagParam(name: string, param: string | null): TagParam {
 /**
  * Throws a mixed tags error when a playlist contains both
  * media and master playlist tags.
+ *
+ * 当播放列表同时包含 Media 和 Master 标签时抛出混合标签错误。
  */
 function MIXEDTAGS(): never {
   utils.INVALIDPLAYLIST(
@@ -415,15 +481,18 @@ function MIXEDTAGS(): never {
 
 /**
  * Parses a single tag line and determines its category.
+ *
+ * 解析单个 tag 行并判断其分类。
  */
 function parseTag(line: string, params: ParseState): Tag | null {
   const [name, param] = splitTag(line);
   const category = getTagCategory(name);
   CHECKTAGCATEGORY(category, params);
   if (category === "Unknown") {
-    return null;
+    return null; // RFC 8216: unrecognized tags MUST be ignored / 未识别标签必须忽略
   }
   // Media playlist tags (except RENDITION-REPORT and PREFETCH) must be unique
+  // 媒体播放列表标签（RENDITION-REPORT 和 PREFETCH 除外）同一类型只能出现一次
   if (
     category === "MediaPlaylist" &&
     name !== "EXT-X-RENDITION-REPORT" &&
@@ -443,28 +512,39 @@ function parseTag(line: string, params: ParseState): Tag | null {
 /**
  * Checks that the tag category is consistent with the playlist type.
  * Ensures master and media tags aren't mixed.
+ *
+ * 检查 tag 分类是否与播放列表类型一致。
+ * 确保 Master 和 Media 标签不会混用。
+ *
+ * Logic / 逻辑:
+ *   - Segment / MediaPlaylist → 设定 isMasterPlaylist = false
+ *   - MasterPlaylist          → 设定 isMasterPlaylist = true
+ *   - 如果已设定为相反类型 → 抛出 MIXEDTAGS 错误
+ *   - Basic / MediaorMasterPlaylist / Unknown → 不改变判定
  */
 function CHECKTAGCATEGORY(category: TagCategory, params: ParseState) {
   if (category === "Segment" || category === "MediaPlaylist") {
+    // 媒体标签 → 判定为 Media Playlist
     if (params.isMasterPlaylist === undefined) {
       params.isMasterPlaylist = false;
       return;
     }
     if (params.isMasterPlaylist) {
-      MIXEDTAGS();
+      MIXEDTAGS(); // 之前判定为 Master，现在出现媒体标签 → 混用
     }
     return;
   }
   if (category === "MasterPlaylist") {
+    // 主播放列表标签 → 判定为 Master Playlist
     if (params.isMasterPlaylist === undefined) {
       params.isMasterPlaylist = true;
       return;
     }
     if (params.isMasterPlaylist === false) {
-      MIXEDTAGS();
+      MIXEDTAGS(); // 之前判定为 Media，现在出现主列表标签 → 混用
     }
   }
-  // category === 'Basic' or 'MediaorMasterPlaylist' or 'Unknown'
+  // Basic / MediaorMasterPlaylist / Unknown → 不改变类型判定
 }
 
 // ---------------------------------------------------------------------------

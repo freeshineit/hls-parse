@@ -1,367 +1,577 @@
 /**
  * HLS Playlist Type Definitions
  *
- * Based on RFC 8216 (HTTP Live Streaming) and the LL-HLS (Low-Latency HLS) extensions.
+ * All types conforming to {@link https://datatracker.ietf.org/doc/html/rfc8216 | RFC 8216}
+ * (HTTP Live Streaming) and LL-HLS (Low-Latency HLS) extensions.
+ *
+ * @remarks
+ * All URIs in these types will be resolved to absolute when
+ * {@link ParseOptions.uri} is provided to {@link parse}.
+ *
+ * @module types
+ * @category Types
  */
 
-/** Media Initialization Section (EXT-X-MAP) */
+/**
+ * Media Initialization Section.
+ *
+ * Corresponds to the `#EXT-X-MAP` tag.
+ * Contains the URI and optional byte range of the initialization resource
+ * required to parse applicable Media Segments.
+ *
+ * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.5 | RFC 8216 §4.3.2.5}
+ */
 export interface MediaInitializationSection {
-  /** Whether this is a preload hint (LL-HLS) */
+  /** Whether this is a preload hint (LL-HLS). */
   hint?: boolean;
-  /** URI to the initialization section resource */
+  /** URI to the initialization section resource. */
   uri: string;
-  /** Byte range within the resource */
+  /** Byte range within the resource. */
   byterange?: Byterange;
 }
 
-/** Byte range specification */
+/**
+ * Byte range specification.
+ *
+ * Corresponds to the `#EXT-X-BYTERANGE` tag value.
+ *
+ * @remarks
+ * When `offset` is `-1` it indicates the sub-range begins at the next byte
+ * following the sub-range of the previous Media Segment.
+ *
+ * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.2 | RFC 8216 §4.3.2.2}
+ */
 export interface Byterange {
-  /** Length of the byte range in bytes */
+  /** Length of the byte range in bytes. */
   length: number;
-  /** Start offset from the beginning of the resource (optional, -1 if not present) */
+  /**
+   * Start offset in bytes.
+   *
+   * @defaultValue `-1` (implicit offset)
+   */
   offset: number;
 }
 
-/** Resolution specification (width x height) */
+/**
+ * Display resolution.
+ *
+ * Corresponds to the `RESOLUTION` attribute value.
+ *
+ * @example `{ width: 1920, height: 1080 }` for `RESOLUTION=1920x1080`
+ */
 export interface Resolution {
+  /** Horizontal pixel dimension. */
   width: number;
+  /** Vertical pixel dimension. */
   height: number;
 }
 
-/** Encryption key information (EXT-X-KEY) */
+/**
+ * Encryption / decryption key.
+ *
+ * Corresponds to `#EXT-X-KEY` and `#EXT-X-SESSION-KEY` tags.
+ *
+ * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.4 | RFC 8216 §4.3.2.4}
+ */
 export interface Key {
-  /** Encryption method: NONE, AES-128, SAMPLE-AES */
+  /**
+   * Encryption method.
+   *
+   * @remarks Valid values: `"NONE"`, `"AES-128"`, `"SAMPLE-AES"`.
+   */
   method: string;
-  /** URI to obtain the key */
+  /** URI to obtain the key file. */
   uri?: string;
-  /** Initialization Vector (128-bit) */
+  /**
+   * Initialization Vector.
+   *
+   * @remarks Must be exactly 128 bits (16 bytes) when present.
+   */
   iv?: Uint8Array;
-  /** Key format (e.g., "identity") */
+  /**
+   * Key format identifier.
+   *
+   * @defaultValue `"identity"`
+   */
   format?: string;
-  /** Key format versions */
+  /** Key format version(s), separated by `/`. */
   formatVersion?: string;
 }
 
-/** EXTINF tag data */
+/**
+ * Parsed `#EXTINF` tag data.
+ *
+ * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.1 | RFC 8216 §4.3.2.1}
+ */
 export interface ExtInfo {
-  /** Segment duration in seconds */
+  /** Segment duration in seconds. */
   duration: number;
-  /** Optional human-readable title */
+  /** Optional human-readable title. */
   title?: string;
 }
 
-/** Partial segment (EXT-X-PART) for LL-HLS */
+/**
+ * Partial segment for Low-Latency HLS.
+ *
+ * Corresponds to `#EXT-X-PART` and `#EXT-X-PRELOAD-HINT` (TYPE=PART) tags.
+ *
+ * @beta LL-HLS feature
+ */
 export interface PartialSegment {
-  /** Whether this is a preload hint (EXT-X-PRELOAD-HINT) */
+  /** Whether this is a preload hint (`#EXT-X-PRELOAD-HINT`). */
   hint?: boolean;
-  /** URI to the partial segment */
+  /** URI to the partial segment. */
   uri: string;
-  /** Byte range within the resource */
+  /** Byte range within the resource. */
   byterange?: Byterange;
-  /** Duration in seconds */
+  /** Duration in seconds. */
   duration?: number;
-  /** Whether this segment can be decoded independently */
+  /** Whether this segment can be decoded independently. */
   independent?: boolean;
-  /** Whether this segment is a gap */
+  /** Whether this segment is a gap. */
   gap?: boolean;
 }
 
-/** Prefetch segment (EXT-X-PREFETCH) for LL-HLS */
+/**
+ * Prefetch segment for Low-Latency HLS.
+ *
+ * Corresponds to the `#EXT-X-PREFETCH` tag.
+ *
+ * @beta LL-HLS feature
+ */
 export interface PrefetchSegment {
-  /** URI of the prefetch segment */
+  /** URI of the prefetch segment. */
   uri: string;
-  /** Media Sequence Number */
+  /** Media Sequence Number. */
   mediaSequenceNumber: number;
-  /** Discontinuity Sequence Number */
+  /** Discontinuity Sequence Number. */
   discontinuitySequence: number;
-  /** Whether this segment indicates a discontinuity */
+  /** Whether this segment indicates a discontinuity. */
   discontinuity?: boolean;
-  /** Encryption key */
+  /** Encryption key (inherited from previous segment if not specified). */
   key?: Key | null;
 }
 
-/** Media Segment */
+/**
+ * Media Segment.
+ *
+ * Represents a single segment in a Media Playlist, including all associated tags
+ * (`#EXTINF`, `#EXT-X-KEY`, `#EXT-X-MAP`, `#EXT-X-BYTERANGE`, etc.).
+ */
 export interface Segment {
-  /** URI of the media segment */
+  /** URI of the media segment. */
   uri: string;
-  /** Duration in seconds (from EXTINF) */
+  /** Duration in seconds (from `#EXTINF`). */
   duration?: number;
-  /** Optional title (from EXTINF) */
+  /** Optional title (from `#EXTINF`). */
   title?: string;
-  /** Byte range within the resource */
+  /** Byte range within the resource (from `#EXT-X-BYTERANGE`). */
   byterange?: Byterange;
-  /** Media Sequence Number */
+  /** Media Sequence Number. */
   mediaSequenceNumber: number;
-  /** Discontinuity Sequence Number */
+  /** Discontinuity Sequence Number. */
   discontinuitySequence: number;
-  /** Whether this segment is a discontinuity */
+  /** Whether this segment is a discontinuity (`#EXT-X-DISCONTINUITY`). */
   discontinuity?: boolean;
-  /** Whether this segment is a gap (EXT-X-GAP) */
+  /** Whether this segment is a gap (`#EXT-X-GAP`). */
   gap?: boolean;
-  /** Encryption key */
+  /** Encryption key (`#EXT-X-KEY`). Inherited if not present. */
   key?: Key | null;
-  /** Media Initialization Section (EXT-X-MAP) */
+  /** Media Initialization Section (`#EXT-X-MAP`). Inherited if not present. */
   map?: MediaInitializationSection | null;
-  /** Program date/time */
+  /** Program date/time (`#EXT-X-PROGRAM-DATE-TIME`). */
   programDateTime?: Date;
-  /** Date range metadata */
+  /** Date range metadata (`#EXT-X-DATERANGE`). */
   dateRange?: DateRange;
-  /** Splice/marker information */
+  /** Splice / marker information. */
   markers?: SpliceInfo[];
-  /** Partial segments (LL-HLS) */
+  /** Partial segments (LL-HLS `#EXT-X-PART` / `#EXT-X-PRELOAD-HINT`). */
   parts?: PartialSegment[];
 }
 
-/** Date Range (EXT-X-DATERANGE) */
+/**
+ * Date Range metadata.
+ *
+ * Corresponds to the `#EXT-X-DATERANGE` tag.
+ *
+ * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.7 | RFC 8216 §4.3.2.7}
+ */
 export interface DateRange {
-  /** Unique identifier */
+  /** Unique identifier. */
   id: string;
-  /** Class name */
+  /** CLASS name grouping ranges with shared semantics. */
   classId?: string;
-  /** Start date/time */
+  /** Start date/time. */
   start: Date;
-  /** Cue information */
+  /** Cue information. */
   cue?: string;
-  /** End date/time */
+  /** End date/time. */
   end?: Date;
-  /** Duration in seconds */
+  /** Duration in seconds. */
   duration?: number;
-  /** Planned duration in seconds */
+  /** Expected duration (when actual is not yet known). */
   plannedDuration?: number;
-  /** Whether this range ends on the next range of the same CLASS */
+  /**
+   * Whether this range ends at the start of the next range of the same CLASS.
+   *
+   * @remarks Cannot coexist with `duration` or `end`.
+   */
   endOnNext?: boolean;
-  /** Custom attributes (X- and SCTE35- prefixed) */
+  /** Custom attributes (SCTE35- and X- prefixed). */
   attributes?: Record<string, any>;
 }
 
-/** Splice/marker information */
+/**
+ * Splice / marker information.
+ *
+ * Carried by `#EXT-X-CUE-OUT`, `#EXT-X-CUE-IN`, and raw SCTE-35 tags.
+ */
 export interface SpliceInfo {
-  /** Type: OUT, IN, or RAW */
-  type: 'OUT' | 'IN' | 'RAW';
-  /** Duration (for OUT type) */
+  /** Marker type. */
+  type: "OUT" | "IN" | "RAW";
+  /** Duration in seconds (for `OUT` type). */
   duration?: number;
-  /** Tag name (for RAW type) */
+  /** Original tag name (for `RAW` type). */
   tagName?: string;
-  /** Raw value */
+  /** Raw tag value. */
   value?: any;
 }
 
-/** Rendition (EXT-X-MEDIA) */
+/**
+ * Alternative Rendition.
+ *
+ * Corresponds to the `#EXT-X-MEDIA` tag.
+ *
+ * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.4.1 | RFC 8216 §4.3.4.1}
+ */
 export interface Rendition {
-  /** Media type: AUDIO, VIDEO, SUBTITLES, CLOSED-CAPTIONS */
+  /** Media type: `"AUDIO"`, `"VIDEO"`, `"SUBTITLES"`, or `"CLOSED-CAPTIONS"`. */
   type: string;
-  /** URI of the media playlist */
+  /** URI of the media playlist (optional for AUDIO/VIDEO). */
   uri?: string;
-  /** Rendition group ID */
+  /** Rendition group ID. */
   groupId: string;
-  /** Primary language */
+  /** Primary language (RFC 5646 tag). */
   language?: string;
-  /** Associated language */
+  /** Associated language (RFC 5646 tag). */
   assocLanguage?: string;
-  /** Human-readable name */
+  /** Human-readable name. */
   name: string;
-  /** Whether this is the default rendition */
+  /** Whether this is the default rendition. */
   isDefault?: boolean;
-  /** Whether this rendition can be auto-selected */
+  /** Whether this can be auto-selected. */
   autoselect?: boolean;
-  /** Whether this rendition is forced (SUBTITLES only) */
+  /** Whether this is forced (SUBTITLES only). */
   forced?: boolean;
-  /** In-stream ID (CLOSED-CAPTIONS) */
+  /**
+   * In-stream ID.
+   *
+   * @remarks Required when `type` is `"CLOSED-CAPTIONS"`.
+   * Valid: `"CC1"`-`"CC4"`, `"SERVICE1"`-`"SERVICE63"`.
+   */
   instreamId?: string;
-  /** Characteristics (UTIs) */
+  /** Uniform Type Identifiers (UTIs), comma-separated. */
   characteristics?: string;
-  /** Audio channel information */
+  /** Audio channel count and parameters. */
   channels?: string;
-  /** Pathway ID (content steering) */
+  /** Pathway ID for content steering. */
   pathwayId?: string;
 }
 
-/** Variant Stream (EXT-X-STREAM-INF / EXT-X-I-FRAME-STREAM-INF) */
+/**
+ * Variant Stream.
+ *
+ * Corresponds to `#EXT-X-STREAM-INF` or `#EXT-X-I-FRAME-STREAM-INF`.
+ *
+ * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.4.2 | RFC 8216 §4.3.4.2}
+ */
 export interface Variant {
-  /** URI of the media playlist */
+  /** URI of the media playlist. */
   uri: string;
-  /** Peak bit rate in bits per second */
+  /** Peak bit rate in bits per second. */
   bandwidth: number;
-  /** Average bit rate in bits per second */
+  /** Average bit rate in bits per second. */
   averageBandwidth?: number;
-  /** Variant score (for LL-HLS) */
+  /**
+   * Variant SCORE (LL-HLS), used for prioritised playlist reload.
+   *
+   * @remarks If any variant has a SCORE, all variants SHOULD have one.
+   */
   score?: number;
-  /** Codec identifiers */
+  /** Codec identifiers (RFC 6381). */
   codecs?: string;
-  /** Optimal display resolution */
+  /** Optimal display resolution. */
   resolution?: Resolution;
-  /** Maximum frame rate */
+  /** Maximum frame rate (rounded to 3 decimal places). */
   frameRate?: number;
-  /** HDCP level */
+  /** HDCP level: `"TYPE-0"` or `"NONE"`. */
   hdcpLevel?: string;
-  /** Allowed CPC */
+  /** Allowed Content Protection Configurations. */
   allowedCpc?: AllowedCpc[];
-  /** Video range (SDR, HLG, PQ) */
+  /** Video range: `"SDR"`, `"HLG"`, or `"PQ"`. */
   videoRange?: string;
-  /** Stable variant identifier */
+  /** Stable variant identifier. */
   stableVariantId?: string;
-  /** Pathway ID */
+  /** Pathway ID for content steering. */
   pathwayId?: string;
-  /** Program ID (deprecated) */
+  /** Program ID.
+   *
+   * @deprecated Removed in protocol version 6.
+   */
   programId?: number;
-  /** Whether this is an I-frame variant */
+  /** Whether this is an I-frame variant (`#EXT-X-I-FRAME-STREAM-INF`). */
   isIFrameOnly?: boolean;
-  /** Audio renditions matching this variant's GROUP-ID */
+  /** Audio renditions matching this variant's GROUP-ID. */
   audio?: Rendition[];
-  /** Video renditions matching this variant's GROUP-ID */
+  /** Video renditions matching this variant's GROUP-ID. */
   video?: Rendition[];
-  /** Subtitle renditions matching this variant's GROUP-ID */
+  /** Subtitle renditions matching this variant's GROUP-ID. */
   subtitles?: Rendition[];
-  /** Closed-caption renditions matching this variant's GROUP-ID */
+  /** Closed-caption renditions matching this variant's GROUP-ID. */
   closedCaptions?: Rendition[];
 }
 
-/** Allowed CPC entry */
+/**
+ * Allowed Content Protection Configuration entry.
+ *
+ * Part of the `ALLOWED-CPC` attribute value.
+ */
 export interface AllowedCpc {
+  /** Content protection format identifier. */
   format: string;
+  /** List of Content Protection Configurations. */
   cpcList: string[];
 }
 
-/** Session Data (EXT-X-SESSION-DATA) */
+/**
+ * Session Data.
+ *
+ * Corresponds to the `#EXT-X-SESSION-DATA` tag.
+ *
+ * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.4.4 | RFC 8216 §4.3.4.4}
+ */
 export interface SessionData {
-  /** Data identifier */
+  /** Data identifier (reverse-DNS recommended). */
   id: string;
-  /** Value (if inline) */
+  /** Inline value (mutually exclusive with `uri`). */
   value?: string;
-  /** URI to JSON resource */
+  /** URI to a JSON resource (mutually exclusive with `value`). */
   uri?: string;
-  /** Language */
+  /** Language of the value (RFC 5646 tag). */
   language?: string;
 }
 
-/** Content Steering (EXT-X-CONTENT-STEERING) */
+/**
+ * Content Steering configuration.
+ *
+ * Corresponds to the `#EXT-X-CONTENT-STEERING` tag.
+ */
 export interface ContentSteering {
-  /** Server URI for steering manifest */
+  /** Server URI for the steering manifest. */
   serverUri: string;
-  /** Pathway ID to use */
+  /** Pathway ID to use. */
   pathwayId?: string;
 }
 
-/** Rendition Report (EXT-X-RENDITION-REPORT) for LL-HLS */
+/**
+ * Rendition Report for Low-Latency HLS.
+ *
+ * Corresponds to the `#EXT-X-RENDITION-REPORT` tag.
+ *
+ * @beta LL-HLS feature
+ */
 export interface RenditionReport {
-  /** URI of the rendition playlist (relative) */
+  /** URI of the rendition playlist (must be relative). */
   uri: string;
-  /** Last Media Sequence Number */
+  /** Last Media Sequence Number. */
   lastMSN?: number;
-  /** Last Part index */
+  /** Last Part index. */
   lastPart?: number;
 }
 
-/** Start offset information (EXT-X-START) */
+/**
+ * Preferred start position.
+ *
+ * Corresponds to the `#EXT-X-START` tag.
+ *
+ * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.5.2 | RFC 8216 §4.3.5.2}
+ */
 export interface StartData {
-  /** Time offset in seconds (positive from start, negative from end) */
+  /**
+   * Time offset in seconds.
+   *
+   * @remarks Positive = from beginning, negative = from end.
+   */
   offset: number;
-  /** Whether to precisely seek to the offset */
+  /**
+   * Whether to precisely seek to the TIME-OFFSET.
+   *
+   * @defaultValue `false`
+   */
   precise?: boolean;
 }
 
-/** LL-HLS compatibility information (EXT-X-SERVER-CONTROL) */
+/**
+ * Low-Latency HLS server control parameters.
+ *
+ * Corresponds to the `#EXT-X-SERVER-CONTROL` tag.
+ *
+ * @beta LL-HLS feature
+ */
 export interface LowLatencyCompatibility {
-  /** Whether block reload is supported */
+  /** Whether block reload is supported. */
   canBlockReload: boolean;
-  /** Maximum skip duration in seconds */
+  /** Maximum skip duration in seconds. */
   canSkipUntil?: number;
-  /** Minimum hold-back time in seconds */
+  /** Minimum hold-back time in seconds. */
   holdBack?: number;
-  /** Minimum part hold-back time in seconds */
+  /** Minimum part hold-back time in seconds. */
   partHoldBack?: number;
 }
 
-/** Tag parameter pair */
+/**
+ * Tag parameter tuple: `[value, attributes]`.
+ *
+ * @internal
+ */
 export type TagParam = [any, Record<string, any> | null];
 
-/** User-defined attribute value */
+/**
+ * User-defined attribute value.
+ *
+ * @internal
+ */
 export type UserAttribute = string | number | Uint8Array;
 
 /**
- * Master Playlist
+ * Master Playlist.
  *
  * Contains variant streams and renditions for adaptive bitrate streaming.
+ *
+ * @remarks
+ * Type discriminator: `isMasterPlaylist === true`.
+ *
+ * @example
+ * ```ts
+ * import { parse } from 'hls-parse';
+ * const pl = parse(m3u8Content) as MasterPlaylist;
+ * for (const v of pl.variants) {
+ *   console.log(v.bandwidth, v.uri);
+ * }
+ * ```
  */
 export interface MasterPlaylist {
-  /** The raw playlist source text */
-  source?: string;
-  /** Protocol compatibility version */
-  version?: number;
-  /** Whether independent segments are signaled */
-  independentSegments?: boolean;
-  /** Preferred start position */
-  start?: StartData;
-  /** Content steering configuration */
-  contentSteering?: ContentSteering;
-  /** Variable definitions (EXT-X-DEFINE) */
-  defines?: Record<string, any>[];
-  /** Session data entries */
-  sessionDataList: SessionData[];
-  /** Session keys */
-  sessionKeyList: Key[];
-  /** Variant streams */
-  variants: Variant[];
-  /** Type discriminator */
+  /** Type discriminator — always `true` for Master Playlist. */
   isMasterPlaylist: true;
+  /** The raw playlist source text. */
+  source?: string;
+  /** Protocol compatibility version. */
+  version?: number;
+  /** Whether independent segments are signaled. */
+  independentSegments?: boolean;
+  /** Preferred start position. */
+  start?: StartData;
+  /** Content steering configuration. */
+  contentSteering?: ContentSteering;
+  /** Variable definitions (`#EXT-X-DEFINE`). */
+  defines?: Record<string, any>[];
+  /** Session data entries. */
+  sessionDataList: SessionData[];
+  /** Session keys. */
+  sessionKeyList: Key[];
+  /** Variant streams (`#EXT-X-STREAM-INF` / `#EXT-X-I-FRAME-STREAM-INF`). */
+  variants: Variant[];
 }
 
 /**
- * Media Playlist
+ * Media Playlist.
  *
- * Contains segments and metadata for playback.
+ * Contains segments and metadata for sequential playback.
+ *
+ * @remarks
+ * Type discriminator: `isMasterPlaylist === false`.
+ *
+ * @example
+ * ```ts
+ * import { parse } from 'hls-parse';
+ * const pl = parse(m3u8Content) as MediaPlaylist;
+ * for (const seg of pl.segments) {
+ *   console.log(seg.uri, seg.duration);
+ * }
+ * ```
  */
 export interface MediaPlaylist {
-  /** The raw playlist source text */
-  source?: string;
-  /** Protocol compatibility version */
-  version?: number;
-  /** Whether independent segments are signaled */
-  independentSegments?: boolean;
-  /** Preferred start position */
-  start?: StartData;
-  /** Variable definitions (EXT-X-DEFINE) */
-  defines?: Record<string, any>[];
-  /** Target duration in seconds */
-  targetDuration?: number;
-  /** Base media sequence number */
-  mediaSequenceBase?: number;
-  /** Base discontinuity sequence number */
-  discontinuitySequenceBase?: number;
-  /** Whether the playlist is complete */
-  endlist?: boolean;
-  /** Playlist type: EVENT, VOD, or undefined */
-  playlistType?: string;
-  /** Whether this is an I-frame only playlist */
-  isIFrame?: boolean;
-  /** LL-HLS server control */
-  lowLatencyCompatibility?: LowLatencyCompatibility;
-  /** LL-HLS partial segment target duration */
-  partTargetDuration?: number;
-  /** LL-HLS skipped segments (EXT-X-SKIP) */
-  skip?: number;
-  /** Media segments */
-  segments: Segment[];
-  /** Prefetch segments (LL-HLS) */
-  prefetchSegments: PrefetchSegment[];
-  /** Rendition reports (LL-HLS) */
-  renditionReports: RenditionReport[];
-  /** Date ranges in the playlist */
-  dateRanges: DateRange[];
-  /** Type discriminator */
+  /** Type discriminator — always `false` for Media Playlist. */
   isMasterPlaylist: false;
+  /** The raw playlist source text. */
+  source?: string;
+  /** Protocol compatibility version. */
+  version?: number;
+  /** Whether independent segments are signaled. */
+  independentSegments?: boolean;
+  /** Preferred start position. */
+  start?: StartData;
+  /** Variable definitions (`#EXT-X-DEFINE`). */
+  defines?: Record<string, any>[];
+  /** Maximum segment duration in seconds (`#EXT-X-TARGETDURATION`). */
+  targetDuration?: number;
+  /** Base media sequence number. */
+  mediaSequenceBase?: number;
+  /** Base discontinuity sequence number. */
+  discontinuitySequenceBase?: number;
+  /** Whether the playlist is complete (`#EXT-X-ENDLIST`). */
+  endlist?: boolean;
+  /** Playlist type: `"EVENT"` or `"VOD"`. */
+  playlistType?: string;
+  /** Whether this is an I-frame only playlist. */
+  isIFrame?: boolean;
+  /** LL-HLS server control parameters. */
+  lowLatencyCompatibility?: LowLatencyCompatibility;
+  /** Partial segment target duration (LL-HLS). */
+  partTargetDuration?: number;
+  /** Number of skipped segments (LL-HLS `#EXT-X-SKIP`). */
+  skip?: number;
+  /** Media segments. */
+  segments: Segment[];
+  /** Prefetch segments (LL-HLS). */
+  prefetchSegments: PrefetchSegment[];
+  /** Rendition reports (LL-HLS). */
+  renditionReports: RenditionReport[];
+  /** Date ranges in the playlist. */
+  dateRanges: DateRange[];
 }
 
-/** Union type for any playlist */
+/**
+ * Union type for any parsed playlist.
+ *
+ * @remarks
+ * Use the `isMasterPlaylist` discriminator to narrow the type:
+ * ```ts
+ * if (pl.isMasterPlaylist) {
+ *   // pl is MasterPlaylist
+ * } else {
+ *   // pl is MediaPlaylist
+ * }
+ * ```
+ */
 export type Playlist = MasterPlaylist | MediaPlaylist;
 
 /**
- * Options for parsing
+ * Options for the {@link parse} function.
  */
 export interface ParseOptions {
   /**
-   * Base URI for resolving relative URLs.
-   * If provided, all relative URIs in the playlist will be resolved.
+   * Base URI for resolving relative URLs in the playlist.
+   *
+   * @remarks
+   * If provided, all relative URIs (segment URIs, key URIs, map URIs,
+   * variant URIs, etc.) will be resolved to absolute URLs.
+   *
+   * @example
+   * ```ts
+   * const pl = parse(m3u8, { uri: 'https://example.com/hls/main.m3u8' });
+   * // pl.segments[0].uri → 'https://example.com/hls/segment.ts'
+   * ```
    */
   uri?: string;
 }
