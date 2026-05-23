@@ -674,6 +674,133 @@ b.ts
 // ============================================================================
 // 25.  BYTERANGE first segment without offset
 // ============================================================================
+// ============================================================================
+// 26.  Real-world CMFV LL-HLS playlist
+// ============================================================================
+describe("Real CMFV LL-HLS playlist", () => {
+  const cmfv = `#EXTM3U
+#EXT-X-VERSION:6
+#EXT-X-MEDIA-SEQUENCE:3
+#EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=2.100
+#EXT-X-PART-INF:PART-TARGET=1.050
+#EXT-X-TARGETDURATION:4
+#EXT-X-MAP:URI="XXXXXXX_1_1-headerV-003721948562-1.cmfv"
+#EXT-X-PROGRAM-DATE-TIME:20240101T120000Z
+#EXT-X-PART:DURATION=1.050,URI="XXXXXXX_1_1-mediaV-003721948562-5.0.cmfv",INDEPENDENT=YES
+#EXT-X-PART:DURATION=1.050,URI="XXXXXXX_1_1-mediaV-003721948562-5.1.cmfv"
+#EXT-X-PART:DURATION=1.050,URI="XXXXXXX_1_1-mediaV-003721948562-5.2.cmfv"
+#EXTINF:4.200,
+XXXXXXX_1_1-mediaV-003721948562-5.cmfv
+#EXT-X-PRELOAD-HINT:TYPE=PART,URI="XXXXXXX_1_1-mediaV-003721948562-6.0.cmfv"`;
+
+  it("parses as Media Playlist", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    expect(p.isMasterPlaylist).toBe(false);
+  });
+
+  it("version is 6", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    expect(p.version).toBe(6);
+  });
+
+  it("media sequence starts at 3", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    expect(p.mediaSequenceBase).toBe(3);
+    expect(p.segments[0].mediaSequenceNumber).toBe(3);
+  });
+
+  it("target duration is 4", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    expect(p.targetDuration).toBe(4);
+  });
+
+  it("has LL-HLS server control", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    expect(p.lowLatencyCompatibility).toBeDefined();
+    expect(p.lowLatencyCompatibility!.canBlockReload).toBe(true);
+    expect(p.lowLatencyCompatibility!.partHoldBack).toBe(2.1);
+  });
+
+  it("part target is 1.050", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    expect(p.partTargetDuration).toBe(1.05);
+  });
+
+  it("has one main segment (plus trailing hint segment)", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    expect(p.segments.length).toBeGreaterThanOrEqual(1);
+    expect(p.segments[0].duration).toBe(4.2);
+    expect(p.segments[0].uri).toBe("XXXXXXX_1_1-mediaV-003721948562-5.cmfv");
+  });
+
+  it("segment has MAP with URI", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    expect(p.segments[0].map).toBeDefined();
+    expect(p.segments[0].map!.uri).toBe(
+      "XXXXXXX_1_1-headerV-003721948562-1.cmfv",
+    );
+  });
+
+  it("segment has program date time captured", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    expect(p.segments[0].programDateTime).toBeDefined();
+    expect(p.segments[0].programDateTime).toBeInstanceOf(Date);
+  });
+
+  it("segment has 3 partial segments", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    const parts = p.segments[0].parts!;
+    expect(parts).toHaveLength(3);
+  });
+
+  it("first partial segment is INDEPENDENT", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    expect(p.segments[0].parts![0].independent).toBe(true);
+    expect(p.segments[0].parts![0].duration).toBe(1.05);
+    expect(p.segments[0].parts![0].uri).toBe(
+      "XXXXXXX_1_1-mediaV-003721948562-5.0.cmfv",
+    );
+  });
+
+  it("second/third partial segments not independent", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    expect(p.segments[0].parts![1].independent).toBeUndefined();
+    expect(p.segments[0].parts![2].independent).toBeUndefined();
+  });
+
+  it("partial segment durations are all 1.050", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    p.segments[0].parts!.forEach(function (part) {
+      expect(part.duration).toBe(1.05);
+    });
+  });
+
+  it("preload hint is TYPE=PART and associated with the segment", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    // The preload hint appears AFTER the segment URI, so it's collected
+    // as part of the next segment range (trailing). Since there's no URI
+    // following it, it becomes part of the segment's parts array.
+    // In LL-HLS, the preload hint is for the NEXT segment's first part.
+    // Our parser associates it with the current segment as a hint part.
+    const allParts = p.segments.flatMap(function (s) {
+      return s.parts || [];
+    });
+    const hints = allParts.filter(function (p) {
+      return p.hint;
+    });
+    expect(hints.length).toBe(1);
+    expect(hints[0].uri).toBe("XXXXXXX_1_1-mediaV-003721948562-6.0.cmfv");
+  });
+
+  it("is a live playlist (no ENDLIST)", () => {
+    const p = parse(cmfv) as MediaPlaylist;
+    expect(p.endlist).toBeUndefined();
+  });
+});
+
+// ============================================================================
+// 25.  BYTERANGE first segment without offset
+// ============================================================================
 describe("First byterange without offset", () => {
   it("first segment with no offset throws", () => {
     expect(() =>
