@@ -3,10 +3,10 @@
  */
 (function () {
   "use strict";
-  /* global HlsParse */
-  var parse = HlsParse.parse;
-  var resolveUrl = HlsParse.resolveUrl;
-  var InvalidPlaylistError = HlsParse.InvalidPlaylistError;
+  /* global HLSParse */
+  var parser = HLSParse.parser;
+  var resolveUrl = HLSParse.resolveUrl;
+  var InvalidPlaylistError = HLSParse.InvalidPlaylistError;
 
   // ---- DOM refs ----
   var $ = function (id) {
@@ -257,7 +257,7 @@
       })
       .then(function (text) {
         showStatus("解析中...", "loading");
-        var pl = parse(text, { uri: url });
+        var pl = parser(text, { uri: url });
         showStatus("解析成功: " + (pl.isMasterPlaylist ? "Master" : "Media") + " Playlist", "success");
         render(pl);
       })
@@ -272,7 +272,7 @@
     var text = textInput.value.trim();
     if (!text) return showStatus("请输入 M3U8 文本", "error");
     try {
-      var pl = parse(text);
+      var pl = parser(text);
       showStatus("解析成功: " + (pl.isMasterPlaylist ? "Master" : "Media") + " Playlist", "success");
       render(pl);
     } catch (e) {

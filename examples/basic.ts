@@ -4,7 +4,7 @@
  * Run with: npx ts-node examples/basic.ts
  */
 
-import { parse, Playlist, MasterPlaylist, MediaPlaylist } from "../src";
+import { parser, Playlist, MasterPlaylist, MediaPlaylist } from "../src";
 
 // ---------------------------------------------------------------------------
 // Example 1: Parse a simple Media Playlist
@@ -21,7 +21,7 @@ http://media.example.com/second.ts
 http://media.example.com/third.ts
 #EXT-X-ENDLIST`;
 
-  const playlist = parse(m3u8) as MediaPlaylist;
+  const playlist = parser(m3u8) as MediaPlaylist;
   console.log("=== Simple Media Playlist ===");
   console.log(`Target Duration: ${playlist.targetDuration}s`);
   console.log(`Version: ${playlist.version}`);
@@ -45,7 +45,7 @@ mid.m3u8
 #EXT-X-STREAM-INF:BANDWIDTH=7680000,AVERAGE-BANDWIDTH=6000000,CODECS="mp4a.40.2,avc1.640028",RESOLUTION=3840x2160
 hi.m3u8`;
 
-  const playlist = parse(m3u8) as MasterPlaylist;
+  const playlist = parser(m3u8) as MasterPlaylist;
   console.log("=== Master Playlist ===");
   console.log(`Variants: ${playlist.variants.length}`);
   for (const variant of playlist.variants) {
@@ -69,7 +69,7 @@ segment1.ts
 segment2.ts
 #EXT-X-ENDLIST`;
 
-  const playlist = parse(m3u8, {
+  const playlist = parser(m3u8, {
     uri: "https://cdn.example.com/hls/main.m3u8",
   }) as MediaPlaylist;
 
@@ -104,7 +104,7 @@ seg101.ts
 #EXT-X-PREFETCH:seg102.ts
 #EXT-X-ENDLIST`;
 
-  const playlist = parse(m3u8) as MediaPlaylist;
+  const playlist = parser(m3u8) as MediaPlaylist;
   console.log("=== LL-HLS (Low-Latency HLS) ===");
   console.log(`Server Control: ${JSON.stringify(playlist.lowLatencyCompatibility, null, 2)}`);
   console.log(`Part Target: ${playlist.partTargetDuration}s`);
@@ -141,7 +141,7 @@ http://media.example.com/fileSequence52-B.ts
 http://media.example.com/fileSequence53-A.ts
 #EXT-X-ENDLIST`;
 
-  const playlist = parse(m3u8) as MediaPlaylist;
+  const playlist = parser(m3u8) as MediaPlaylist;
   console.log("=== Encrypted Playlist ===");
   for (const seg of playlist.segments) {
     console.log(`  Segment: ${seg.uri}`);

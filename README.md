@@ -34,7 +34,7 @@ yarn add @skax/hls-parse
 import { parse } from "@skax/hls-parse";
 
 // Parse a Media Playlist
-const playlist = parse(`#EXTM3U
+const playlist = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
 segment1.ts
@@ -46,7 +46,7 @@ console.log(playlist.segments.length); // 2
 console.log(playlist.segments[0].duration); // 9.009
 
 // Parse a Master Playlist
-const master = parse(`#EXTM3U
+const master = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,RESOLUTION=1280x720
 low.m3u8
 #EXT-X-STREAM-INF:BANDWIDTH=2560000,RESOLUTION=1920x1080
@@ -58,9 +58,9 @@ console.log(master.variants[0].bandwidth); // 1280000
 ## URL Resolution
 
 ```typescript
-import { parse } from "@skax/hls-parse";
+import { parser } from "@skax/hls-parse";
 
-const playlist = parse(m3u8Content, {
+const playlist = parser(m3u8Content, {
   uri: "https://example.com/hls/main.m3u8",
 });
 
@@ -70,7 +70,7 @@ console.log(playlist.segments[0].uri); // https://example.com/hls/segment1.ts
 
 ## API Reference
 
-### `parse(text: string, options?: ParseOptions): Playlist`
+### `parser(text: string, options?: ParserOptions): Playlist`
 
 Parses an M3U8 playlist string into a structured object.
 
@@ -236,7 +236,7 @@ The parser throws `InvalidPlaylistError` (a subclass of `Error`) when a playlist
 import { parse, InvalidPlaylistError } from "@skax/hls-parse";
 
 try {
-  const playlist = parse(invalidM3u8);
+  const playlist = parser(invalidM3u8);
 } catch (error) {
   if (error instanceof InvalidPlaylistError) {
     console.error("Invalid playlist:", error.message);
