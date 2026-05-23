@@ -140,6 +140,8 @@ find dist -name "*.d.ts" | wc -l  # 应 > 3
 
 ## 7. M3U8 规范覆盖矩阵
 
+### RFC 8216 Tags (22)
+
 | RFC 章节 | 标签                         | 解析 | 测试 | 注释 |
 | -------- | ---------------------------- | ---- | ---- | ---- |
 | 4.3.1.1  | EXTM3U                       | ✅   | ✅   | ✅   |
@@ -164,12 +166,34 @@ find dist -name "*.d.ts" | wc -l  # 应 > 3
 | 4.3.4.5  | EXT-X-SESSION-KEY            | ✅   | ✅   | ✅   |
 | 4.3.5.1  | EXT-X-INDEPENDENT-SEGMENTS   | ✅   | ✅   | ✅   |
 | 4.3.5.2  | EXT-X-START                  | ✅   | ✅   | ✅   |
-| —        | EXT-X-DEFINE                 | ✅   | ✅   | ✅   |
-| —        | EXT-X-CONTENT-STEERING       | ✅   | ✅   | ✅   |
-| LL-HLS   | EXT-X-PART                   | ✅   | ✅   | ✅   |
-| LL-HLS   | EXT-X-PRELOAD-HINT           | ✅   | ✅   | ✅   |
-| LL-HLS   | EXT-X-SERVER-CONTROL         | ✅   | ✅   | ✅   |
-| LL-HLS   | EXT-X-PART-INF               | ✅   | ✅   | ✅   |
-| LL-HLS   | EXT-X-RENDITION-REPORT       | ✅   | ✅   | ✅   |
-| LL-HLS   | EXT-X-SKIP                   | ✅   | ✅   | ✅   |
-| LL-HLS   | EXT-X-PREFETCH               | ✅   | ✅   | ✅   |
+
+### RFC 8216bis Tags (12)
+
+| 章节   | 标签                         | 解析 | 测试 | 注释 |
+| ------ | ---------------------------- | ---- | ---- | ---- |
+| bis    | EXT-X-CONTENT-STEERING       | ✅   | ✅   | ✅   |
+| bis    | EXT-X-DEFINE                 | ✅   | ✅   | ✅   |
+| bis    | EXT-X-GAP                    | ✅   | ✅   | ✅   |
+| bis    | EXT-X-BITRATE                | ✅   | ✅   | ✅   |
+| LL-HLS | EXT-X-PART                   | ✅   | ✅   | ✅   |
+| LL-HLS | EXT-X-PRELOAD-HINT           | ✅   | ✅   | ✅   |
+| LL-HLS | EXT-X-SERVER-CONTROL         | ✅   | ✅   | ✅   |
+| LL-HLS | EXT-X-PART-INF               | ✅   | ✅   | ✅   |
+| LL-HLS | EXT-X-RENDITION-REPORT       | ✅   | ✅   | ✅   |
+| LL-HLS | EXT-X-SKIP                   | ✅   | ✅   | ✅   |
+| LL-HLS | EXT-X-PREFETCH               | ✅   | ✅   | ✅   |
+| LL-HLS | EXT-X-PREFETCH-DISCONTINUITY | ✅   | ✅   | ✅   |
+
+### Vendor Extension Tags (7)
+
+| 标签               | 解析 | 测试 | 注释 |
+| ------------------ | ---- | ---- | ---- |
+| EXT-X-CUE-OUT      | ✅   | ✅   | ✅   |
+| EXT-X-CUE-IN       | ✅   | ✅   | ✅   |
+| EXT-X-CUE-OUT-CONT | ✅   | ✅   | ✅   |
+| EXT-X-CUE          | ✅   | ✅   | ✅   |
+| EXT-OATCLS-SCTE35  | ✅   | ✅   | ✅   |
+| EXT-X-ASSET        | ✅   | ✅   | ✅   |
+| EXT-X-SCTE35       | ✅   | ✅   | ✅   |
+
+### 总计: 41 个标签 — 全部覆盖 ✅
