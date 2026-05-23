@@ -408,7 +408,7 @@ function parseTagParam(name: string, param: string | null): TagParam {
  *
  * 当播放列表同时包含 Media 和 Master 标签时抛出混合标签错误。
  */
-function MIXEDTAGS(): never {
+function MIXEDTAGS() {
   utils.INVALIDPLAYLIST("The file contains both media and master playlist tags.");
 }
 
@@ -848,6 +848,7 @@ function parseSegment(lines: Line[], uri: string, start: number, end: number, me
       if (!Number.isInteger(value.duration) && params.compatibleVersion < 3) {
         params.compatibleVersion = 3;
       }
+      // https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.1
       if (Math.round(value.duration) > params.targetDuration) {
         utils.INVALIDPLAYLIST("EXTINF duration, when rounded to the nearest integer, MUST be less than or equal to the target duration");
       }

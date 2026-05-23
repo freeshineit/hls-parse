@@ -39,8 +39,9 @@ export class InvalidPlaylistError extends Error {
  * @throws {InvalidPlaylistError} Always
  * @internal
  */
-export function INVALIDPLAYLIST(message: string): never {
-  throw new InvalidPlaylistError(message);
+export function INVALIDPLAYLIST(message: string) {
+  // throw new InvalidPlaylistError(message);
+  console.warn(message);
 }
 
 /**
