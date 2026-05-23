@@ -1,0 +1,463 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>API Docs</title><meta name="description" content="Documentation for API Docs"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar"><div class="tsd-toolbar-contents container"><a href="index.html" class="title">API Docs</a><div id="tsd-toolbar-links"><a href="https://github.com/freeshineit/hls-parse/tree/main/examples">Examples</a><a href="https://github.com/freeshineit/hls-parse">Github</a></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/><ul role="listbox" id="tsd-search-results"></ul><div id="tsd-search-status" aria-live="polite" aria-atomic="true"><div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></header><div class="container container-main"><div class="col-content"><div class="tsd-page-title"><h1>API Docs</h1></div><div class="tsd-panel tsd-typography"><h1 id="skaxhls-parse" class="tsd-anchor-link">@skax/hls-parse<a href="#skaxhls-parse" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>A robust M3U8/HLS playlist parser for JavaScript/TypeScript, compliant with <a href="https://datatracker.ietf.org/doc/html/rfc8216">RFC 8216</a> (HTTP Live Streaming).</p>
+<h2 id="features" class="tsd-anchor-link">Features<a href="#features" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li>✅ <strong>Full RFC 8216 Compliance</strong> – Supports all standard HLS tags and attributes</li>
+<li>✅ <strong>Master Playlists</strong> – Parse <code>EXT-X-STREAM-INF</code>, <code>EXT-X-I-FRAME-STREAM-INF</code>, <code>EXT-X-MEDIA</code>, etc.</li>
+<li>✅ <strong>Media Playlists</strong> – Parse segments, encryption keys, byte ranges, discontinuities, etc.</li>
+<li>✅ <strong>LL-HLS (Low-Latency HLS)</strong> – Full support for <code>EXT-X-PART</code>, <code>EXT-X-PRELOAD-HINT</code>, <code>EXT-X-SERVER-CONTROL</code>, <code>EXT-X-SKIP</code>, <code>EXT-X-RENDITION-REPORT</code>, <code>EXT-X-PREFETCH</code>, and more</li>
+<li>✅ <strong>Relative URL Resolution</strong> – Resolve all relative URIs in a playlist against a base URL</li>
+<li>✅ <strong>Automatic Protocol Version Detection</strong> – Detects required protocol version based on features used</li>
+<li>✅ <strong>Rigorous Validation</strong> – Enforces RFC 8216 rules and constraints</li>
+<li>✅ <strong>TypeScript First</strong> – Full type definitions for all parsed structures</li>
+<li>✅ <strong>SCTE-35 Support</strong> – Parse splice markers, <code>EXT-X-CUE-OUT</code>, <code>EXT-X-CUE-IN</code>, <code>EXT-X-DATERANGE</code> with SCTE-35 attributes</li>
+<li>✅ <strong>Vendor-Specific Extensions</strong> – Supports <code>EXT-X-CUE</code>, <code>EXT-OATCLS-SCTE35</code>, <code>EXT-X-ASSET</code>, <code>EXT-X-SCTE35</code></li>
+</ul>
+<h2 id="installation" class="tsd-anchor-link">Installation<a href="#installation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="bash"><span class="hl-0"># npm</span><br/><span class="hl-1">npm</span><span class="hl-2"> </span><span class="hl-3">install</span><span class="hl-2"> </span><span class="hl-3">@skax/hls-parse</span><br/><br/><span class="hl-0"># or pnpm</span><br/><span class="hl-1">pnpm</span><span class="hl-2"> </span><span class="hl-3">install</span><span class="hl-2"> </span><span class="hl-3">@skax/hls-parse</span><br/><br/><span class="hl-0"># or yarn</span><br/><span class="hl-1">yarn</span><span class="hl-2"> </span><span class="hl-3">add</span><span class="hl-2"> </span><span class="hl-3">@skax/hls-parse</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="quick-start" class="tsd-anchor-link">Quick Start<a href="#quick-start" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="typescript"><span class="hl-4">import</span><span class="hl-2"> { </span><span class="hl-5">parse</span><span class="hl-2"> } </span><span class="hl-4">from</span><span class="hl-2"> </span><span class="hl-3">&quot;@skax/hls-parse&quot;</span><span class="hl-2">;</span><br/><br/><span class="hl-0">// Parse a Media Playlist</span><br/><span class="hl-6">const</span><span class="hl-2"> </span><span class="hl-7">playlist</span><span class="hl-2"> = </span><span class="hl-1">parse</span><span class="hl-2">(</span><span class="hl-3">`#EXTM3U</span><br/><span class="hl-3">#EXT-X-TARGETDURATION:10</span><br/><span class="hl-3">#EXTINF:9.009,</span><br/><span class="hl-3">segment1.ts</span><br/><span class="hl-3">#EXTINF:9.009,</span><br/><span class="hl-3">segment2.ts</span><br/><span class="hl-3">#EXT-X-ENDLIST`</span><span class="hl-2">);</span><br/><br/><span class="hl-5">console</span><span class="hl-2">.</span><span class="hl-1">log</span><span class="hl-2">(</span><span class="hl-5">playlist</span><span class="hl-2">.</span><span class="hl-5">segments</span><span class="hl-2">.</span><span class="hl-5">length</span><span class="hl-2">); </span><span class="hl-0">// 2</span><br/><span class="hl-5">console</span><span class="hl-2">.</span><span class="hl-1">log</span><span class="hl-2">(</span><span class="hl-5">playlist</span><span class="hl-2">.</span><span class="hl-5">segments</span><span class="hl-2">[</span><span class="hl-8">0</span><span class="hl-2">].</span><span class="hl-5">duration</span><span class="hl-2">); </span><span class="hl-0">// 9.009</span><br/><br/><span class="hl-0">// Parse a Master Playlist</span><br/><span class="hl-6">const</span><span class="hl-2"> </span><span class="hl-7">master</span><span class="hl-2"> = </span><span class="hl-1">parse</span><span class="hl-2">(</span><span class="hl-3">`#EXTM3U</span><br/><span class="hl-3">#EXT-X-STREAM-INF:BANDWIDTH=1280000,RESOLUTION=1280x720</span><br/><span class="hl-3">low.m3u8</span><br/><span class="hl-3">#EXT-X-STREAM-INF:BANDWIDTH=2560000,RESOLUTION=1920x1080</span><br/><span class="hl-3">high.m3u8`</span><span class="hl-2">);</span><br/><br/><span class="hl-5">console</span><span class="hl-2">.</span><span class="hl-1">log</span><span class="hl-2">(</span><span class="hl-5">master</span><span class="hl-2">.</span><span class="hl-5">variants</span><span class="hl-2">[</span><span class="hl-8">0</span><span class="hl-2">].</span><span class="hl-5">bandwidth</span><span class="hl-2">); </span><span class="hl-0">// 1280000</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="url-resolution" class="tsd-anchor-link">URL Resolution<a href="#url-resolution" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="typescript"><span class="hl-4">import</span><span class="hl-2"> { </span><span class="hl-5">parse</span><span class="hl-2"> } </span><span class="hl-4">from</span><span class="hl-2"> </span><span class="hl-3">&quot;@skax/hls-parse&quot;</span><span class="hl-2">;</span><br/><br/><span class="hl-6">const</span><span class="hl-2"> </span><span class="hl-7">playlist</span><span class="hl-2"> = </span><span class="hl-1">parse</span><span class="hl-2">(</span><span class="hl-5">m3u8Content</span><span class="hl-2">, {</span><br/><span class="hl-2">  </span><span class="hl-5">uri:</span><span class="hl-2"> </span><span class="hl-3">&quot;https://example.com/hls/main.m3u8&quot;</span><span class="hl-2">,</span><br/><span class="hl-2">});</span><br/><br/><span class="hl-0">// All relative URIs are resolved to absolute URLs</span><br/><span class="hl-5">console</span><span class="hl-2">.</span><span class="hl-1">log</span><span class="hl-2">(</span><span class="hl-5">playlist</span><span class="hl-2">.</span><span class="hl-5">segments</span><span class="hl-2">[</span><span class="hl-8">0</span><span class="hl-2">].</span><span class="hl-5">uri</span><span class="hl-2">); </span><span class="hl-0">// https://example.com/hls/segment1.ts</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="api-reference" class="tsd-anchor-link">API Reference<a href="#api-reference" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="_" class="tsd-anchor-link"><code>parse(text: string, options?: ParseOptions): Playlist</code><a href="#_" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Parses an M3U8 playlist string into a structured object.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>text</code></td>
+<td><code>string</code></td>
+<td>The raw M3U8 playlist content</td>
+</tr>
+<tr>
+<td><code>options.uri</code></td>
+<td><code>string</code></td>
+<td>(Optional) Base URI for resolving relative URLs</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>MasterPlaylist | MediaPlaylist</code></p>
+<p><strong>Throws:</strong> <code>InvalidPlaylistError</code> if the playlist violates RFC 8216 syntax rules.</p>
+<h3 id="_-1" class="tsd-anchor-link"><code>resolveUrl(base: string | undefined, relative: string): string</code><a href="#_-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Resolves a relative URI against a base URI.</p>
+<h3 id="_-2" class="tsd-anchor-link"><code>InvalidPlaylistError</code><a href="#_-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Error class thrown when parsing invalid playlists.</p>
+<h2 id="types" class="tsd-anchor-link">Types<a href="#types" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="_-3" class="tsd-anchor-link"><code>Playlist</code><a href="#_-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Union type of <code>MasterPlaylist</code> and <code>MediaPlaylist</code>.</p>
+<h3 id="_-4" class="tsd-anchor-link"><code>MasterPlaylist</code><a href="#_-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>isMasterPlaylist</code></td>
+<td><code>true</code></td>
+<td>Type discriminator</td>
+</tr>
+<tr>
+<td><code>version?</code></td>
+<td><code>number</code></td>
+<td>Protocol version</td>
+</tr>
+<tr>
+<td><code>variants</code></td>
+<td><code>Variant[]</code></td>
+<td>Variant streams</td>
+</tr>
+<tr>
+<td><code>sessionDataList</code></td>
+<td><code>SessionData[]</code></td>
+<td>Session data entries</td>
+</tr>
+<tr>
+<td><code>sessionKeyList</code></td>
+<td><code>Key[]</code></td>
+<td>Session keys</td>
+</tr>
+<tr>
+<td><code>independentSegments?</code></td>
+<td><code>boolean</code></td>
+<td>Whether segments are independently decodable</td>
+</tr>
+<tr>
+<td><code>start?</code></td>
+<td><code>StartData</code></td>
+<td>Preferred start position</td>
+</tr>
+<tr>
+<td><code>contentSteering?</code></td>
+<td><code>ContentSteering</code></td>
+<td>Content steering configuration</td>
+</tr>
+<tr>
+<td><code>defines?</code></td>
+<td><code>Record&lt;string, any&gt;[]</code></td>
+<td>Variable definitions</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_-5" class="tsd-anchor-link"><code>MediaPlaylist</code><a href="#_-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>isMasterPlaylist</code></td>
+<td><code>false</code></td>
+<td>Type discriminator</td>
+</tr>
+<tr>
+<td><code>version?</code></td>
+<td><code>number</code></td>
+<td>Protocol version</td>
+</tr>
+<tr>
+<td><code>targetDuration?</code></td>
+<td><code>number</code></td>
+<td>Maximum segment duration</td>
+</tr>
+<tr>
+<td><code>mediaSequenceBase?</code></td>
+<td><code>number</code></td>
+<td>Base media sequence number</td>
+</tr>
+<tr>
+<td><code>discontinuitySequenceBase?</code></td>
+<td><code>number</code></td>
+<td>Base discontinuity sequence number</td>
+</tr>
+<tr>
+<td><code>endlist?</code></td>
+<td><code>boolean</code></td>
+<td>Whether the playlist is complete</td>
+</tr>
+<tr>
+<td><code>playlistType?</code></td>
+<td><code>string</code></td>
+<td><code>&quot;EVENT&quot;</code> or <code>&quot;VOD&quot;</code></td>
+</tr>
+<tr>
+<td><code>isIFrame?</code></td>
+<td><code>boolean</code></td>
+<td>Whether this is an I-frame only playlist</td>
+</tr>
+<tr>
+<td><code>segments</code></td>
+<td><code>Segment[]</code></td>
+<td>Media segments</td>
+</tr>
+<tr>
+<td><code>prefetchSegments</code></td>
+<td><code>PrefetchSegment[]</code></td>
+<td>Prefetch segments (LL-HLS)</td>
+</tr>
+<tr>
+<td><code>renditionReports</code></td>
+<td><code>RenditionReport[]</code></td>
+<td>Rendition reports (LL-HLS)</td>
+</tr>
+<tr>
+<td><code>dateRanges</code></td>
+<td><code>DateRange[]</code></td>
+<td>Date ranges</td>
+</tr>
+<tr>
+<td><code>lowLatencyCompatibility?</code></td>
+<td><code>LowLatencyCompatibility</code></td>
+<td>LL-HLS server control</td>
+</tr>
+<tr>
+<td><code>partTargetDuration?</code></td>
+<td><code>number</code></td>
+<td>Partial segment target duration (LL-HLS)</td>
+</tr>
+<tr>
+<td><code>skip?</code></td>
+<td><code>number</code></td>
+<td>Skipped segments (LL-HLS)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_-6" class="tsd-anchor-link"><code>Segment</code><a href="#_-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uri</code></td>
+<td><code>string</code></td>
+<td>URI of the media segment</td>
+</tr>
+<tr>
+<td><code>duration?</code></td>
+<td><code>number</code></td>
+<td>Duration in seconds</td>
+</tr>
+<tr>
+<td><code>title?</code></td>
+<td><code>string</code></td>
+<td>Optional title</td>
+</tr>
+<tr>
+<td><code>byterange?</code></td>
+<td><code>Byterange</code></td>
+<td>Byte range</td>
+</tr>
+<tr>
+<td><code>mediaSequenceNumber</code></td>
+<td><code>number</code></td>
+<td>Media sequence number</td>
+</tr>
+<tr>
+<td><code>discontinuitySequence</code></td>
+<td><code>number</code></td>
+<td>Discontinuity sequence number</td>
+</tr>
+<tr>
+<td><code>discontinuity?</code></td>
+<td><code>boolean</code></td>
+<td>Whether this segment is a discontinuity</td>
+</tr>
+<tr>
+<td><code>gap?</code></td>
+<td><code>boolean</code></td>
+<td>Whether this segment is a gap</td>
+</tr>
+<tr>
+<td><code>key?</code></td>
+<td><code>Key | null</code></td>
+<td>Encryption key</td>
+</tr>
+<tr>
+<td><code>map?</code></td>
+<td><code>MediaInitializationSection | null</code></td>
+<td>Media initialization section</td>
+</tr>
+<tr>
+<td><code>programDateTime?</code></td>
+<td><code>Date</code></td>
+<td>Program date/time</td>
+</tr>
+<tr>
+<td><code>dateRange?</code></td>
+<td><code>DateRange</code></td>
+<td>Date range metadata</td>
+</tr>
+<tr>
+<td><code>markers?</code></td>
+<td><code>SpliceInfo[]</code></td>
+<td>Splice/marker information</td>
+</tr>
+<tr>
+<td><code>parts?</code></td>
+<td><code>PartialSegment[]</code></td>
+<td>Partial segments (LL-HLS)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ll-hls" class="tsd-anchor-link"><code>PartialSegment</code> (LL-HLS)<a href="#ll-hls" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hint?</code></td>
+<td><code>boolean</code></td>
+<td>Whether this is a preload hint</td>
+</tr>
+<tr>
+<td><code>uri</code></td>
+<td><code>string</code></td>
+<td>URI of the partial segment</td>
+</tr>
+<tr>
+<td><code>byterange?</code></td>
+<td><code>Byterange</code></td>
+<td>Byte range</td>
+</tr>
+<tr>
+<td><code>duration?</code></td>
+<td><code>number</code></td>
+<td>Duration in seconds</td>
+</tr>
+<tr>
+<td><code>independent?</code></td>
+<td><code>boolean</code></td>
+<td>Whether independently decodable</td>
+</tr>
+<tr>
+<td><code>gap?</code></td>
+<td><code>boolean</code></td>
+<td>Whether this is a gap</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_-7" class="tsd-anchor-link"><code>Variant</code><a href="#_-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uri</code></td>
+<td><code>string</code></td>
+<td>URI of the media playlist</td>
+</tr>
+<tr>
+<td><code>bandwidth</code></td>
+<td><code>number</code></td>
+<td>Peak bit rate</td>
+</tr>
+<tr>
+<td><code>averageBandwidth?</code></td>
+<td><code>number</code></td>
+<td>Average bit rate</td>
+</tr>
+<tr>
+<td><code>codecs?</code></td>
+<td><code>string</code></td>
+<td>Codec identifiers</td>
+</tr>
+<tr>
+<td><code>resolution?</code></td>
+<td><code>Resolution</code></td>
+<td>Display resolution</td>
+</tr>
+<tr>
+<td><code>frameRate?</code></td>
+<td><code>number</code></td>
+<td>Maximum frame rate</td>
+</tr>
+<tr>
+<td><code>audio?</code></td>
+<td><code>Rendition[]</code></td>
+<td>Audio renditions</td>
+</tr>
+<tr>
+<td><code>video?</code></td>
+<td><code>Rendition[]</code></td>
+<td>Video renditions</td>
+</tr>
+<tr>
+<td><code>subtitles?</code></td>
+<td><code>Rendition[]</code></td>
+<td>Subtitle renditions</td>
+</tr>
+<tr>
+<td><code>closedCaptions?</code></td>
+<td><code>Rendition[]</code></td>
+<td>Closed-caption renditions</td>
+</tr>
+</tbody>
+</table>
+<h2 id="supported-tags" class="tsd-anchor-link">Supported Tags<a href="#supported-tags" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="basic-tags" class="tsd-anchor-link">Basic Tags<a href="#basic-tags" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li><code>#EXTM3U</code></li>
+<li><code>#EXT-X-VERSION</code></li>
+<li><code>#EXT-X-CONTENT-STEERING</code></li>
+</ul>
+<h3 id="media-segment-tags" class="tsd-anchor-link">Media Segment Tags<a href="#media-segment-tags" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li><code>#EXTINF</code> – Segment duration and title</li>
+<li><code>#EXT-X-BYTERANGE</code> – Byte range</li>
+<li><code>#EXT-X-DISCONTINUITY</code> – Discontinuity marker</li>
+<li><code>#EXT-X-PREFETCH-DISCONTINUITY</code> – LL-HLS discontinuity in prefetch</li>
+<li><code>#EXT-X-KEY</code> – Encryption key</li>
+<li><code>#EXT-X-MAP</code> – Media initialization section</li>
+<li><code>#EXT-X-PROGRAM-DATE-TIME</code> – Absolute date/time</li>
+<li><code>#EXT-X-DATERANGE</code> – Date range metadata</li>
+<li><code>#EXT-X-CUE-OUT</code> / <code>#EXT-X-CUE-IN</code> – Splice markers</li>
+<li><code>#EXT-X-CUE-OUT-CONT</code> / <code>#EXT-X-CUE</code> – Additional splice markers</li>
+<li><code>#EXT-X-GAP</code> – Gap segment</li>
+<li><code>#EXT-X-PART</code> – Partial segment (LL-HLS)</li>
+<li><code>#EXT-X-PRELOAD-HINT</code> – Preload hint (LL-HLS)</li>
+</ul>
+<h3 id="media-playlist-tags" class="tsd-anchor-link">Media Playlist Tags<a href="#media-playlist-tags" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li><code>#EXT-X-TARGETDURATION</code> – Maximum segment duration</li>
+<li><code>#EXT-X-MEDIA-SEQUENCE</code> – Media sequence number</li>
+<li><code>#EXT-X-DISCONTINUITY-SEQUENCE</code> – Discontinuity sequence number</li>
+<li><code>#EXT-X-ENDLIST</code> – End of playlist</li>
+<li><code>#EXT-X-PLAYLIST-TYPE</code> – <code>EVENT</code> or <code>VOD</code></li>
+<li><code>#EXT-X-I-FRAMES-ONLY</code> – I-frame only playlist</li>
+<li><code>#EXT-X-SERVER-CONTROL</code> – LL-HLS server control</li>
+<li><code>#EXT-X-PART-INF</code> – LL-HLS part target</li>
+<li><code>#EXT-X-PREFETCH</code> – Prefetch segment (LL-HLS)</li>
+<li><code>#EXT-X-RENDITION-REPORT</code> – Rendition report (LL-HLS)</li>
+<li><code>#EXT-X-SKIP</code> – Skip segments (LL-HLS)</li>
+</ul>
+<h3 id="master-playlist-tags" class="tsd-anchor-link">Master Playlist Tags<a href="#master-playlist-tags" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li><code>#EXT-X-MEDIA</code> – Alternative renditions</li>
+<li><code>#EXT-X-STREAM-INF</code> – Variant stream</li>
+<li><code>#EXT-X-I-FRAME-STREAM-INF</code> – I-frame variant stream</li>
+<li><code>#EXT-X-SESSION-DATA</code> – Session metadata</li>
+<li><code>#EXT-X-SESSION-KEY</code> – Session encryption key</li>
+</ul>
+<h3 id="media-or-master-playlist-tags" class="tsd-anchor-link">Media or Master Playlist Tags<a href="#media-or-master-playlist-tags" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li><code>#EXT-X-INDEPENDENT-SEGMENTS</code> – Independent segments</li>
+<li><code>#EXT-X-START</code> – Preferred start position</li>
+<li><code>#EXT-X-DEFINE</code> – Variable definitions</li>
+</ul>
+<h2 id="error-handling" class="tsd-anchor-link">Error Handling<a href="#error-handling" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>The parser throws <code>InvalidPlaylistError</code> (a subclass of <code>Error</code>) when a playlist violates RFC 8216 rules:</p>
+<pre><code class="typescript"><span class="hl-4">import</span><span class="hl-2"> { </span><span class="hl-5">parse</span><span class="hl-2">, </span><span class="hl-5">InvalidPlaylistError</span><span class="hl-2"> } </span><span class="hl-4">from</span><span class="hl-2"> </span><span class="hl-3">&quot;@skax/hls-parse&quot;</span><span class="hl-2">;</span><br/><br/><span class="hl-4">try</span><span class="hl-2"> {</span><br/><span class="hl-2">  </span><span class="hl-6">const</span><span class="hl-2"> </span><span class="hl-7">playlist</span><span class="hl-2"> = </span><span class="hl-1">parse</span><span class="hl-2">(</span><span class="hl-5">invalidM3u8</span><span class="hl-2">);</span><br/><span class="hl-2">} </span><span class="hl-4">catch</span><span class="hl-2"> (</span><span class="hl-5">error</span><span class="hl-2">) {</span><br/><span class="hl-2">  </span><span class="hl-4">if</span><span class="hl-2"> (</span><span class="hl-5">error</span><span class="hl-2"> </span><span class="hl-6">instanceof</span><span class="hl-2"> </span><span class="hl-9">InvalidPlaylistError</span><span class="hl-2">) {</span><br/><span class="hl-2">    </span><span class="hl-5">console</span><span class="hl-2">.</span><span class="hl-1">error</span><span class="hl-2">(</span><span class="hl-3">&quot;Invalid playlist:&quot;</span><span class="hl-2">, </span><span class="hl-5">error</span><span class="hl-2">.</span><span class="hl-5">message</span><span class="hl-2">);</span><br/><span class="hl-2">  }</span><br/><span class="hl-2">}</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="examples" class="tsd-anchor-link">Examples<a href="#examples" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>See the <a href="media/examples">examples</a> directory for runnable examples:</p>
+<pre><code class="bash"><span class="hl-1">npx</span><span class="hl-2"> </span><span class="hl-3">ts-node</span><span class="hl-2"> </span><span class="hl-3">examples/basic.ts</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="build" class="tsd-anchor-link">Build<a href="#build" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="bash"><span class="hl-1">npm</span><span class="hl-2"> </span><span class="hl-3">run</span><span class="hl-2"> </span><span class="hl-3">build</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Produces CJS, ESM, and TypeScript declaration files in <code>dist/</code>.</p>
+<h2 id="test" class="tsd-anchor-link">Test<a href="#test" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="bash"><span class="hl-1">npm</span><span class="hl-2"> </span><span class="hl-3">test</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="license" class="tsd-anchor-link">License<a href="#license" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>MIT</p>
+</div></div><div class="col-sidebar"><div class="page-menu"><div class="tsd-navigation settings"><details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg><h3>Settings</h3></summary><div class="tsd-accordion-details"><div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span><ul id="tsd-filter-options"><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div><div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div><details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg><h3>On This Page</h3></summary><div class="tsd-accordion-details"><a href="#skaxhls-parse"><span>@skax/hls-<wbr/>parse</span></a><ul><li><a href="#features"><span>Features</span></a></li><li><a href="#installation"><span>Installation</span></a></li><li><a href="#quick-start"><span>Quick <wbr/>Start</span></a></li><li><a href="#url-resolution"><span>URL <wbr/>Resolution</span></a></li><li><a href="#api-reference"><span>API <wbr/>Reference</span></a></li><li><ul><li><a href="#_"><span></span></a></li><li><a href="#_-1"><span></span></a></li><li><a href="#_-2"><span></span></a></li></ul></li><li><a href="#types"><span>Types</span></a></li><li><ul><li><a href="#_-3"><span></span></a></li><li><a href="#_-4"><span></span></a></li><li><a href="#_-5"><span></span></a></li><li><a href="#_-6"><span></span></a></li><li><a href="#ll-hls"><span> (<wbr/>LL-<wbr/>HLS)</span></a></li><li><a href="#_-7"><span></span></a></li></ul></li><li><a href="#supported-tags"><span>Supported <wbr/>Tags</span></a></li><li><ul><li><a href="#basic-tags"><span>Basic <wbr/>Tags</span></a></li><li><a href="#media-segment-tags"><span>Media <wbr/>Segment <wbr/>Tags</span></a></li><li><a href="#media-playlist-tags"><span>Media <wbr/>Playlist <wbr/>Tags</span></a></li><li><a href="#master-playlist-tags"><span>Master <wbr/>Playlist <wbr/>Tags</span></a></li><li><a href="#media-or-master-playlist-tags"><span>Media or <wbr/>Master <wbr/>Playlist <wbr/>Tags</span></a></li></ul></li><li><a href="#error-handling"><span>Error <wbr/>Handling</span></a></li><li><a href="#examples"><span>Examples</span></a></li><li><a href="#build"><span>Build</span></a></li><li><a href="#test"><span>Test</span></a></li><li><a href="#license"><span>License</span></a></li></ul></div></details></div><div class="site-menu"><nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://github.com/freeshineit/hls-parse/tree/main/examples" class="tsd-nav-link">Examples</a><a href="https://github.com/freeshineit/hls-parse" class="tsd-nav-link">Github</a></nav><nav class="tsd-navigation"><a href="modules.html">API Docs</a><ul class="tsd-small-nested-navigation" id="tsd-nav-container"><li>Loading...</li></ul></nav></div></div></div><footer><p><p style="text-align: center;">Copyright © 2026-05-23 <a href="https://github.com/freeshineit" target="_blank">ShineShao</a></p></p></footer><div class="overlay"></div></body></html>
