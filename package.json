@@ -13,7 +13,6 @@
     "build": "cross-env NODE_ENV=production rollup -c",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "example": "ts-node examples/basic.ts",
     "lint": "eslint --fix \"./src/**/*.{ts,tsx,js,jsx,mjs,vue,cjs}\"",
     "lint:check": "eslint \"./src/**/*.{ts,tsx,js,jsx,mjs,vue,cjs}\"",
     "fmt": "prettier --write \"./**/*.{ts,tsx,js,jsx,mjs,json,md,yml,yaml,vue,cjs,css,scss,sass}\"",
