@@ -125,7 +125,7 @@ npm test
 npm run build
 
 # 3. 检查产物完整性
-ls -la dist/cjs/ dist/esm/ dist/browser/
+ls -la dist/
 find dist -name "*.d.ts" | wc -l  # 应 > 3
 
 # 4. Demo 页面可用
