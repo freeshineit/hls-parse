@@ -1636,18 +1636,46 @@ function resolvePlaylistUris(
   baseUri: string,
 ): void {
   if (playlist.isMasterPlaylist) {
+    const master = playlist as MasterPlaylist;
+
     // Resolve variant URIs
-    for (const variant of (playlist as MasterPlaylist).variants) {
+    for (const variant of master.variants) {
       variant.uri = utils.resolveUrl(baseUri, variant.uri);
+
+      // Resolve rendition URIs inside each variant (audio / video / subtitles)
+      for (const type of [
+        "audio",
+        "video",
+        "subtitles",
+        "closedCaptions",
+      ] as const) {
+        const renditions = variant[type];
+        if (renditions) {
+          for (const r of renditions) {
+            if (r.uri) {
+              r.uri = utils.resolveUrl(baseUri, r.uri);
+            }
+          }
+        }
+      }
     }
+
     // Resolve session data URIs
-    for (const sd of (playlist as MasterPlaylist).sessionDataList) {
+    for (const sd of master.sessionDataList) {
       if (sd.uri) {
         sd.uri = utils.resolveUrl(baseUri, sd.uri);
       }
     }
+
+    // Resolve session key URIs
+    for (const sk of master.sessionKeyList) {
+      if (sk.uri) {
+        sk.uri = utils.resolveUrl(baseUri, sk.uri);
+      }
+    }
+
     // Resolve content steering URI
-    const steering = (playlist as MasterPlaylist).contentSteering;
+    const steering = master.contentSteering;
     if (steering) {
       steering.serverUri = utils.resolveUrl(baseUri, steering.serverUri);
     }

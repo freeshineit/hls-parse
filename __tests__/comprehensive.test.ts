@@ -506,6 +506,64 @@ v.m3u8`) as MasterPlaylist;
 });
 
 // ============================================================================
+// 17b.  Rendition URI Resolution
+// ============================================================================
+describe("Rendition URI resolution", () => {
+  it("resolves audio rendition URIs in master playlist", () => {
+    const p = parse(
+      `#EXTM3U
+#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="English",URI="audio/en.m3u8"
+#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="Spanish",URI="audio/es.m3u8"
+#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="English",URI="subs/en.vtt"
+#EXT-X-STREAM-INF:BANDWIDTH=1000,AUDIO="aac",SUBTITLES="subs"
+video.m3u8`,
+      { uri: "https://example.com/hls/master.m3u8" },
+    ) as MasterPlaylist;
+
+    expect(p.variants[0].uri).toBe("https://example.com/hls/video.m3u8");
+    // Audio rendition URIs should be resolved
+    expect(p.variants[0].audio![0].uri).toBe(
+      "https://example.com/hls/audio/en.m3u8",
+    );
+    expect(p.variants[0].audio![1].uri).toBe(
+      "https://example.com/hls/audio/es.m3u8",
+    );
+    // Subtitle rendition URIs should be resolved
+    expect(p.variants[0].subtitles![0].uri).toBe(
+      "https://example.com/hls/subs/en.vtt",
+    );
+  });
+
+  it("leaves absolute rendition URIs unchanged", () => {
+    const p = parse(
+      `#EXTM3U
+#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="English",URI="https://cdn.example.com/audio/en.m3u8"
+#EXT-X-STREAM-INF:BANDWIDTH=1000,AUDIO="aac"
+video.m3u8`,
+      { uri: "https://example.com/hls/master.m3u8" },
+    ) as MasterPlaylist;
+
+    expect(p.variants[0].audio![0].uri).toBe(
+      "https://cdn.example.com/audio/en.m3u8",
+    );
+  });
+
+  it("resolves session key URIs", () => {
+    const p = parse(
+      `#EXTM3U
+#EXT-X-SESSION-KEY:METHOD=AES-128,URI="keys/enc.key"
+#EXT-X-STREAM-INF:BANDWIDTH=1000
+video.m3u8`,
+      { uri: "https://example.com/hls/master.m3u8" },
+    ) as MasterPlaylist;
+
+    expect(p.sessionKeyList[0].uri).toBe(
+      "https://example.com/hls/keys/enc.key",
+    );
+  });
+});
+
+// ============================================================================
 // 18.  STREAM-INF with SCORE (negative / inconsistent)
 // ============================================================================
 describe("SCORE attribute", () => {
