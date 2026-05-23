@@ -27,7 +27,7 @@ export default {
     ],
   },
   navigationLinks: {
-    Examples: "https://github.com/freeshineit/hls-parse/tree/main",
+    Examples: "https://github.com/freeshineit/hls-parse/tree/main/examples",
     Github: "https://github.com/freeshineit/hls-parse",
   },
   customFooterHtml: `<p style="text-align: center;">Copyright © ${formatDate} <a href="https://github.com/freeshineit" target="_blank">ShineShao</a></p>`,
