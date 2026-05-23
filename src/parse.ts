@@ -195,9 +195,6 @@ function parseResolution(str: string): Resolution {
 function parseAllowedCpc(str: string): AllowedCpc[] {
   const message = "ALLOWED-CPC: Each entry must consist of KEYFORMAT and Content Protection Configuration";
   const list = str.split(",");
-  if (list.length === 0) {
-    utils.INVALIDPLAYLIST(message);
-  }
   const allowedCpcList: AllowedCpc[] = [];
   for (const item of list) {
     const [format, cpcText] = utils.splitAt(item, ":");
