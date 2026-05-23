@@ -18,7 +18,14 @@ A robust M3U8/HLS playlist parser for JavaScript/TypeScript, compliant with [RFC
 ## Installation
 
 ```bash
-npm install hls-parse
+# npm
+npm install @skax/hls-parse
+
+# or pnpm
+pnpm install @skax/hls-parse
+
+# or yarn
+yarn add @skax/hls-parse
 ```
 
 ## Quick Start
