@@ -575,3 +575,37 @@ export interface ParseOptions {
    */
   uri?: string;
 }
+
+// ============================================================================
+// Type guard helpers
+// ============================================================================
+
+/**
+ * Type guard: returns `true` if the parsed playlist is a Master Playlist.
+ *
+ * @example
+ * ```ts
+ * const pl = parse(m3u8);
+ * if (isMasterPlaylist(pl)) {
+ *   pl.variants; // ← narrowed to MasterPlaylist
+ * }
+ * ```
+ */
+export function isMasterPlaylist(pl: Playlist): pl is MasterPlaylist {
+  return pl.isMasterPlaylist === true;
+}
+
+/**
+ * Type guard: returns `true` if the parsed playlist is a Media Playlist.
+ *
+ * @example
+ * ```ts
+ * const pl = parse(m3u8);
+ * if (isMediaPlaylist(pl)) {
+ *   pl.segments; // ← narrowed to MediaPlaylist
+ * }
+ * ```
+ */
+export function isMediaPlaylist(pl: Playlist): pl is MediaPlaylist {
+  return pl.isMasterPlaylist === false;
+}

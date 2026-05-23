@@ -543,39 +543,6 @@ function parseRendition(tag: Tag): Rendition {
 }
 
 /**
- * Validates that a rendition doesn't violate uniqueness constraints.
- */
-function checkRedundantRendition(renditions: Rendition[], rendition: Rendition): string {
-  for (const item of renditions) {
-    if (item.name === rendition.name) {
-      return "All EXT-X-MEDIA tags in the same Group MUST have different NAME attributes.";
-    }
-    if (item.isDefault && rendition.isDefault) {
-      return "A Group MUST NOT have more than one member with a DEFAULT attribute of YES.";
-    }
-  }
-  return "";
-}
-
-/**
- * Adds a rendition to a variant's rendition list.
- */
-function addRendition(variant: Variant, tag: Tag, type: string) {
-  const rendition = parseRendition(tag);
-  const key = utils.camelify(type) as keyof Variant;
-  let renditions = variant[key] as Rendition[] | undefined;
-  if (!renditions) {
-    renditions = [];
-    (variant as any)[key] = renditions;
-  }
-  const errorMessage = checkRedundantRendition(renditions, rendition);
-  if (errorMessage) {
-    utils.INVALIDPLAYLIST(errorMessage);
-  }
-  renditions.push(rendition);
-}
-
-/**
  * Validates that variant attributes reference valid rendition groups.
  */
 function matchTypes(attrs: Record<string, any>, variant: Variant, params: ParseState) {
@@ -595,8 +562,10 @@ function matchTypes(attrs: Record<string, any>, variant: Variant, params: ParseS
 
 /**
  * Parses a Variant Stream from EXT-X-STREAM-INF or EXT-X-I-FRAME-STREAM-INF.
+ *
+ * @param mediaGroups — pre-indexed Map<TYPE, Map<GROUP-ID, Rendition[]>>
  */
-function parseVariant(lines: Line[], variantAttrs: Record<string, any>, uri: string, iFrameOnly: boolean, params: ParseState): Variant {
+function parseVariant(variantAttrs: Record<string, any>, uri: string, iFrameOnly: boolean, params: ParseState, mediaGroups: Map<string, Map<string, Rendition[]>>): Variant {
   const variant: Variant = {
     uri,
     bandwidth: variantAttrs["BANDWIDTH"],
@@ -614,22 +583,33 @@ function parseVariant(lines: Line[], variantAttrs: Record<string, any>, uri: str
     isIFrameOnly: iFrameOnly,
   };
 
-  // Attach matching renditions for this variant
-  for (const line of lines) {
-    if (typeof line === "object" && line.name === T.EXT_X_MEDIA) {
-      const renditionAttrs = line.attributes;
-      const renditionType = renditionAttrs["TYPE"];
-      if (!renditionType || !renditionAttrs["GROUP-ID"]) {
-        utils.INVALIDPLAYLIST("EXT-X-MEDIA TYPE attribute is REQUIRED.");
-      }
-      if (variantAttrs[renditionType] === renditionAttrs["GROUP-ID"]) {
-        addRendition(variant, line, renditionType);
+  // Attach matching renditions using pre-indexed map (O(1) per group)
+  for (const type of ["AUDIO", "VIDEO", "SUBTITLES", "CLOSED-CAPTIONS"]) {
+    const attrsGroupId = variantAttrs[type];
+    if (!attrsGroupId) continue;
+    const typeMap = mediaGroups.get(type);
+    if (!typeMap) continue;
+    const renditions = typeMap.get(attrsGroupId);
+    if (renditions) {
+      for (const r of renditions) {
+        addRenditionToList(variant, r, type);
       }
     }
   }
 
   matchTypes(variantAttrs, variant, params);
   return variant;
+}
+
+/** Add an already-parsed Rendition to a variant's list */
+function addRenditionToList(variant: Variant, rendition: Rendition, type: string) {
+  const key = utils.camelify(type) as keyof Variant;
+  let renditions = variant[key] as Rendition[] | undefined;
+  if (!renditions) {
+    renditions = [];
+    (variant as any)[key] = renditions;
+  }
+  renditions.push(rendition);
 }
 
 /**
@@ -653,6 +633,45 @@ function sameKey(key1: Key, key2: Key): boolean {
 }
 
 /**
+ * Pre-index EXT-X-MEDIA tags into Map<TYPE, Map<GROUP-ID, Rendition[]>>.
+ * This allows O(1) lookup when attaching renditions to variants,
+ * replacing the previous O(V × N) per-variant scan.
+ */
+function buildMediaGroupIndex(lines: Line[]): Map<string, Map<string, Rendition[]>> {
+  const index = new Map<string, Map<string, Rendition[]>>();
+  for (const line of lines) {
+    if (typeof line === "object" && line.name === T.EXT_X_MEDIA) {
+      const rendition = parseRendition(line);
+      const type = rendition.type;
+      const groupId = rendition.groupId;
+      if (!type || !groupId) {
+        utils.INVALIDPLAYLIST("EXT-X-MEDIA TYPE attribute is REQUIRED.");
+      }
+      let typeMap = index.get(type);
+      if (!typeMap) {
+        typeMap = new Map();
+        index.set(type, typeMap);
+      }
+      let group = typeMap.get(groupId);
+      if (!group) {
+        group = [];
+        typeMap.set(groupId, group);
+      }
+      // Validate uniqueness (same GROUP, same NAME)
+      if (group.some((r) => r.name === rendition.name)) {
+        utils.INVALIDPLAYLIST("All EXT-X-MEDIA tags in the same Group MUST have different NAME attributes.");
+      }
+      // Validate only one DEFAULT per group
+      if (rendition.isDefault && group.some((r) => r.isDefault)) {
+        utils.INVALIDPLAYLIST("A Group MUST NOT have more than one member with a DEFAULT attribute of YES.");
+      }
+      group.push(rendition);
+    }
+  }
+  return index;
+}
+
+/**
  * Parses a Master Playlist (contains EXT-X-STREAM-INF, EXT-X-MEDIA, etc.).
  */
 function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist {
@@ -662,6 +681,10 @@ function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist 
     sessionDataList: [],
     sessionKeyList: [],
   };
+
+  // Pre-index EXT-X-MEDIA tags into Map<TYPE, Map<GROUP-ID, Rendition[]>>
+  // This avoids O(V×N) scanning in parseVariant.
+  const mediaGroups = buildMediaGroupIndex(lines);
 
   let variantIsScored = false;
 
@@ -681,7 +704,7 @@ function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist 
       if (typeof uriLine !== "string" || uriLine.startsWith("#")) {
         utils.INVALIDPLAYLIST("EXT-X-STREAM-INF must be followed by a URI line");
       }
-      const variant = parseVariant(lines, attributes, uriLine as string, false, params);
+      const variant = parseVariant(attributes, uriLine as string, false, params, mediaGroups);
       if (typeof variant.score === "number") {
         variantIsScored = true;
         if (variant.score < 0) {
@@ -690,7 +713,7 @@ function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist 
       }
       playlist.variants.push(variant);
     } else if (name === T.EXT_X_I_FRAME_STREAM_INF) {
-      const variant = parseVariant(lines, attributes, attributes.URI, true, params);
+      const variant = parseVariant(attributes, attributes.URI, true, params, mediaGroups);
       playlist.variants.push(variant);
     } else if (name === T.EXT_X_SESSION_DATA) {
       const sessionData: SessionData = {

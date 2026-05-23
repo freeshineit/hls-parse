@@ -3,10 +3,10 @@
  */
 (function () {
   "use strict";
-  /* global HLSParse */
-  var parse = HLSParse.parse;
-  var resolveUrl = HLSParse.resolveUrl;
-  var InvalidPlaylistError = HLSParse.InvalidPlaylistError;
+  /* global HlsParse */
+  var parse = HlsParse.parse;
+  var resolveUrl = HlsParse.resolveUrl;
+  var InvalidPlaylistError = HlsParse.InvalidPlaylistError;
 
   // ---- DOM refs ----
   var $ = function (id) {
@@ -194,8 +194,14 @@
             return it[c];
           },
         });
-      if (pl.contentSteering) html += section("contentSteering", pl.contentSteering, { badge: "STEERING" });
-      if (pl.sessionDataList && pl.sessionDataList.length) html += section("sessionDataList", pl.sessionDataList, { badge: "SESSIONS" });
+      if (pl.contentSteering)
+        html += section("contentSteering", pl.contentSteering, {
+          badge: "STEERING",
+        });
+      if (pl.sessionDataList && pl.sessionDataList.length)
+        html += section("sessionDataList", pl.sessionDataList, {
+          badge: "SESSIONS",
+        });
       if (pl.sessionKeyList && pl.sessionKeyList.length) html += section("sessionKeyList", pl.sessionKeyList, { badge: "KEYS" });
       if (pl.defines && pl.defines.length) html += section("defines", pl.defines, { badge: "DEFINES" });
       if (pl.start) html += section("start", pl.start, { badge: "START" });
@@ -208,7 +214,10 @@
       if (pl.isIFrame) html += section("isIFrame", pl.isIFrame);
       if (pl.partTargetDuration !== undefined) html += section("partTargetDuration", pl.partTargetDuration);
       if (pl.skip !== undefined) html += section("skip", pl.skip);
-      if (pl.lowLatencyCompatibility) html += section("lowLatencyCompatibility", pl.lowLatencyCompatibility, { badge: "LL-HLS" });
+      if (pl.lowLatencyCompatibility)
+        html += section("lowLatencyCompatibility", pl.lowLatencyCompatibility, {
+          badge: "LL-HLS",
+        });
       if (pl.start) html += section("start", pl.start, { badge: "START" });
       if (pl.defines && pl.defines.length) html += section("defines", pl.defines, { badge: "DEFINES" });
       if (pl.segments && pl.segments.length)
@@ -221,8 +230,14 @@
             return it[c];
           },
         });
-      if (pl.prefetchSegments && pl.prefetchSegments.length) html += section("prefetchSegments", pl.prefetchSegments, { badge: "PREFETCH" });
-      if (pl.renditionReports && pl.renditionReports.length) html += section("renditionReports", pl.renditionReports, { badge: "REPORTS" });
+      if (pl.prefetchSegments && pl.prefetchSegments.length)
+        html += section("prefetchSegments", pl.prefetchSegments, {
+          badge: "PREFETCH",
+        });
+      if (pl.renditionReports && pl.renditionReports.length)
+        html += section("renditionReports", pl.renditionReports, {
+          badge: "REPORTS",
+        });
       if (pl.dateRanges && pl.dateRanges.length) html += section("dateRanges", pl.dateRanges, { badge: "DATERANGES" });
     }
 

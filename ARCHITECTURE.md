@@ -1,0 +1,79 @@
+/\*\*
+
+- Performance analysis & Architecture review — hls-parse
+-
+- ============================================================================
+- 1.  PERFORMANCE / OOM ANALYSIS
+- ============================================================================
+-
+- 1.1 parseVariant — O(V × N) scan
+-      For each EXT-X-STREAM-INF, parseVariant iterates over ALL lines
+-      looking for EXT-X-MEDIA tags. In a master playlist with V variants
+-      and N total lines, this is O(V×N).
+-      → Fix: pre-index EXT-X-MEDIA tags into a Map<groupId, Rendition[]>
+-        once, then do O(1) lookups per variant.
+-      Status: ✅ FIXED — see parseMasterPlaylist refactor below.
+-
+- 1.2 lexicalParse — split + trim
+-      Uses text.split(/\r?\n/) then .trim() per line. V8 Copy-on-Write
+-      optimizes the .trim() call (mentioned in code). O(N) acceptable.
+-      The "line.trim()" comment about V8 GC is correct for older engines
+-      but Node 18+ / Chrome 100+ handle this natively via shared strings.
+-      Status: OK — no change needed.
+-
+- 1.3 checkDateRange — O(S²) with many CLASS groups
+-      Backward iteration over segments with per-CLASS overlap detection.
+-      Master playlists typically have <100 date ranges; media playlists
+-      with hundreds of segments could be slower.
+-      Status: OK for typical playlist sizes (<5000 segments). No OOM risk.
+-
+- 1.4 Memory — lines[] array
+-      The intermediate Line[] array stores both Tag objects and URI strings.
+-      For a live playlist with 500 segments, this is ~1000-1500 objects.
+-      For a VOD of 20000 segments, ~40K objects (~4-8 MB). Acceptable.
+-      → Improvement: could use streaming parser for very large playlists.
+-      Status: OK — no OOM for realistic playlists.
+-
+- 1.5 Memory — playlist.source
+-      The raw text is stored as playlist.source for debugging.
+-      This doubles the input text memory. Could be gated behind a flag.
+-      Status: OK — source is typically small (<2 MB). Add option later.
+-
+- 1.6 No circular references
+-      All object graphs are tree-like (playlist → variants → renditions,
+-      playlist → segments → parts). No parent back-references.
+-      Status: OK — GC-friendly.
+-
+- ============================================================================
+- 2.  ARCHITECTURE IMPROVEMENTS
+- ============================================================================
+-
+- 2.1 Pre-index EXT-X-MEDIA tags
+-      parseMasterPlaylist now builds a Map<string, Rendition[]>
+-      once before processing variants. parseVariant no longer needs
+-      to scan all lines.
+-      Status: ✅ IMPLEMENTED
+-
+- 2.2 Separate tag-to-category map
+-      getTagCategory() switch is the fastest approach and is
+-      tree-shakable. A Map lookup would be slower for this hot path.
+-      Status: OK — switch-case is optimal.
+-
+- 2.3 Type guard helpers
+-      Added isMasterPlaylist() / isMediaPlaylist() utility functions
+-      for cleaner type narrowing at call sites.
+-      Status: ✅ IMPLEMENTED
+-
+- 2.4 Extract attribute-name constants
+-      The parseAttributeList function (and others) use many string
+-      literals like "METHOD", "URI", "BANDWIDTH" etc. These are HLS
+-      attribute names (not tag names), so keep as inline strings.
+-      Moving them to constants would add indirection without benefit.
+-      Status: OK — tag names already in constants.ts.
+-
+- 2.5 lazy evaluation for renditionReports
+-      checkLowLatencyCompatibility mutates renditionReports in-place.
+-      This is a side-effect on a parsed object. Better to compute
+-      defaults at parse time only.
+-      Status: OK — already done at parse time.
+  \*/
