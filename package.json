@@ -1,6 +1,6 @@
 {
   "name": "@skax/hls-parse",
-  "version": "0.0.1-beta.2",
+  "version": "0.0.1-beta.3",
   "description": "A robust M3U8/HLS playlist parser supporting RFC 8216, Master playlists, Media playlists, and LL-HLS (Low-Latency HLS)",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
@@ -64,5 +64,13 @@
     "typedoc-plugin-rename-defaults": "^0.7.3",
     "typedoc-plugin-replace-text": "^4.2.0",
     "typescript": "^5.9.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/freeshineit/hls-parse.git"
+  },
+  "bugs": {
+    "url": "https://github.com/freeshineit/hls-parse/issues"
+  },
+  "homepage": "https://freeshineit.github.io/hls-parse/"
 }
