@@ -35,6 +35,9 @@ devDependencies:
   '@types/jest':
     specifier: ^29.5.12
     version: 29.5.14
+  '@types/node':
+    specifier: ^25.9.1
+    version: 25.9.1
   cross-env:
     specifier: ^10.1.0
     version: 10.1.0

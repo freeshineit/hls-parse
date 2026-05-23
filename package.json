@@ -44,6 +44,7 @@
     "@rollup/plugin-typescript": "^11.1.6",
     "@skax/rollup-config": "^1.0.8",
     "@types/jest": "^29.5.12",
+    "@types/node": "^25.9.1",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.4",
     "eslint-config-xx": "^2.2.5",
