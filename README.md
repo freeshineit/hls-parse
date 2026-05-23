@@ -1,4 +1,4 @@
-# hls-parse
+# @skax/hls-parse
 
 A robust M3U8/HLS playlist parser for JavaScript/TypeScript, compliant with [RFC 8216](https://datatracker.ietf.org/doc/html/rfc8216) (HTTP Live Streaming).
 
@@ -31,7 +31,7 @@ yarn add @skax/hls-parse
 ## Quick Start
 
 ```typescript
-import { parse } from "hls-parse";
+import { parse } from "@skax/hls-parse";
 
 // Parse a Media Playlist
 const playlist = parse(`#EXTM3U
@@ -58,7 +58,7 @@ console.log(master.variants[0].bandwidth); // 1280000
 ## URL Resolution
 
 ```typescript
-import { parse } from "hls-parse";
+import { parse } from "@skax/hls-parse";
 
 const playlist = parse(m3u8Content, {
   uri: "https://example.com/hls/main.m3u8",
@@ -233,7 +233,7 @@ Union type of `MasterPlaylist` and `MediaPlaylist`.
 The parser throws `InvalidPlaylistError` (a subclass of `Error`) when a playlist violates RFC 8216 rules:
 
 ```typescript
-import { parse, InvalidPlaylistError } from "hls-parse";
+import { parse, InvalidPlaylistError } from "@skax/hls-parse";
 
 try {
   const playlist = parse(invalidM3u8);

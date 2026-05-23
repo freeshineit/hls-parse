@@ -12,7 +12,7 @@
  * - Variable substitution (EXT-X-DEFINE)
  *
  * Usage:
- *   import { parse } from 'hls-parse';
+ *   import { parse } from '@skax/hls-parse';
  *   const playlist = parse(m3u8Content);
  *   // With URL resolution:
  *   const playlist = parse(m3u8Content, { uri: 'https://example.com/playlist.m3u8' });
@@ -1485,7 +1485,7 @@ function resolvePlaylistUris(playlist: MasterPlaylist | MediaPlaylist, baseUri: 
  *
  * @example
  * ```typescript
- * import { parse } from 'hls-parse';
+ * import { parse } from '@skax/hls-parse';
  *
  * // Parse a simple media playlist
  * const media = parse(`#EXTM3U

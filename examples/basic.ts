@@ -1,5 +1,5 @@
 /**
- * hls-parse Basic Usage Examples
+ * @skax/hls-parse Basic Usage Examples
  *
  * Run with: npx ts-node examples/basic.ts
  */

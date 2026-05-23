@@ -10,7 +10,7 @@
  *
  * @example
  * ```ts
- * import { TAGS } from 'hls-parse';
+ * import { TAGS } from '@skax/hls-parse';
  * // TAGS.EXT_X_TARGETDURATION === "#EXT-X-TARGETDURATION"
  * ```
  */

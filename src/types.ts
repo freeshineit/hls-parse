@@ -453,7 +453,7 @@ export type UserAttribute = string | number | Uint8Array;
  *
  * @example
  * ```ts
- * import { parse } from 'hls-parse';
+ * import { parse } from '@skax/hls-parse';
  * const pl = parse(m3u8Content) as MasterPlaylist;
  * for (const v of pl.variants) {
  *   console.log(v.bandwidth, v.uri);
@@ -493,7 +493,7 @@ export interface MasterPlaylist {
  *
  * @example
  * ```ts
- * import { parse } from 'hls-parse';
+ * import { parse } from '@skax/hls-parse';
  * const pl = parse(m3u8Content) as MediaPlaylist;
  * for (const seg of pl.segments) {
  *   console.log(seg.uri, seg.duration);

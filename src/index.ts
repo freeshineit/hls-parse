@@ -1,5 +1,5 @@
 /**
- * hls-parse — A robust M3U8 / HLS playlist parser.
+ * @slax/hls-parse — A robust M3U8 / HLS playlist parser.
  *
  * Parses M3U8 playlists according to
  * {@link https://datatracker.ietf.org/doc/html/rfc8216 | RFC 8216} (HTTP Live Streaming).
@@ -15,7 +15,7 @@
  *
  * @example Quick Start
  * ```typescript
- * import { parse } from 'hls-parse';
+ * import { parse } from '@skax/hls-parse';
  *
  * const playlist = parse(`#EXTM3U
  * #EXT-X-TARGETDURATION:10

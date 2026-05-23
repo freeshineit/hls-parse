@@ -129,7 +129,7 @@ ls -la dist/
 find dist -name "*.d.ts" | wc -l  # 应 > 3
 
 # 4. Demo 页面可用
-# 确保 public/browser/hls-parse.umd.js 为最新构建
+# 确保 dist/index.umd.js 为最新构建
 ```
 
 - [ ] `package.json` version 已更新
