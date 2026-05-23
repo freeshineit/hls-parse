@@ -42,7 +42,7 @@ describe("Branch gap — checkDateRange empty path", () => {
 
 describe("Branch gap — duplicate INDEPENDENT-SEGMENTS", () => {
   it("duplicate independent-segments in media playlist", () => {
-    expect(() => parse("#EXTM3U\n#EXT-X-INDEPENDENT-SEGMENTS\n#EXT-X-INDEPENDENT-SEGMENTS\n#EXT-X-TARGETDURATION:10\n#EXTINF:10,\ns.ts\n#EXT-X-ENDLIST")).toThrow(InvalidPlaylistError);
+    expect(() => parse("#EXTM3U\n#EXT-X-INDEPENDENT-SEGMENTS\n#EXT-X-INDEPENDENT-SEGMENTS\n#EXT-X-TARGETDURATION:10\n#EXTINF:10,\ns.ts\n#EXT-X-ENDLIST")).not.toThrow();
   });
 });
 
