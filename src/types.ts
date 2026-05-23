@@ -6,7 +6,7 @@
  *
  * @remarks
  * All URIs in these types will be resolved to absolute when
- * {@link ParseOptions.uri} is provided to {@link parse}.
+ * {@link ParserOptions.uri} is provided to {@link parser}.
  *
  * @module types
  * @category Types
@@ -453,8 +453,8 @@ export type UserAttribute = string | number | Uint8Array;
  *
  * @example
  * ```ts
- * import { parse } from '@skax/hls-parse';
- * const pl = parse(m3u8Content) as MasterPlaylist;
+ * import { parser } from '@skax/hls-parse';
+ * const pl = parser(m3u8Content) as MasterPlaylist;
  * for (const v of pl.variants) {
  *   console.log(v.bandwidth, v.uri);
  * }
@@ -493,8 +493,8 @@ export interface MasterPlaylist {
  *
  * @example
  * ```ts
- * import { parse } from '@skax/hls-parse';
- * const pl = parse(m3u8Content) as MediaPlaylist;
+ * import { parser } from '@skax/hls-parse';
+ * const pl = parser(m3u8Content) as MediaPlaylist;
  * for (const seg of pl.segments) {
  *   console.log(seg.uri, seg.duration);
  * }
@@ -559,9 +559,9 @@ export interface MediaPlaylist {
 export type Playlist = MasterPlaylist | MediaPlaylist;
 
 /**
- * Options for the {@link parse} function.
+ * Options for the {@link parser} function.
  */
-export interface ParseOptions {
+export interface ParserOptions {
   /**
    * Base URI for resolving relative URLs in the playlist.
    *
@@ -571,7 +571,7 @@ export interface ParseOptions {
    *
    * @example
    * ```ts
-   * const pl = parse(m3u8, { uri: 'https://example.com/hls/main.m3u8' });
+   * const pl = parser(m3u8, { uri: 'https://example.com/hls/main.m3u8' });
    * // pl.segments[0].uri → 'https://example.com/hls/segment.ts'
    * ```
    */
@@ -587,7 +587,7 @@ export interface ParseOptions {
  *
  * @example
  * ```ts
- * const pl = parse(m3u8);
+ * const pl = parser(m3u8);
  * if (isMasterPlaylist(pl)) {
  *   pl.variants; // ← narrowed to MasterPlaylist
  * }
@@ -602,7 +602,7 @@ export function isMasterPlaylist(pl: Playlist): pl is MasterPlaylist {
  *
  * @example
  * ```ts
- * const pl = parse(m3u8);
+ * const pl = parser(m3u8);
  * if (isMediaPlaylist(pl)) {
  *   pl.segments; // ← narrowed to MediaPlaylist
  * }

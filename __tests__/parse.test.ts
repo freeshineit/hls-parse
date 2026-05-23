@@ -10,7 +10,7 @@
  * - Edge cases
  */
 
-import { parse, InvalidPlaylistError, resolveUrl } from "../src";
+import { parser, InvalidPlaylistError, resolveUrl } from "../src";
 import { MasterPlaylist, MediaPlaylist, Segment, PartialSegment, Variant } from "../src/types";
 
 // ===========================================================================
@@ -64,15 +64,15 @@ describe("resolveUrl", () => {
 
 describe("parse", () => {
   it("throws on empty input", () => {
-    expect(() => parse("")).not.toThrow();
+    expect(() => parser("")).not.toThrow();
   });
 
   it("throws when EXTM3U is missing", () => {
-    expect(() => parse("#EXTINF:10,\nsegment.ts")).not.toThrow();
+    expect(() => parser("#EXTINF:10,\nsegment.ts")).not.toThrow();
   });
 
   it("parses a minimal media playlist", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
 segment1.ts
@@ -92,12 +92,12 @@ segment2.ts
 
   it("stores the source text", () => {
     const source = "#EXTM3U\n#EXT-X-TARGETDURATION:10\n#EXTINF:10,\nts\n#EXT-X-ENDLIST";
-    const result = parse(source);
+    const result = parser(source);
     expect(result.source).toBe(source);
   });
 
   it("ignores comments", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 # This is a comment
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
@@ -109,7 +109,7 @@ segment.ts
   });
 
   it("ignores empty lines", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 
 #EXT-X-TARGETDURATION:10
 
@@ -123,7 +123,7 @@ segment.ts
   });
 
   it("ignores unknown tags", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-CUSTOM-UNKNOWN:value
 #EXTINF:10,
@@ -140,7 +140,7 @@ segment.ts
 
 describe("Master Playlist", () => {
   it("parses a simple master playlist", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,AVERAGE-BANDWIDTH=1000000
 low.m3u8
 #EXT-X-STREAM-INF:BANDWIDTH=2560000,AVERAGE-BANDWIDTH=2000000
@@ -157,7 +157,7 @@ hi.m3u8`) as MasterPlaylist;
   });
 
   it("parses master playlist with version", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-VERSION:7
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
 low.m3u8`) as MasterPlaylist;
@@ -166,7 +166,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("parses master playlist with CODECS", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,CODECS="mp4a.40.2,avc1.4d401e"
 low.m3u8`) as MasterPlaylist;
 
@@ -174,7 +174,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("parses master playlist with RESOLUTION", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,RESOLUTION=1280x720
 low.m3u8`) as MasterPlaylist;
 
@@ -185,7 +185,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("parses master playlist with FRAME-RATE", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,FRAME-RATE=30.000
 low.m3u8`) as MasterPlaylist;
 
@@ -193,7 +193,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("parses EXT-X-I-FRAME-STREAM-INF", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
 low.m3u8
 #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=86000,URI="low/iframe.m3u8"
@@ -209,7 +209,7 @@ mid.m3u8
   });
 
   it("parses EXT-X-MEDIA renditions", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="English",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE="en",URI="main/english-audio.m3u8"
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="Deutsch",DEFAULT=NO,AUTOSELECT=YES,LANGUAGE="de",URI="main/german-audio.m3u8"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,CODECS="mp4a.40.2",AUDIO="aac"
@@ -227,7 +227,7 @@ mid.m3u8`) as MasterPlaylist;
   });
 
   it("parses VIDEO renditions", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=VIDEO,GROUP-ID="low",NAME="Main",DEFAULT=YES,URI="low/main.m3u8"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,VIDEO="low"
 low/main.m3u8`) as MasterPlaylist;
@@ -237,7 +237,7 @@ low/main.m3u8`) as MasterPlaylist;
   });
 
   it("parses SUBTITLES renditions", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="English",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE="en",URI="subtitles/en.m3u8"
 #EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="Spanish",DEFAULT=NO,AUTOSELECT=YES,LANGUAGE="es",URI="subtitles/es.m3u8"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,SUBTITLES="subs"
@@ -247,7 +247,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("parses CLOSED-CAPTIONS renditions", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=CLOSED-CAPTIONS,GROUP-ID="cc",NAME="CC1",DEFAULT=YES,INSTREAM-ID="CC1"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,CLOSED-CAPTIONS="cc"
 low.m3u8`) as MasterPlaylist;
@@ -257,7 +257,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("parses CLOSED-CAPTIONS=NONE", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,CLOSED-CAPTIONS=NONE
 low.m3u8
 #EXT-X-STREAM-INF:BANDWIDTH=2560000,CLOSED-CAPTIONS=NONE
@@ -268,7 +268,7 @@ mid.m3u8`) as MasterPlaylist;
   });
 
   it("parses EXT-X-SESSION-DATA", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-SESSION-DATA:DATA-ID="com.example.title",VALUE="Example"
 #EXT-X-SESSION-DATA:DATA-ID="com.example.uri",URI="data.json"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
@@ -282,7 +282,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("parses EXT-X-SESSION-KEY", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-SESSION-KEY:METHOD=AES-128,URI="https://example.com/key",KEYFORMAT="identity",KEYFORMATVERSIONS="1"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
 low.m3u8`) as MasterPlaylist;
@@ -293,7 +293,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("parses EXT-X-INDEPENDENT-SEGMENTS in master", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-INDEPENDENT-SEGMENTS
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
 low.m3u8`) as MasterPlaylist;
@@ -302,7 +302,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("parses EXT-X-START", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-START:TIME-OFFSET=30.5,PRECISE=YES
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
 low.m3u8`) as MasterPlaylist;
@@ -313,7 +313,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("parses EXT-X-DEFINE in master", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-DEFINE:NAME="foo",VALUE="bar"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
 low.m3u8`) as MasterPlaylist;
@@ -324,7 +324,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("parses EXT-X-CONTENT-STEERING", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-CONTENT-STEERING:SERVER-URI="https://example.com/steering",PATHWAY-ID="pathway-1"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
 low.m3u8`) as MasterPlaylist;
@@ -336,7 +336,7 @@ low.m3u8`) as MasterPlaylist;
 
   it("throws on mixed master and media tags", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
 low.m3u8
 #EXTINF:10,
@@ -346,7 +346,7 @@ segment.ts`),
 
   it("throws on EXT-X-STREAM-INF without URI", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
 #EXT-X-STREAM-INF:BANDWIDTH=2560000
 mid.m3u8`),
@@ -355,7 +355,7 @@ mid.m3u8`),
 
   it("throws on duplicate EXT-X-INDEPENDENT-SEGMENTS", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-INDEPENDENT-SEGMENTS
 #EXT-X-INDEPENDENT-SEGMENTS
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
@@ -365,7 +365,7 @@ low.m3u8`),
 
   it("throws on duplicate EXT-X-START", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-START:TIME-OFFSET=0
 #EXT-X-START:TIME-OFFSET=10
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
@@ -375,7 +375,7 @@ low.m3u8`),
 
   it("throws on EXT-X-SESSION-KEY with METHOD=NONE", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-SESSION-KEY:METHOD=NONE
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
 low.m3u8`),
@@ -384,7 +384,7 @@ low.m3u8`),
 
   it("throws on duplicate EXT-X-SESSION-DATA same ID and language", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-SESSION-DATA:DATA-ID="com.example.title",LANGUAGE="en",VALUE="Title"
 #EXT-X-SESSION-DATA:DATA-ID="com.example.title",LANGUAGE="en",VALUE="Title2"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
@@ -394,7 +394,7 @@ low.m3u8`),
 
   it("throws on duplicate rendition name in same group", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="English",URI="en.m3u8"
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="English",URI="en2.m3u8"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,AUDIO="aac"
@@ -404,7 +404,7 @@ low.m3u8`),
 
   it("throws on multiple DEFAULT in same group", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="English",DEFAULT=YES,URI="en.m3u8"
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="Spanish",DEFAULT=YES,URI="es.m3u8"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,AUDIO="aac"
@@ -414,7 +414,7 @@ low.m3u8`),
 
   it("throws on duplicate EXT-X-START without TIME-OFFSET", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-START:TIME-OFFSET=10,PRECISE=YES
 #EXT-X-START:TIME-OFFSET=20
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
@@ -429,7 +429,7 @@ low.m3u8`),
 
 describe("Media Playlist", () => {
   it("parses EXT-X-VERSION", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
@@ -440,7 +440,7 @@ segment.ts
   });
 
   it("parses EXT-X-MEDIA-SEQUENCE", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-MEDIA-SEQUENCE:100
 #EXTINF:9.009,
@@ -455,7 +455,7 @@ segment2.ts
   });
 
   it("parses EXT-X-PLAYLIST-TYPE EVENT", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PLAYLIST-TYPE:EVENT
 #EXTINF:10,
@@ -466,7 +466,7 @@ segment.ts
   });
 
   it("parses EXT-X-PLAYLIST-TYPE VOD", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PLAYLIST-TYPE:VOD
 #EXTINF:10,
@@ -477,7 +477,7 @@ segment.ts
   });
 
   it("parses EXT-X-I-FRAMES-ONLY", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-I-FRAMES-ONLY
 #EXTINF:1.0,
@@ -490,7 +490,7 @@ iframe2.ts
   });
 
   it("parses EXT-X-BYTERANGE", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
 #EXT-X-BYTERANGE:1000@0
@@ -504,7 +504,7 @@ segment.ts
   });
 
   it("parses EXT-X-BYTERANGE without offset", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
 #EXT-X-BYTERANGE:1000@0
@@ -522,7 +522,7 @@ segment.ts
 
   it("throws on EXT-X-BYTERANGE without offset when no previous segment", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
 #EXT-X-BYTERANGE:1000
@@ -532,7 +532,7 @@ segment.ts
   });
 
   it("parses EXT-X-DISCONTINUITY", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
 seg1.ts
@@ -548,7 +548,7 @@ seg2.ts
   });
 
   it("parses EXT-X-DISCONTINUITY-SEQUENCE", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-DISCONTINUITY-SEQUENCE:5
 #EXTINF:9.009,
@@ -560,7 +560,7 @@ seg1.ts
   });
 
   it("parses EXT-X-KEY with AES-128", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-KEY:METHOD=AES-128,URI="https://example.com/key"
 #EXTINF:9.009,
@@ -573,7 +573,7 @@ segment.ts
   });
 
   it("parses EXT-X-KEY with IV", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-KEY:METHOD=AES-128,URI="https://example.com/key",IV=0x1234567890ABCDEF1234567890ABCDEF
 #EXTINF:9.009,
@@ -585,7 +585,7 @@ segment.ts
   });
 
   it("parses EXT-X-KEY with KEYFORMAT", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-KEY:METHOD=SAMPLE-AES,URI="key.bin",KEYFORMAT="com.example"
 #EXTINF:9.009,
@@ -596,7 +596,7 @@ segment.ts
   });
 
   it("parses EXT-X-KEY with METHOD=NONE", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-KEY:METHOD=AES-128,URI="https://example.com/key"
 #EXTINF:9.009,
@@ -611,7 +611,7 @@ seg2.ts
   });
 
   it("inherits key for segments without EXT-X-KEY", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-KEY:METHOD=AES-128,URI="https://example.com/key"
 #EXTINF:9.009,
@@ -625,7 +625,7 @@ seg2.ts
   });
 
   it("parses EXT-X-MAP", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-MAP:URI="init.mp4",BYTERANGE="1000@0"
 #EXTINF:9.009,
@@ -643,7 +643,7 @@ segment2.ts
   });
 
   it("inherits map for segments without EXT-X-MAP", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-MAP:URI="init.mp4"
 #EXTINF:9.009,
@@ -657,7 +657,7 @@ seg2.ts
   });
 
   it("parses EXT-X-PROGRAM-DATE-TIME", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2010-02-19T14:54:23.031+08:00
 #EXTINF:9.009,
@@ -669,7 +669,7 @@ segment.ts
   });
 
   it("parses EXT-X-GAP", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
 #EXT-X-GAP
@@ -680,7 +680,7 @@ segment.ts
   });
 
   it("parses a live playlist without ENDLIST", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:8
 #EXT-X-MEDIA-SEQUENCE:2680
 #EXTINF:7.975,
@@ -697,7 +697,7 @@ fileSequence2681.ts`) as MediaPlaylist;
     // Since INVALIDPLAYLIST only warns, execution continues and may
     // encounter invalid state. The parser is lenient but may throw at runtime.
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 segment.ts`),
     ).toThrow();
@@ -705,7 +705,7 @@ segment.ts`),
 
   it("throws on missing EXT-X-TARGETDURATION", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXTINF:10,
 segment.ts`),
     ).not.toThrow();
@@ -713,7 +713,7 @@ segment.ts`),
 
   it("throws on duration > target duration", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:11.5,
 segment.ts
@@ -723,7 +723,7 @@ segment.ts
 
   it("throws on duplicate EXT-X-VERSION", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-VERSION:4
 #EXT-X-TARGETDURATION:10
@@ -735,7 +735,7 @@ segment.ts
 
   it("throws on EXT-X-MEDIA-SEQUENCE after segments", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 seg.ts
@@ -748,7 +748,7 @@ seg2.ts
 
   it("throws on EXT-X-DISCONTINUITY-SEQUENCE after segments", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 seg.ts
@@ -761,7 +761,7 @@ seg2.ts
 
   it("throws on EXT-X-DISCONTINUITY-SEQUENCE after DISCONTINUITY", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-DISCONTINUITY
 #EXT-X-DISCONTINUITY-SEQUENCE:1
@@ -778,7 +778,7 @@ seg.ts
 
 describe("SCTE-35 and Splice markers", () => {
   it("parses EXT-X-CUE-OUT with duration", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-CUE-OUT:15.0
@@ -791,7 +791,7 @@ seg.ts
   });
 
   it("parses EXT-X-CUE-OUT with attributes", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-CUE-OUT:DURATION=15.0
@@ -803,7 +803,7 @@ seg.ts
   });
 
   it("parses EXT-X-CUE-IN", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-CUE-IN
@@ -814,7 +814,7 @@ seg.ts
   });
 
   it("parses RAW splice markers", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-OATCLS-SCTE35:/DAlAAAAAAAAAP/wFAUAAAABf+//wpiQkv4ARKogAAEBAQAA
@@ -826,7 +826,7 @@ seg.ts
   });
 
   it("parses EXT-X-CUE-OUT-CONT", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-CUE-OUT-CONT:Elapsed=15.0,Duration=120.0,SCTE35="/DAlAAA..."
@@ -838,7 +838,7 @@ seg.ts
   });
 
   it("parses EXT-X-CUE", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-CUE:"/DAlAAA..."
@@ -850,7 +850,7 @@ seg.ts
   });
 
   it("parses EXT-X-ASSET", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-ASSET:CAID="urn:ad:ad-id"
@@ -862,7 +862,7 @@ seg.ts
   });
 
   it("parses EXT-X-SCTE35", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-SCTE35:/DAlAAA...
@@ -880,7 +880,7 @@ seg.ts
 
 describe("EXT-X-DATERANGE", () => {
   it("parses EXT-X-DATERANGE at playlist level", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-DATERANGE:ID="test",CLASS="com.example",START-DATE="2014-03-05T11:15:00Z",DURATION=59.993
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
@@ -894,7 +894,7 @@ segment.ts
   });
 
   it("parses EXT-X-DATERANGE on a segment", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
 #EXTINF:10,
@@ -907,7 +907,7 @@ segment.ts
   });
 
   it("parses SCTE-35 attributes in DATERANGE", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
 #EXTINF:10,
@@ -921,7 +921,7 @@ segment.ts
   });
 
   it("parses END-ON-NEXT with CLASS", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
 #EXTINF:10,
@@ -939,7 +939,7 @@ seg2.ts
 
   it("throws on DATERANGE with END-ON-NEXT=YES and DURATION", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
 #EXTINF:10,
@@ -951,7 +951,7 @@ segment.ts
 
   it("throws on overlapping DATERANGEs with same CLASS", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
 #EXTINF:10,
@@ -966,7 +966,7 @@ seg2.ts
 
   it("throws on DATERANGE without PROGRAM-DATE-TIME", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-DATERANGE:ID="r1",START-DATE="2014-03-05T11:15:00Z"
@@ -977,7 +977,7 @@ segment.ts
 
   it("throws on invalid END-DATE + DURATION mismatch", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
 #EXTINF:10,
@@ -994,7 +994,7 @@ segment.ts
 
 describe("LL-HLS / Low-Latency HLS", () => {
   it("parses EXT-X-SERVER-CONTROL", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,CAN-SKIP-UNTIL=36.0,HOLD-BACK=18.0,PART-HOLD-BACK=3.0
 #EXT-X-PART-INF:PART-TARGET=1.0
@@ -1017,7 +1017,7 @@ seg101.ts
   });
 
   it("parses EXT-X-PART", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
 #EXT-X-PART-INF:PART-TARGET=1.0
@@ -1037,7 +1037,7 @@ seg100.ts
   });
 
   it("parses EXT-X-PRELOAD-HINT with TYPE=PART", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
 #EXT-X-PART-INF:PART-TARGET=1.0
@@ -1055,7 +1055,7 @@ seg100.ts
   });
 
   it("parses EXT-X-PRELOAD-HINT with TYPE=MAP", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES
 #EXT-X-MEDIA-SEQUENCE:100
@@ -1075,7 +1075,7 @@ seg100.ts
 
   it("throws on EXT-X-PRELOAD-HINT without TYPE", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES
 #EXT-X-PART-INF:PART-TARGET=1.0
@@ -1089,7 +1089,7 @@ seg100.ts
 
   it("throws on EXT-X-PART without DURATION", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-MEDIA-SEQUENCE:100
 #EXTINF:6.0,
@@ -1101,7 +1101,7 @@ seg100.ts
 
   it("throws on EXT-X-PART / PRELOAD-HINT without URI", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES
 #EXT-X-MEDIA-SEQUENCE:100
@@ -1114,7 +1114,7 @@ seg100.ts
 
   it("throws on duplicate PART preload hints", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES
 #EXT-X-PART-INF:PART-TARGET=1.0
@@ -1128,7 +1128,7 @@ seg100.ts
   });
 
   it("parses EXT-X-SKIP", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,CAN-SKIP-UNTIL=36.0,HOLD-BACK=18.0
 #EXT-X-MEDIA-SEQUENCE:100
@@ -1142,7 +1142,7 @@ seg103.ts
   });
 
   it("parses EXT-X-RENDITION-REPORT", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES
 #EXT-X-MEDIA-SEQUENCE:100
@@ -1159,7 +1159,7 @@ seg100.ts
 
   it("throws on EXT-X-RENDITION-REPORT without URI", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES
 #EXT-X-MEDIA-SEQUENCE:100
@@ -1172,7 +1172,7 @@ seg100.ts
 
   it("throws on EXT-X-RENDITION-REPORT with absolute URI", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES
 #EXT-X-MEDIA-SEQUENCE:100
@@ -1185,7 +1185,7 @@ seg100.ts
 
   it("throws on EXT-X-SKIP without SKIPPED-SEGMENTS", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,CAN-SKIP-UNTIL=36.0
 #EXT-X-MEDIA-SEQUENCE:100
@@ -1197,7 +1197,7 @@ seg.ts
   });
 
   it("parses EXT-X-PREFETCH", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-MEDIA-SEQUENCE:100
 #EXTINF:6.0,
@@ -1212,7 +1212,7 @@ seg100.ts
 
   it("throws on prefetch with EXTINF", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-MEDIA-SEQUENCE:100
 #EXTINF:6.0,
@@ -1225,7 +1225,7 @@ seg100.ts
 
   it("throws on prefetch with EXT-X-DISCONTINUITY", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-MEDIA-SEQUENCE:100
 #EXTINF:6.0,
@@ -1238,7 +1238,7 @@ seg100.ts
 
   it("throws on prefetch with EXT-X-MAP", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-MEDIA-SEQUENCE:100
 #EXTINF:6.0,
@@ -1251,7 +1251,7 @@ seg100.ts
 
   it("throws on segments after prefetch", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-MEDIA-SEQUENCE:100
 #EXTINF:6.0,
@@ -1265,7 +1265,7 @@ seg102.ts
 
   it("throws on missing PART-HOLD-BACK with parts", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,HOLD-BACK=18.0
 #EXT-X-MEDIA-SEQUENCE:100
@@ -1278,7 +1278,7 @@ seg100.ts
 
   it("throws on missing PART-TARGET with parts", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
 #EXT-X-MEDIA-SEQUENCE:100
@@ -1291,7 +1291,7 @@ seg100.ts
 
   it("throws on PART-HOLD-BACK < PART-TARGET", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=0.5
 #EXT-X-PART-INF:PART-TARGET=1.0
@@ -1305,7 +1305,7 @@ seg100.ts
 
   it("throws on CAN-BLOCK-RELOAD missing for LL-HLS", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:HOLD-BACK=18.0
 #EXT-X-PART-INF:PART-TARGET=1.0
@@ -1319,7 +1319,7 @@ seg100.ts
 
   it("validates HOLD-BACK >= 3x target duration", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,CAN-SKIP-UNTIL=36.0,HOLD-BACK=10.0
 #EXT-X-MEDIA-SEQUENCE:100
@@ -1331,7 +1331,7 @@ seg100.ts
 
   it("validates CAN-SKIP-UNTIL >= 6x target duration", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,CAN-SKIP-UNTIL=30.0,HOLD-BACK=18.0
 #EXT-X-MEDIA-SEQUENCE:100
@@ -1343,7 +1343,7 @@ seg100.ts
 
   it("throws on PART duration > PART-TARGET", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
 #EXT-X-PART-INF:PART-TARGET=1.0
@@ -1357,7 +1357,7 @@ seg100.ts
 
   it("throws on non-last PART duration < 85% of PART-TARGET", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
 #EXT-X-PART-INF:PART-TARGET=1.0
@@ -1371,7 +1371,7 @@ seg100.ts
   });
 
   it("allows last PART duration < 85% of PART-TARGET", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
 #EXT-X-PART-INF:PART-TARGET=1.0
@@ -1386,7 +1386,7 @@ seg100.ts
   });
 
   it("parses EXT-X-PREFETCH-DISCONTINUITY", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-MEDIA-SEQUENCE:100
 #EXTINF:6.0,
@@ -1400,7 +1400,7 @@ seg100.ts
 
   it("handles trailing segment with parts not in endlist without hint", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
 #EXT-X-PART-INF:PART-TARGET=1.0
@@ -1412,7 +1412,7 @@ seg100.ts
 
   it("handles EXT-X-PART in gap without GAP=YES on part", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-VERSION:8
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
@@ -1428,7 +1428,7 @@ seg100.ts
 
   it("throws on duplicate media playlist tag", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PART-INF:PART-TARGET=1.0
 #EXT-X-PART-INF:PART-TARGET=2.0
@@ -1446,7 +1446,7 @@ seg100.ts
 
 describe("URL Resolution in Playlist", () => {
   it("resolves relative URIs in a media playlist", () => {
-    const result = parse(
+    const result = parser(
       `#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
@@ -1462,7 +1462,7 @@ segment2.ts
   });
 
   it("resolves absolute URIs in a media playlist", () => {
-    const result = parse(
+    const result = parser(
       `#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
@@ -1475,7 +1475,7 @@ segment2.ts
   });
 
   it("resolves relative URIs in a master playlist", () => {
-    const result = parse(
+    const result = parser(
       `#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
 low.m3u8
@@ -1489,7 +1489,7 @@ mid.m3u8`,
   });
 
   it("resolves key URIs in media playlist", () => {
-    const result = parse(
+    const result = parser(
       `#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-KEY:METHOD=AES-128,URI="key.bin"
@@ -1503,7 +1503,7 @@ segment.ts
   });
 
   it("resolves map URIs in media playlist", () => {
-    const result = parse(
+    const result = parser(
       `#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-MAP:URI="init.mp4"
@@ -1517,7 +1517,7 @@ segment.ts
   });
 
   it("resolves part URIs in media playlist", () => {
-    const result = parse(
+    const result = parser(
       `#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
@@ -1534,7 +1534,7 @@ seg100.ts
   });
 
   it("resolves prefetch URIs", () => {
-    const result = parse(
+    const result = parser(
       `#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-MEDIA-SEQUENCE:100
@@ -1549,7 +1549,7 @@ seg100.ts
   });
 
   it("resolves rendition report URIs", () => {
-    const result = parse(
+    const result = parser(
       `#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES
@@ -1565,7 +1565,7 @@ seg100.ts
   });
 
   it("resolves content steering URI", () => {
-    const result = parse(
+    const result = parser(
       `#EXTM3U
 #EXT-X-CONTENT-STEERING:SERVER-URI="steering.json"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
@@ -1577,7 +1577,7 @@ low.m3u8`,
   });
 
   it("resolves session data URI", () => {
-    const result = parse(
+    const result = parser(
       `#EXTM3U
 #EXT-X-SESSION-DATA:DATA-ID="com.example",URI="data.json"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
@@ -1589,7 +1589,7 @@ low.m3u8`,
   });
 
   it("does not modify absolute URIs when resolving", () => {
-    const result = parse(
+    const result = parser(
       `#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
@@ -1608,7 +1608,7 @@ https://cdn.example.com/segment.ts
 
 describe("Protocol Version Detection", () => {
   it("detects version 2 needed for IV", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-KEY:METHOD=AES-128,URI="key",IV=0x1234567890ABCDEF1234567890ABCDEF
 #EXTINF:10,
@@ -1620,7 +1620,7 @@ seg.ts
   });
 
   it("detects version 3 needed for float EXTINF", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
 seg.ts
@@ -1634,7 +1634,7 @@ seg2.ts
 
   it("validates version when EXTM3U does not meet requirements", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-VERSION:1
 #EXT-X-TARGETDURATION:10
 #EXT-X-BYTERANGE:1000@0
@@ -1646,7 +1646,7 @@ seg.ts
 
   it("validates version for EXT-X-BYTERANGE (needs version >= 4)", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-TARGETDURATION:10
 #EXT-X-BYTERANGE:1000@0
@@ -1658,7 +1658,7 @@ seg.ts
 
   it("validates version for EXT-X-MAP in non-IFrame (needs version >= 6)", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-VERSION:5
 #EXT-X-TARGETDURATION:10
 #EXT-X-MAP:URI="init.mp4"
@@ -1676,7 +1676,7 @@ seg.ts
 describe("InvalidPlaylistError", () => {
   it("has the correct name", () => {
     try {
-      parse("");
+      parser("");
     } catch (e: any) {
       expect(e.name).toBe("InvalidPlaylistError");
       expect(e).toBeInstanceOf(Error);
@@ -1690,13 +1690,13 @@ describe("InvalidPlaylistError", () => {
 
 describe("Edge Cases", () => {
   it("handles CRLF line endings", () => {
-    const result = parse("#EXTM3U\r\n#EXT-X-TARGETDURATION:10\r\n#EXTINF:10,\r\nseg.ts\r\n#EXT-X-ENDLIST\r\n") as MediaPlaylist;
+    const result = parser("#EXTM3U\r\n#EXT-X-TARGETDURATION:10\r\n#EXTINF:10,\r\nseg.ts\r\n#EXT-X-ENDLIST\r\n") as MediaPlaylist;
     expect(result.segments).toHaveLength(1);
     expect(result.segments[0].uri).toBe("seg.ts");
   });
 
   it("handles duration as integer", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 seg.ts
@@ -1706,7 +1706,7 @@ seg.ts
   });
 
   it("handles segment with title", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,My Title
 seg.ts
@@ -1717,7 +1717,7 @@ seg.ts
 
   it("throws on version too low for MEDIA-SEQUENCE", () => {
     // Actually MEDIA-SEQUENCE is version 1 compatible, let's verify
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-MEDIA-SEQUENCE:0
 #EXTINF:10,
@@ -1728,7 +1728,7 @@ seg.ts
   });
 
   it("handles empty prefetch segments list", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 seg.ts
@@ -1738,7 +1738,7 @@ seg.ts
   });
 
   it("handles empty rendition reports list", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 seg.ts
@@ -1748,7 +1748,7 @@ seg.ts
   });
 
   it("handles VARIANT with HDCP-LEVEL", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,HDCP-LEVEL=TYPE-0
 low.m3u8`) as MasterPlaylist;
 
@@ -1756,7 +1756,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("handles VARIANT with VIDEO-RANGE", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,VIDEO-RANGE=HLG
 low.m3u8`) as MasterPlaylist;
 
@@ -1765,14 +1765,14 @@ low.m3u8`) as MasterPlaylist;
 
   it("throws on invalid VIDEO-RANGE", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,VIDEO-RANGE=INVALID
 low.m3u8`),
     ).not.toThrow();
   });
 
   it("handles VARIANT with SCORE", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,SCORE=0.5
 low.m3u8
 #EXT-X-STREAM-INF:BANDWIDTH=2560000,SCORE=0.8
@@ -1784,7 +1784,7 @@ mid.m3u8`) as MasterPlaylist;
 
   it("throws on negative SCORE", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,SCORE=-1.0
 low.m3u8`),
     ).not.toThrow();
@@ -1792,7 +1792,7 @@ low.m3u8`),
 
   it("throws on inconsistent SCORE (some variants have it, some do not)", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,SCORE=0.5
 low.m3u8
 #EXT-X-STREAM-INF:BANDWIDTH=2560000
@@ -1801,7 +1801,7 @@ mid.m3u8`),
   });
 
   it("handles ALLOWED-CPC", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,ALLOWED-CPC="com.example:1/2/3,com.other:4/5"
 low.m3u8`) as MasterPlaylist;
 
@@ -1812,7 +1812,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("handles CHARACTERISTICS in renditions", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="English",CHARACTERISTICS="public.accessibility.transcribes-spoken-dialog,public.easy-to-read",URI="en.m3u8"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,SUBTITLES="subs"
 low.m3u8`) as MasterPlaylist;
@@ -1821,7 +1821,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("handles CHANNELS in audio renditions", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="English",CHANNELS="6",URI="en.m3u8"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,AUDIO="aac"
 low.m3u8`) as MasterPlaylist;
@@ -1830,7 +1830,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("handles stable variant ID", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,STABLE-VARIANT-ID="abc123"
 low.m3u8`) as MasterPlaylist;
 
@@ -1838,7 +1838,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("handles PATHWAY-ID in variant", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,PATHWAY-ID="pathway-1"
 low.m3u8`) as MasterPlaylist;
 
@@ -1846,7 +1846,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("handles PATHWAY-ID in rendition", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="English",PATHWAY-ID="p1",URI="en.m3u8"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,AUDIO="aac"
 low.m3u8`) as MasterPlaylist;
@@ -1855,7 +1855,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("parses EXT-X-GAP in valid context", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-VERSION:8
 #EXT-X-TARGETDURATION:10
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
@@ -1872,7 +1872,7 @@ seg100.ts
   });
 
   it("handles X- attributes in DATERANGE", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
 #EXTINF:10,
@@ -1885,7 +1885,7 @@ segment.ts
   });
 
   it("handles multiple date ranges at playlist level", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
 #EXT-X-DATERANGE:ID="r1",START-DATE="2014-03-05T11:15:00Z",DURATION=30.0
@@ -1898,7 +1898,7 @@ segment.ts
   });
 
   it("handles PROGRAM-DATE-TIME on multiple segments", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
 #EXTINF:10,
@@ -1919,7 +1919,7 @@ seg2.ts
 
 describe("RFC 8216 Examples", () => {
   it("parses simple media playlist (Section 8.1)", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-VERSION:3
 #EXTINF:9.009,
@@ -1940,7 +1940,7 @@ http://media.example.com/third.ts
   });
 
   it("parses live playlist (Section 8.2)", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-TARGETDURATION:8
 #EXT-X-MEDIA-SEQUENCE:2680
@@ -1960,7 +1960,7 @@ https://priv.example.com/fileSequence2682.ts`) as MediaPlaylist;
   });
 
   it("parses master playlist (Section 8.4)", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,AVERAGE-BANDWIDTH=1000000
 http://example.com/low.m3u8
 #EXT-X-STREAM-INF:BANDWIDTH=2560000,AVERAGE-BANDWIDTH=2000000
@@ -1975,7 +1975,7 @@ http://example.com/audio-only.m3u8`) as MasterPlaylist;
   });
 
   it("parses encrypted segment playlist", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-MEDIA-SEQUENCE:7794
 #EXT-X-TARGETDURATION:15
@@ -2007,7 +2007,7 @@ http://media.example.com/fileSequence53-A.ts
 
 describe("Coverage edge cases", () => {
   it("handles X- attribute with hex value", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
 #EXTINF:10,
@@ -2020,7 +2020,7 @@ segment.ts
   });
 
   it("handles X- attribute with numeric value", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
 #EXTINF:10,
@@ -2033,7 +2033,7 @@ segment.ts
   });
 
   it("handles CUE-OUT with non-numeric value falling back to attributes", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-CUE-OUT:DURATION=30.0
@@ -2045,7 +2045,7 @@ seg.ts
 
   it("handles odd-length hex in hexToByteSequence via IV", () => {
     // Use a 31-hex-char value (after 0x), which should be padded to 32 = 16 bytes
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-KEY:METHOD=AES-128,URI="key",IV=0x0123456789ABCDEF0123456789ABCDE
 #EXTINF:10,
@@ -2057,7 +2057,7 @@ seg.ts
   });
 
   it("handles CUE-OUT with NaN value treating as attributes", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-CUE-OUT:DURATION=15.0
@@ -2068,7 +2068,7 @@ seg.ts
   });
 
   it("allows MediaorMasterPlaylist tags in either type", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-INDEPENDENT-SEGMENTS
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
@@ -2080,7 +2080,7 @@ seg.ts
 
   it("validates IV length is exactly 128-bit", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-KEY:METHOD=AES-128,URI="key",IV=0xFF
 #EXTINF:10,
@@ -2090,7 +2090,7 @@ seg.ts
   });
 
   it("handles ASSOC-LANGUAGE in renditions", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="Norwegian",LANGUAGE="nb",ASSOC-LANGUAGE="no",URI="nb.m3u8"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,AUDIO="aac"
 low.m3u8`) as MasterPlaylist;
@@ -2099,7 +2099,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("handles FORCED attribute in SUBTITLES", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="English",FORCED=YES,URI="en.m3u8"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,SUBTITLES="subs"
 low.m3u8`) as MasterPlaylist;
@@ -2108,7 +2108,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("handles AUDIO uri missing default from variant", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="English",URI="en.m3u8"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,AUDIO="aac"
 low.m3u8`) as MasterPlaylist;
@@ -2129,7 +2129,7 @@ low.m3u8`) as MasterPlaylist;
 
   it("handles ALLOWED-CPC empty list", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,ALLOWED-CPC=""
 low.m3u8`),
     ).not.toThrow();
@@ -2137,7 +2137,7 @@ low.m3u8`),
 
   it("throws on EXT-X-MEDIA without TYPE", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-MEDIA:GROUP-ID="aac",NAME="English",URI="en.m3u8"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
 low.m3u8`),
@@ -2146,7 +2146,7 @@ low.m3u8`),
 
   it("throws on missing PART-HOLD-BACK in LL-HLS with parts", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,HOLD-BACK=18.0
 #EXT-X-MEDIA-SEQUENCE:100
@@ -2159,7 +2159,7 @@ seg100.ts
 
   it("throws on EXT-X-PART after more than 3 durations from end", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
 #EXT-X-PART-INF:PART-TARGET=1.0
@@ -2181,7 +2181,7 @@ seg103.ts
   });
 
   it("handles X- attribute with quoted string value", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
 #EXTINF:10,
@@ -2194,7 +2194,7 @@ segment.ts
   });
 
   it("handles SCTE35- attributes in DATERANGE", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
 #EXTINF:10,
@@ -2207,7 +2207,7 @@ segment.ts
   });
 
   it("handles CUE with attributes syntax", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-CUE:DURATION=30.0
@@ -2218,7 +2218,7 @@ seg.ts
   });
 
   it("handles fragmented MP4 setup with EXT-X-MAP and I-FRAMES-ONLY", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-I-FRAMES-ONLY
 #EXT-X-MAP:URI="init.mp4"
@@ -2296,7 +2296,7 @@ iframe1.ts
   });
 
   it("handles EXT-X-KEY with KEYFORMATVERSIONS", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-KEY:METHOD=AES-128,URI="key",KEYFORMAT="identity",KEYFORMATVERSIONS="1"
 #EXTINF:10,
@@ -2308,7 +2308,7 @@ seg.ts
 
   it("handles duplicate EXT-X-SESSION-KEY", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-SESSION-KEY:METHOD=AES-128,URI="key1"
 #EXT-X-SESSION-KEY:METHOD=AES-128,URI="key1"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
@@ -2319,7 +2319,7 @@ low.m3u8`),
   it("handles CLOSED-CAPTIONS without matching group", () => {
     // cc2 doesn't match cc1, so no renditions are added to the variant.
     // closedCaptions remains undefined since no rendition matched.
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=CLOSED-CAPTIONS,GROUP-ID="cc1",NAME="CC1",INSTREAM-ID="CC1"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,CLOSED-CAPTIONS="cc2"
 low.m3u8`) as MasterPlaylist;
@@ -2330,7 +2330,7 @@ low.m3u8`) as MasterPlaylist;
 
   it("validates EXT-X-START has TIME-OFFSET in media playlist", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-START:
 #EXTINF:10,
@@ -2340,7 +2340,7 @@ seg.ts
   });
 
   it("handles EXT-X-PREFETCH with KEY", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-KEY:METHOD=AES-128,URI="key.bin"
 #EXT-X-MEDIA-SEQUENCE:100
@@ -2353,7 +2353,7 @@ seg100.ts
   });
 
   it("validates END-DATE matches START-DATE + DURATION in DATERANGE", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-PROGRAM-DATE-TIME:2014-03-05T11:15:00Z
 #EXTINF:10,
@@ -2366,7 +2366,7 @@ segment.ts
 
   it("validates BYTERANGE through different URI without previous match", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
 #EXT-X-BYTERANGE:1000@0
@@ -2380,7 +2380,7 @@ seg2.ts
 
   it("handles error on STREAM-INF with tag instead of URI", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
 #EXT-X-STREAM-INF:BANDWIDTH=2560000
 mid.m3u8`),
@@ -2389,7 +2389,7 @@ mid.m3u8`),
 
   it("handles missing PART-TARGET with parts in LL-HLS", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
 #EXT-X-MEDIA-SEQUENCE:100
@@ -2401,7 +2401,7 @@ seg100.ts
   });
 
   it("resolves key URIs in prefetch segments", () => {
-    const result = parse(
+    const result = parser(
       `#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-MEDIA-SEQUENCE:100
@@ -2423,14 +2423,14 @@ seg100.ts
 
   it("handles ALLOWED-CPC with invalid entry format", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,ALLOWED-CPC="invalid"
 low.m3u8`),
     ).not.toThrow();
   });
 
   it("handles EXT-X-KEY before parts", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
 #EXT-X-PART-INF:PART-TARGET=1.0
@@ -2446,7 +2446,7 @@ seg100.ts
   });
 
   it("handles EXT-X-MAP before parts", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-VERSION:6
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
@@ -2463,7 +2463,7 @@ seg100.ts
 
   it("handles duplicate EXT-X-VERSION in media playlist", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-VERSION:4
 #EXT-X-TARGETDURATION:10
@@ -2475,7 +2475,7 @@ seg.ts
 
   it("handles EXT-X-MEDIA-SEQUENCE after segments (error)", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 seg.ts
@@ -2488,7 +2488,7 @@ seg2.ts
 
   it("handles EXT-X-DISCONTINUITY-SEQUENCE after segments (error)", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 seg.ts
@@ -2501,7 +2501,7 @@ seg2.ts
 
   it("handles BYTERANGE through different URI", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
 #EXT-X-BYTERANGE:1000@0
@@ -2516,7 +2516,7 @@ seg2.ts
   it("handles sameKey with different IV lengths", () => {
     // This tests the sameKey function indirectly through duplicate session keys
     // with different attributes
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-SESSION-KEY:METHOD=AES-128,URI="key1",KEYFORMAT="identity"
 #EXT-X-SESSION-KEY:METHOD=AES-128,URI="key2",KEYFORMAT="identity"
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
@@ -2527,7 +2527,7 @@ low.m3u8`) as MasterPlaylist;
 
   it("handles duplicate EXT-X-START in master (throw)", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-START:TIME-OFFSET=0
 #EXT-X-START:TIME-OFFSET=10
 #EXT-X-STREAM-INF:BANDWIDTH=1280000
@@ -2537,7 +2537,7 @@ low.m3u8`),
 
   it("handles EXT-X-START without TIME-OFFSET in media", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-START:
 #EXTINF:10,
@@ -2547,7 +2547,7 @@ seg.ts
   });
 
   it("handles EXT-X-GAP with compatible version < 8", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
 #EXT-X-GAP
@@ -2558,7 +2558,7 @@ seg.ts
   });
 
   it("handles CUE-OUT with number in attribute list format", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-CUE-OUT:15.0
@@ -2569,7 +2569,7 @@ seg.ts
   });
 
   it("handles EXT-X-PREFETCH with key inheritance", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-KEY:METHOD=AES-128,URI="key.bin"
 #EXT-X-MEDIA-SEQUENCE:100
@@ -2587,7 +2587,7 @@ seg100.ts
   });
 
   it("handles CUE with attributes format (backward compat)", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-CUE:"SCTE35="
@@ -2617,7 +2617,7 @@ seg.ts
   });
 
   it("handles CUE-OUT with attribute list format (non-numeric)", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-CUE-OUT:DURATION=15.0
@@ -2628,7 +2628,7 @@ seg.ts
   });
 
   it("handles all types of streaming INF attributes", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,HDCP-LEVEL=TYPE-0,VIDEO-RANGE=PQ
 low.m3u8`) as MasterPlaylist;
 
@@ -2637,7 +2637,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("handles CUE-OUT with non-numeric value", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-CUE-OUT:DURATION=15.0
@@ -2649,7 +2649,7 @@ seg.ts
 
   it("handles duplicate EXT-X-START", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-START:TIME-OFFSET=0
 #EXT-X-START:TIME-OFFSET=10
@@ -2662,7 +2662,7 @@ seg.ts
   it("handles EXT-X-MAP after parts (error)", () => {
     // EXT-X-PART before EXT-X-MAP should throw
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES
 #EXT-X-MEDIA-SEQUENCE:100
@@ -2676,7 +2676,7 @@ seg100.ts
 
   it("handles EXT-X-KEY after parts (error)", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES
 #EXT-X-MEDIA-SEQUENCE:100
@@ -2689,7 +2689,7 @@ seg100.ts
   });
 
   it("handles trailing segment without URI", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-MEDIA-SEQUENCE:100
 #EXTINF:10.0,
@@ -2706,7 +2706,7 @@ seg100.ts
   });
 
   it("handles EXT-X-GAP with version check correctly", () => {
-    const result = parse(`#EXTM3U
+    const result = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9.009,
 #EXT-X-GAP

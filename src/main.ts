@@ -1,7 +1,7 @@
-import { parse, resolveUrl, InvalidPlaylistError } from ".";
+import { parser, resolveUrl, InvalidPlaylistError } from ".";
 
 export default {
-  parse,
+  parser,
   resolveUrl,
   InvalidPlaylistError,
 };

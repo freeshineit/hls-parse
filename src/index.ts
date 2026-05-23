@@ -17,7 +17,7 @@
  * ```typescript
  * import { parse } from '@skax/hls-parse';
  *
- * const playlist = parse(`#EXTM3U
+ * const playlist = parser(`#EXTM3U
  * #EXT-X-TARGETDURATION:10
  * #EXTINF:9.009,
  * segment.ts
@@ -32,7 +32,7 @@
  *
  * @example With URL Resolution
  * ```typescript
- * const playlist = parse(m3u8, {
+ * const playlist = parser(m3u8, {
  *   uri: 'https://example.com/hls/main.m3u8'
  * });
  * // All relative URIs are resolved to absolute
@@ -42,7 +42,7 @@
  * @packageDocumentation
  */
 
-export { parse, default as default } from "./parse";
+export { parser, default as default } from "./parse";
 export { InvalidPlaylistError, resolveUrl } from "./utils";
 export { isMasterPlaylist, isMediaPlaylist } from "./types";
 export * as TAGS from "./constants";
@@ -70,5 +70,5 @@ export type {
   AllowedCpc,
   UserAttribute,
   ExtInfo,
-  ParseOptions,
+  ParserOptions,
 } from "./types";

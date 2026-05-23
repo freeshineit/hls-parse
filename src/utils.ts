@@ -9,13 +9,13 @@
 /**
  * Custom error class for invalid playlist parsing.
  *
- * Thrown by {@link parse} when a playlist violates RFC 8216 syntax rules.
+ * Thrown by {@link parser} when a playlist violates RFC 8216 syntax rules.
  * Extends the standard `Error` class.
  *
  * @example
  * ```ts
  * try {
- *   parse(m3u8);
+ *   parser(m3u8);
  * } catch (e) {
  *   if (e instanceof InvalidPlaylistError) {
  *     console.log(e.message);

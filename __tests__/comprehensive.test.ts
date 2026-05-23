@@ -4,7 +4,7 @@
  *
  * Purpose: push coverage > 97% lines / 95% branches
  */
-import { parse, InvalidPlaylistError, resolveUrl } from "../src";
+import { parser, InvalidPlaylistError, resolveUrl } from "../src";
 import { MasterPlaylist, MediaPlaylist } from "../src/types";
 
 // ============================================================================
@@ -14,12 +14,12 @@ describe("ALLOWED-CPC", () => {
   // line 198 — !cpcText
   it("ALLOWED-CPC type without configuration throws", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1000,ALLOWED-CPC="com.example:"`),
     ).not.toThrow();
   });
   it("ALLOWED-CPC single valid entry", () => {
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1000,ALLOWED-CPC="com.example:A/B"
 v.m3u8`) as MasterPlaylist;
     expect(p.variants[0].allowedCpc![0].cpcList).toEqual(["A", "B"]);
@@ -33,7 +33,7 @@ describe("sameKey equality", () => {
   it("different IV is rejected as duplicate when uris same", () => {
     // same key1.uri !== key2.uri already makes them different, so both allowed.
     // This test verifies sameKey truly compares all fields.
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-SESSION-KEY:METHOD=AES-128,URI="k1",IV=0xAABBCCDDEEFF00112233445566778899
 #EXT-X-SESSION-KEY:METHOD=AES-128,URI="k2",KEYFORMAT="x"
 #EXT-X-STREAM-INF:BANDWIDTH=1000
@@ -41,7 +41,7 @@ v.m3u8`) as MasterPlaylist;
     expect(p.sessionKeyList).toHaveLength(2);
   });
   it("different format rejects duplicate", () => {
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-SESSION-KEY:METHOD=AES-128,URI="k1",KEYFORMAT="a"
 #EXT-X-SESSION-KEY:METHOD=AES-128,URI="k1",KEYFORMAT="b"
 #EXT-X-STREAM-INF:BANDWIDTH=1000
@@ -49,7 +49,7 @@ v.m3u8`) as MasterPlaylist;
     expect(p.sessionKeyList).toHaveLength(2);
   });
   it("different formatVersion rejects duplicate", () => {
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-SESSION-KEY:METHOD=AES-128,URI="k1",KEYFORMATVERSIONS="1"
 #EXT-X-SESSION-KEY:METHOD=AES-128,URI="k1",KEYFORMATVERSIONS="2"
 #EXT-X-STREAM-INF:BANDWIDTH=1000
@@ -63,7 +63,7 @@ v.m3u8`) as MasterPlaylist;
 // ============================================================================
 describe("CUE-OUT paths", () => {
   it("numeric CUE-OUT is treated as duration", () => {
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:30
 #EXTINF:30,
 #EXT-X-CUE-OUT:20
@@ -72,7 +72,7 @@ seg.ts
     expect(p.segments[0].markers![0].duration).toBe(20);
   });
   it("CUE-OUT with float duration", () => {
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:30
 #EXTINF:30,
 #EXT-X-CUE-OUT:20.5
@@ -88,7 +88,7 @@ seg.ts
 describe("EXT-X-START validation", () => {
   it("EXT-X-START without TIME-OFFSET in master throws", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-START:
 #EXT-X-STREAM-INF:BANDWIDTH=1000
 v.m3u8`),
@@ -101,7 +101,7 @@ v.m3u8`),
 // ============================================================================
 describe("EXT-X-GAP version check", () => {
   it("EXT-X-GAP without version in playlist still sets gap", () => {
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
 #EXT-X-GAP
@@ -117,7 +117,7 @@ seg.ts
 describe("Tag ordering – KEY/MAP after parts", () => {
   it("EXT-X-KEY after EXT-X-PART throws", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
 #EXT-X-PART-INF:PART-TARGET=1
@@ -131,7 +131,7 @@ seg.ts
   });
   it("EXT-X-MAP after EXT-X-PART throws", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
 #EXT-X-PART-INF:PART-TARGET=1
@@ -145,7 +145,7 @@ seg.ts
   });
   it("EXT-X-DISCONTINUITY after EXT-X-PART throws", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=3.0
 #EXT-X-PART-INF:PART-TARGET=1
@@ -164,7 +164,7 @@ seg.ts
 // ============================================================================
 describe("Prefetch key", () => {
   it("prefetch inherits key from previous segment", () => {
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:6
 #EXT-X-KEY:METHOD=AES-128,URI="k.bin"
 #EXT-X-MEDIA-SEQUENCE:100
@@ -180,9 +180,9 @@ seg.ts
 // 8.  LL-HLS hold-back/can-skip-until validation (lines 1242, 1276-1286)
 // ============================================================================
 describe("LL-HLS boundaries", () => {
-  it("HOLD-BACK < 3*targetDuration throws — through full parse", () => {
+  it("HOLD-BACK < 3*targetDuration throws — through full parser", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-VERSION:6
 #EXT-X-TARGETDURATION:4
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,CAN-SKIP-UNTIL=24,HOLD-BACK=10
@@ -194,7 +194,7 @@ s.ts
   });
   it("CAN-SKIP-UNTIL < 6*targetDuration throws", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-VERSION:6
 #EXT-X-TARGETDURATION:4
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,CAN-SKIP-UNTIL=20,HOLD-BACK=12
@@ -206,7 +206,7 @@ s.ts
   });
   it("compatibleVersion reaches 9 via EXT-X-SKIP", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-VERSION:6
 #EXT-X-TARGETDURATION:4
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,CAN-SKIP-UNTIL=24,HOLD-BACK=12
@@ -219,7 +219,7 @@ s.ts
   });
   it("PART segment index > 3 from end removes", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-VERSION:6
 #EXT-X-TARGETDURATION:4
 #EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=2
@@ -248,7 +248,7 @@ s4.ts
 describe("Duplicate tag guards", () => {
   it("duplicate EXT-X-VERSION in media", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-VERSION:4
 #EXT-X-TARGETDURATION:10
@@ -259,7 +259,7 @@ s.ts
   });
   it("duplicate EXT-X-TARGETDURATION in media", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-TARGETDURATION:12
 #EXTINF:10,
@@ -274,7 +274,7 @@ s.ts
 // ============================================================================
 describe("Trailing segment (no URI)", () => {
   it("trailing tags create a segment with empty URI", () => {
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-MEDIA-SEQUENCE:0
 #EXTINF:5,
@@ -293,7 +293,7 @@ describe("Trailing segment (no URI)", () => {
 describe("Version mismatch", () => {
   it("EXT-X-BYTERANGE requires version >= 4", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-TARGETDURATION:10
 #EXTINF:10,
@@ -303,7 +303,7 @@ s.ts
     ).not.toThrow();
   });
   it("EXT-X-MAP in I-frame playlist needs version >= 5", () => {
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-VERSION:5
 #EXT-X-TARGETDURATION:5
 #EXT-X-I-FRAMES-ONLY
@@ -335,7 +335,7 @@ describe("resolveUrl fallback paths", () => {
 // ============================================================================
 describe("Tag category ordering", () => {
   it("MediaorMasterPlaylist tag before anything else is accepted", () => {
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-INDEPENDENT-SEGMENTS
 #EXT-X-DEFINE:NAME="x",VALUE="1"
 #EXT-X-STREAM-INF:BANDWIDTH=1000
@@ -350,7 +350,7 @@ v.m3u8`) as MasterPlaylist;
 // ============================================================================
 describe("matchTypes closed-captions", () => {
   it("CLOSED-CAPTIONS value matching group worked", () => {
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=CLOSED-CAPTIONS,GROUP-ID="cc1",NAME="en",INSTREAM-ID="CC1"
 #EXT-X-STREAM-INF:BANDWIDTH=1000,CLOSED-CAPTIONS="cc1"
 v.m3u8`) as MasterPlaylist;
@@ -378,7 +378,7 @@ v3.m3u8
 #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=30000,CODECS="avc1.64001f",RESOLUTION=640x360,URI="iframes/v1.m3u8"
 #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=50000,CODECS="avc1.64001f",RESOLUTION=1280x720,URI="iframes/v2.m3u8"
 `;
-    const p = parse(txt) as MasterPlaylist;
+    const p = parser(txt) as MasterPlaylist;
     expect(p.variants).toHaveLength(5);
     expect(p.independentSegments).toBe(true);
     const iFrames = p.variants.filter((v) => v.isIFrameOnly);
@@ -398,7 +398,7 @@ seg-0.ts
 seg-1.ts
 #EXT-X-ENDLIST
 `;
-    const p = parse(txt) as MediaPlaylist;
+    const p = parser(txt) as MediaPlaylist;
     expect(p.playlistType).toBe("VOD");
     expect(p.segments).toHaveLength(2);
     expect(p.endlist).toBe(true);
@@ -417,7 +417,7 @@ seg-101.ts
 #EXTINF:10.0,
 seg-102.ts
 `;
-    const p = parse(txt) as MediaPlaylist;
+    const p = parser(txt) as MediaPlaylist;
     expect(p.playlistType).toBe("EVENT");
     expect(p.endlist).toBeUndefined();
     expect(p.segments).toHaveLength(3);
@@ -436,7 +436,7 @@ seg-0.ts
 seg-1.ts
 #EXT-X-ENDLIST
 `;
-    const p = parse(txt) as MediaPlaylist;
+    const p = parser(txt) as MediaPlaylist;
     expect(p.segments[0].key!.method).toBe("AES-128");
     expect(p.segments[0].key!.iv).toBeDefined();
     expect(p.segments[1].key!.iv).toBeDefined();
@@ -468,22 +468,22 @@ seg2.ts
 #EXT-X-ENDLIST`;
 
   it("parses complete LL-HLS", () => {
-    const p = parse(llhls) as MediaPlaylist;
+    const p = parser(llhls) as MediaPlaylist;
     expect(p.lowLatencyCompatibility!.canBlockReload).toBe(true);
   });
   it("segments have correct part counts", () => {
-    const p = parse(llhls) as MediaPlaylist;
+    const p = parser(llhls) as MediaPlaylist;
     expect(p.segments[0].parts).toHaveLength(4);
     expect(p.segments[1].parts).toHaveLength(2);
     expect(p.segments[1].parts![1].hint).toBe(true);
   });
   it("prefetch segment exists", () => {
-    const p = parse(llhls) as MediaPlaylist;
+    const p = parser(llhls) as MediaPlaylist;
     expect(p.prefetchSegments).toHaveLength(1);
     expect(p.prefetchSegments[0].uri).toBe("seg3.ts");
   });
   it("rendition report filled", () => {
-    const p = parse(llhls) as MediaPlaylist;
+    const p = parser(llhls) as MediaPlaylist;
     expect(p.renditionReports).toHaveLength(1);
     expect(p.renditionReports[0].uri).toBe("../audio/en.m3u8");
   });
@@ -494,7 +494,7 @@ seg2.ts
 // ============================================================================
 describe("Content Steering", () => {
   it("parses EXT-X-CONTENT-STEERING completely", () => {
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-VERSION:7
 #EXT-X-CONTENT-STEERING:SERVER-URI="steering.json",PATHWAY-ID="p1"
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",PATHWAY-ID="p1",NAME="en",URI="en.m3u8"
@@ -510,7 +510,7 @@ v.m3u8`) as MasterPlaylist;
 // ============================================================================
 describe("Rendition URI resolution", () => {
   it("resolves audio rendition URIs in master playlist", () => {
-    const p = parse(
+    const p = parser(
       `#EXTM3U
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="English",URI="audio/en.m3u8"
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="Spanish",URI="audio/es.m3u8"
@@ -529,7 +529,7 @@ video.m3u8`,
   });
 
   it("leaves absolute rendition URIs unchanged", () => {
-    const p = parse(
+    const p = parser(
       `#EXTM3U
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac",NAME="English",URI="https://cdn.example.com/audio/en.m3u8"
 #EXT-X-STREAM-INF:BANDWIDTH=1000,AUDIO="aac"
@@ -541,7 +541,7 @@ video.m3u8`,
   });
 
   it("resolves session key URIs", () => {
-    const p = parse(
+    const p = parser(
       `#EXTM3U
 #EXT-X-SESSION-KEY:METHOD=AES-128,URI="keys/enc.key"
 #EXT-X-STREAM-INF:BANDWIDTH=1000
@@ -559,7 +559,7 @@ video.m3u8`,
 describe("SCORE attribute", () => {
   it("negative score throws", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=1000,SCORE=-1
 v.m3u8`),
     ).not.toThrow();
@@ -572,7 +572,7 @@ v.m3u8`),
 describe("Session key duplicates", () => {
   it("duplicate session key with exact same attrs throws", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-SESSION-KEY:METHOD=AES-128,URI="k1"
 #EXT-X-SESSION-KEY:METHOD=AES-128,URI="k1"
 #EXT-X-STREAM-INF:BANDWIDTH=1000
@@ -587,7 +587,7 @@ v.m3u8`),
 describe("CLOSED-CAPTIONS=NONE restrictions", () => {
   it("one CC=NONE and another has group throws", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-MEDIA:TYPE=CLOSED-CAPTIONS,GROUP-ID="cc",NAME="en",INSTREAM-ID="CC1"
 #EXT-X-STREAM-INF:BANDWIDTH=1000,CLOSED-CAPTIONS=NONE
 v1.m3u8
@@ -603,7 +603,7 @@ v2.m3u8`),
 describe("SESSION-DATA duplicates", () => {
   it("same id and language throws", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-SESSION-DATA:DATA-ID="com.example",LANGUAGE="en",VALUE="a"
 #EXT-X-SESSION-DATA:DATA-ID="com.example",LANGUAGE="en",VALUE="b"
 #EXT-X-STREAM-INF:BANDWIDTH=1000
@@ -617,7 +617,7 @@ v.m3u8`),
 // ============================================================================
 describe("SERVICE INSTREAM-ID", () => {
   it("SERVICE value bumps compatible version to 7", () => {
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-VERSION:7
 #EXT-X-MEDIA:TYPE=CLOSED-CAPTIONS,GROUP-ID="cc",NAME="svc",INSTREAM-ID="SERVICE3"
 #EXT-X-STREAM-INF:BANDWIDTH=1000,CLOSED-CAPTIONS="cc"
@@ -631,7 +631,7 @@ v.m3u8`) as MasterPlaylist;
 // ============================================================================
 describe("EXT-X-START negative offset", () => {
   it("negative TIME-OFFSET accepted", () => {
-    const p = parse(`#EXTM3U
+    const p = parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXT-X-START:TIME-OFFSET=-30,PRECISE=NO
 #EXTINF:10,
@@ -648,7 +648,7 @@ s.ts
 describe("Byterange implicit offset mis-match", () => {
   it("different URI without offset throws", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9,
 #EXT-X-BYTERANGE:500@0
@@ -684,85 +684,85 @@ XXXXXXX_1_1-mediaV-003721948562-5.cmfv
 #EXT-X-PRELOAD-HINT:TYPE=PART,URI="XXXXXXX_1_1-mediaV-003721948562-6.0.cmfv"`;
 
   it("parses as Media Playlist", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     expect(p.isMasterPlaylist).toBe(false);
   });
 
   it("version is 6", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     expect(p.version).toBe(6);
   });
 
   it("media sequence starts at 3", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     expect(p.mediaSequenceBase).toBe(3);
     expect(p.segments[0].mediaSequenceNumber).toBe(3);
   });
 
   it("target duration is 4", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     expect(p.targetDuration).toBe(4);
   });
 
   it("has LL-HLS server control", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     expect(p.lowLatencyCompatibility).toBeDefined();
     expect(p.lowLatencyCompatibility!.canBlockReload).toBe(true);
     expect(p.lowLatencyCompatibility!.partHoldBack).toBe(2.1);
   });
 
   it("part target is 1.050", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     expect(p.partTargetDuration).toBe(1.05);
   });
 
   it("has one main segment (plus trailing hint segment)", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     expect(p.segments.length).toBeGreaterThanOrEqual(1);
     expect(p.segments[0].duration).toBe(4.2);
     expect(p.segments[0].uri).toBe("XXXXXXX_1_1-mediaV-003721948562-5.cmfv");
   });
 
   it("segment has MAP with URI", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     expect(p.segments[0].map).toBeDefined();
     expect(p.segments[0].map!.uri).toBe("XXXXXXX_1_1-headerV-003721948562-1.cmfv");
   });
 
   it("segment has program date time captured", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     expect(p.segments[0].programDateTime).toBeDefined();
     expect(p.segments[0].programDateTime).toBeInstanceOf(Date);
   });
 
   it("segment has 3 partial segments", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     const parts = p.segments[0].parts!;
     expect(parts).toHaveLength(3);
   });
 
   it("first partial segment is INDEPENDENT", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     expect(p.segments[0].parts![0].independent).toBe(true);
     expect(p.segments[0].parts![0].duration).toBe(1.05);
     expect(p.segments[0].parts![0].uri).toBe("XXXXXXX_1_1-mediaV-003721948562-5.0.cmfv");
   });
 
   it("second/third partial segments not independent", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     expect(p.segments[0].parts![1].independent).toBeUndefined();
     expect(p.segments[0].parts![2].independent).toBeUndefined();
   });
 
   it("partial segment durations are all 1.050", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     p.segments[0].parts!.forEach(function (part) {
       expect(part.duration).toBe(1.05);
     });
   });
 
   it("preload hint is TYPE=PART and associated with the segment", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     // The preload hint appears AFTER the segment URI, so it's collected
     // as part of the next segment range (trailing). Since there's no URI
     // following it, it becomes part of the segment's parts array.
@@ -779,7 +779,7 @@ XXXXXXX_1_1-mediaV-003721948562-5.cmfv
   });
 
   it("is a live playlist (no ENDLIST)", () => {
-    const p = parse(cmfv) as MediaPlaylist;
+    const p = parser(cmfv) as MediaPlaylist;
     expect(p.endlist).toBeUndefined();
   });
 });
@@ -790,7 +790,7 @@ XXXXXXX_1_1-mediaV-003721948562-5.cmfv
 describe("First byterange without offset", () => {
   it("first segment with no offset throws", () => {
     expect(() =>
-      parse(`#EXTM3U
+      parser(`#EXTM3U
 #EXT-X-TARGETDURATION:10
 #EXTINF:9,
 #EXT-X-BYTERANGE:500

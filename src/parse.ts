@@ -13,9 +13,9 @@
  *
  * Usage:
  *   import { parse } from '@skax/hls-parse';
- *   const playlist = parse(m3u8Content);
+ *   const playlist = parser(m3u8Content);
  *   // With URL resolution:
- *   const playlist = parse(m3u8Content, { uri: 'https://example.com/playlist.m3u8' });
+ *   const playlist = parser(m3u8Content, { uri: 'https://example.com/playlist.m3u8' });
  *
  * @see https://datatracker.ietf.org/doc/html/rfc8216
  */
@@ -31,7 +31,7 @@ import {
   MasterPlaylist,
   MediaInitializationSection,
   MediaPlaylist,
-  ParseOptions,
+  ParserOptions,
   PartialSegment,
   PrefetchSegment,
   Rendition,
@@ -486,7 +486,7 @@ function CHECKTAGCATEGORY(category: TagCategory, params: ParseState) {
  * Performs the initial lexical parsing of the raw playlist text.
  * Splits into lines, categorizes tags, and returns an array of Lines.
  */
-function lexicalParse(text: string, params: ParseState): Line[] {
+function lexicalParser(text: string, params: ParseState): Line[] {
   const lines: Line[] = [];
 
   // Strip UTF-8 BOM if present (RFC 8216 §4.1: MUST NOT contain BOM)
@@ -1372,7 +1372,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
  * Performs semantic analysis on the parsed lines to produce
  * a structured MasterPlaylist or MediaPlaylist.
  */
-function semanticParse(lines: Line[], params: ParseState): MasterPlaylist | MediaPlaylist {
+function semanticParser(lines: Line[], params: ParseState): MasterPlaylist | MediaPlaylist {
   let playlist: MasterPlaylist | MediaPlaylist;
 
   if (params.isMasterPlaylist) {
@@ -1494,10 +1494,10 @@ function resolvePlaylistUris(playlist: MasterPlaylist | MediaPlaylist, baseUri: 
  *
  * @example
  * ```typescript
- * import { parse } from '@skax/hls-parse';
+ * import { parser } from '@skax/hls-parse';
  *
  * // Parse a simple media playlist
- * const media = parse(`#EXTM3U
+ * const media = parser(`#EXTM3U
  * #EXT-X-TARGETDURATION:10
  * #EXTINF:9.009,
  * segment1.ts
@@ -1506,12 +1506,12 @@ function resolvePlaylistUris(playlist: MasterPlaylist | MediaPlaylist, baseUri: 
  * #EXT-X-ENDLIST`);
  *
  * // Parse with relative URL resolution
- * const master = parse(m3u8Content, {
+ * const master = parser(m3u8Content, {
  *   uri: 'https://example.com/path/to/playlist.m3u8'
  * });
  * ```
  */
-function parse(text: string, options?: ParseOptions): MasterPlaylist | MediaPlaylist {
+function parser(text: string, options?: ParserOptions): MasterPlaylist | MediaPlaylist {
   const params: ParseState = {
     isMasterPlaylist: undefined,
     hasMap: false,
@@ -1521,8 +1521,8 @@ function parse(text: string, options?: ParseOptions): MasterPlaylist | MediaPlay
     hash: {},
   };
 
-  const lines = lexicalParse(text, params);
-  const playlist = semanticParse(lines, params);
+  const lines = lexicalParser(text, params);
+  const playlist = semanticParser(lines, params);
   playlist.source = text;
 
   // Resolve relative URIs if a base URI is provided
@@ -1533,5 +1533,5 @@ function parse(text: string, options?: ParseOptions): MasterPlaylist | MediaPlay
   return playlist;
 }
 
-export default parse;
-export { parse };
+export default parser;
+export { parser };
