@@ -529,6 +529,8 @@ export interface MediaPlaylist {
   lowLatencyCompatibility?: LowLatencyCompatibility;
   /** Partial segment target duration (LL-HLS). */
   partTargetDuration?: number;
+  /** Bitrate of the media playlist in bps (RFC 8216bis EXT-X-BITRATE). */
+  bitrate?: number;
   /** Number of skipped segments (LL-HLS `#EXT-X-SKIP`). */
   skip?: number;
   /** Media segments. */

@@ -116,6 +116,10 @@ function getTagCategory(tagName: string): TagCategory {
     case T.EXT_X_GAP:
       return "Segment";
 
+    // -- RFC 8216bis
+    case T.EXT_X_BITRATE:
+      return "MediaPlaylist";
+
     // ── Media Playlist Tags ─────────────────────────────────────
     case T.EXT_X_TARGETDURATION:
     case T.EXT_X_MEDIA_SEQUENCE:
@@ -357,6 +361,7 @@ function parseTagParam(name: string, param: string | null): TagParam {
     case T.EXT_X_TARGETDURATION:
     case T.EXT_X_MEDIA_SEQUENCE:
     case T.EXT_X_DISCONTINUITY_SEQUENCE:
+    case T.EXT_X_BITRATE:
       return [utils.toNumber(param), null];
     case T.EXT_X_CUE_OUT:
       // For backwards compatibility: attributes list is optional.
@@ -1243,6 +1248,9 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       }
       playlist.mediaSequenceBase = value;
       mediaSequence = value;
+    } else if (name === T.EXT_X_BITRATE) {
+      // RFC 8216bis: segment bitrate of the media playlist
+      playlist.bitrate = value;
     } else if (name === T.EXT_X_DISCONTINUITY_SEQUENCE) {
       if (playlist.segments.length > 0) {
         utils.INVALIDPLAYLIST("The EXT-X-DISCONTINUITY-SEQUENCE tag MUST appear before the first Media Segment in the Playlist.");

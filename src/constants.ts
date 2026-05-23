@@ -183,6 +183,17 @@ export const EXT_X_PRELOAD_HINT = "EXT-X-PRELOAD-HINT";
  */
 export const EXT_X_GAP = "EXT-X-GAP";
 
+// -- RFC 8216bis: EXT-X-BITRATE (Media Playlist tag)
+/**
+ * 媒体播放列表码率
+ *
+ * Indicates the segment bitrate of a Media Playlist.
+ * Enables ABR without a Master Playlist (RFC 8216bis).
+ *
+ * @beta
+ */
+export const EXT_X_BITRATE = "EXT-X-BITRATE";
+
 // ============================================================================
 // Media Playlist Tags — 媒体播放列表全局标签
 // ============================================================================
