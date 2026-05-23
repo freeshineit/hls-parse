@@ -45,6 +45,9 @@ jobs:
       - name: Test
         run: pnpm run test
 
+      - name: Build
+        run: pnpm run build
+
       # 获取 tag 的版本类型（仅支持 正式版、alpha和beta版）
       - name: Determine release tag
         id: determine_tag
