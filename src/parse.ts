@@ -157,12 +157,16 @@ function getTagCategory(tagName: string): TagCategory {
 /**
  * Parses the EXTINF tag value.
  * Format: #EXTINF:<duration>,[<title>]
+ *
+ * The title field may contain percent-encoded UTF-8 characters.
+ * We use encodeURIComponent + decodeURIComponent for safe decoding
+ * (replaces the deprecated escape() function).
  */
 function parseEXTINF(param: string): ExtInfo {
   const pair = utils.splitAt(param, ",") as [string, string];
   return {
     duration: utils.toNumber(pair[0]),
-    title: pair[1] ? decodeURIComponent(escape(pair[1])) : undefined,
+    title: pair[1] ? decodeURIComponent(encodeURIComponent(pair[1])) : undefined,
   };
 }
 
@@ -480,8 +484,14 @@ function CHECKTAGCATEGORY(category: TagCategory, params: ParseState) {
 function lexicalParse(text: string, params: ParseState): Line[] {
   const lines: Line[] = [];
 
+  // Strip UTF-8 BOM if present (RFC 8216 §4.1: MUST NOT contain BOM)
+  let normalized = text;
+  if (normalized.charCodeAt(0) === 0xfeff) {
+    normalized = normalized.slice(1);
+  }
+
   // Split by common line endings
-  const rawLines = text.split(/\r?\n/);
+  const rawLines = normalized.split(/\r?\n/);
 
   for (const l of rawLines) {
     // Trim whitespace (V8 optimization: create a new string)
