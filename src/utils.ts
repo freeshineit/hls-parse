@@ -58,10 +58,7 @@ export function INVALIDPLAYLIST(message: string): never {
  * ```
  * @internal
  */
-export function trim(
-  str: string | undefined,
-  char: string,
-): string | undefined {
+export function trim(str: string | undefined, char: string): string | undefined {
   if (str === undefined) return undefined;
   let start = 0;
   let end = str.length - 1;
@@ -246,7 +243,7 @@ export function resolveUrl(base: string | undefined, relative: string): string {
     // Relative path
     const baseDir = base.replace(/\/[^/]*$/, "/");
     // Handle ./ and ../ in relative
-    let resolved = baseDir + relative;
+    const resolved = baseDir + relative;
     // Normalize .. and .
     const parts = resolved.split("/");
     const result: string[] = [];

@@ -11,13 +11,7 @@
  */
 
 import { parse, InvalidPlaylistError, resolveUrl } from "../src";
-import {
-  MasterPlaylist,
-  MediaPlaylist,
-  Segment,
-  PartialSegment,
-  Variant,
-} from "../src/types";
+import { MasterPlaylist, MediaPlaylist, Segment, PartialSegment, Variant } from "../src/types";
 
 // ===========================================================================
 // URL Resolution
@@ -30,51 +24,37 @@ describe("resolveUrl", () => {
 
   it("resolves relative URIs against a base URL", () => {
     const base = "https://example.com/path/to/playlist.m3u8";
-    expect(resolveUrl(base, "segment.ts")).toBe(
-      "https://example.com/path/to/segment.ts",
-    );
+    expect(resolveUrl(base, "segment.ts")).toBe("https://example.com/path/to/segment.ts");
   });
 
   it("resolves absolute paths relative to the domain", () => {
     const base = "https://example.com/path/to/playlist.m3u8";
-    expect(resolveUrl(base, "/segments/segment.ts")).toBe(
-      "https://example.com/segments/segment.ts",
-    );
+    expect(resolveUrl(base, "/segments/segment.ts")).toBe("https://example.com/segments/segment.ts");
   });
 
   it("leaves absolute URIs unchanged", () => {
     const base = "https://example.com/path/to/playlist.m3u8";
-    expect(resolveUrl(base, "https://other.com/segment.ts")).toBe(
-      "https://other.com/segment.ts",
-    );
+    expect(resolveUrl(base, "https://other.com/segment.ts")).toBe("https://other.com/segment.ts");
   });
 
   it("handles protocol-relative URIs", () => {
     const base = "https://example.com/playlist.m3u8";
-    expect(resolveUrl(base, "//other.com/segment.ts")).toBe(
-      "https://other.com/segment.ts",
-    );
+    expect(resolveUrl(base, "//other.com/segment.ts")).toBe("https://other.com/segment.ts");
   });
 
   it("resolves ../ paths correctly", () => {
     const base = "https://example.com/a/b/c/playlist.m3u8";
-    expect(resolveUrl(base, "../../segment.ts")).toBe(
-      "https://example.com/a/segment.ts",
-    );
+    expect(resolveUrl(base, "../../segment.ts")).toBe("https://example.com/a/segment.ts");
   });
 
   it("resolves ./ paths correctly", () => {
     const base = "https://example.com/a/b/c/playlist.m3u8";
-    expect(resolveUrl(base, "./segment.ts")).toBe(
-      "https://example.com/a/b/c/segment.ts",
-    );
+    expect(resolveUrl(base, "./segment.ts")).toBe("https://example.com/a/b/c/segment.ts");
   });
 
   it("handles http scheme", () => {
     const base = "http://example.com/playlist.m3u8";
-    expect(resolveUrl(base, "segment.ts")).toBe(
-      "http://example.com/segment.ts",
-    );
+    expect(resolveUrl(base, "segment.ts")).toBe("http://example.com/segment.ts");
   });
 });
 
@@ -89,9 +69,7 @@ describe("parse", () => {
   });
 
   it("throws when EXTM3U is missing", () => {
-    expect(() => parse("#EXTINF:10,\nsegment.ts")).toThrow(
-      InvalidPlaylistError,
-    );
+    expect(() => parse("#EXTINF:10,\nsegment.ts")).toThrow(InvalidPlaylistError);
   });
 
   it("parses a minimal media playlist", () => {
@@ -114,8 +92,7 @@ segment2.ts
   });
 
   it("stores the source text", () => {
-    const source =
-      "#EXTM3U\n#EXT-X-TARGETDURATION:10\n#EXTINF:10,\nts\n#EXT-X-ENDLIST";
+    const source = "#EXTM3U\n#EXT-X-TARGETDURATION:10\n#EXTINF:10,\nts\n#EXT-X-ENDLIST";
     const result = parse(source);
     expect(result.source).toBe(source);
   });
@@ -354,9 +331,7 @@ low.m3u8`) as MasterPlaylist;
 low.m3u8`) as MasterPlaylist;
 
     expect(result.contentSteering).toBeDefined();
-    expect(result.contentSteering!.serverUri).toBe(
-      "https://example.com/steering",
-    );
+    expect(result.contentSteering!.serverUri).toBe("https://example.com/steering");
     expect(result.contentSteering!.pathwayId).toBe("pathway-1");
   });
 
@@ -1537,9 +1512,7 @@ segment.ts
       { uri: "https://example.com/dir/playlist.m3u8" },
     ) as MediaPlaylist;
 
-    expect(result.segments[0].map!.uri).toBe(
-      "https://example.com/dir/init.mp4",
-    );
+    expect(result.segments[0].map!.uri).toBe("https://example.com/dir/init.mp4");
   });
 
   it("resolves part URIs in media playlist", () => {
@@ -1556,9 +1529,7 @@ seg100.ts
       { uri: "https://example.com/dir/playlist.m3u8" },
     ) as MediaPlaylist;
 
-    expect(result.segments[0].parts![0].uri).toBe(
-      "https://example.com/dir/part1.ts",
-    );
+    expect(result.segments[0].parts![0].uri).toBe("https://example.com/dir/part1.ts");
   });
 
   it("resolves prefetch URIs", () => {
@@ -1573,9 +1544,7 @@ seg100.ts
       { uri: "https://example.com/dir/playlist.m3u8" },
     ) as MediaPlaylist;
 
-    expect(result.prefetchSegments[0].uri).toBe(
-      "https://example.com/dir/seg101.ts",
-    );
+    expect(result.prefetchSegments[0].uri).toBe("https://example.com/dir/seg101.ts");
   });
 
   it("resolves rendition report URIs", () => {
@@ -1591,9 +1560,7 @@ seg100.ts
       { uri: "https://example.com/dir/playlist.m3u8" },
     ) as MediaPlaylist;
 
-    expect(result.renditionReports[0].uri).toBe(
-      "https://example.com/1m/wait.m3u8",
-    );
+    expect(result.renditionReports[0].uri).toBe("https://example.com/1m/wait.m3u8");
   });
 
   it("resolves content steering URI", () => {
@@ -1605,9 +1572,7 @@ low.m3u8`,
       { uri: "https://example.com/dir/playlist.m3u8" },
     ) as MasterPlaylist;
 
-    expect(result.contentSteering!.serverUri).toBe(
-      "https://example.com/dir/steering.json",
-    );
+    expect(result.contentSteering!.serverUri).toBe("https://example.com/dir/steering.json");
   });
 
   it("resolves session data URI", () => {
@@ -1619,9 +1584,7 @@ low.m3u8`,
       { uri: "https://example.com/dir/playlist.m3u8" },
     ) as MasterPlaylist;
 
-    expect(result.sessionDataList[0].uri).toBe(
-      "https://example.com/dir/data.json",
-    );
+    expect(result.sessionDataList[0].uri).toBe("https://example.com/dir/data.json");
   });
 
   it("does not modify absolute URIs when resolving", () => {
@@ -1726,9 +1689,7 @@ describe("InvalidPlaylistError", () => {
 
 describe("Edge Cases", () => {
   it("handles CRLF line endings", () => {
-    const result = parse(
-      "#EXTM3U\r\n#EXT-X-TARGETDURATION:10\r\n#EXTINF:10,\r\nseg.ts\r\n#EXT-X-ENDLIST\r\n",
-    ) as MediaPlaylist;
+    const result = parse("#EXTM3U\r\n#EXT-X-TARGETDURATION:10\r\n#EXTINF:10,\r\nseg.ts\r\n#EXT-X-ENDLIST\r\n") as MediaPlaylist;
     expect(result.segments).toHaveLength(1);
     expect(result.segments[0].uri).toBe("seg.ts");
   });
@@ -1855,9 +1816,7 @@ low.m3u8`) as MasterPlaylist;
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,SUBTITLES="subs"
 low.m3u8`) as MasterPlaylist;
 
-    expect(result.variants[0].subtitles![0].characteristics).toBe(
-      "public.accessibility.transcribes-spoken-dialog,public.easy-to-read",
-    );
+    expect(result.variants[0].subtitles![0].characteristics).toBe("public.accessibility.transcribes-spoken-dialog,public.easy-to-read");
   });
 
   it("handles CHANNELS in audio renditions", () => {
@@ -2036,12 +1995,8 @@ http://media.example.com/fileSequence53-A.ts
 #EXT-X-ENDLIST`) as MediaPlaylist;
 
     expect(result.segments).toHaveLength(4);
-    expect(result.segments[0].key!.uri).toBe(
-      "https://priv.example.com/key.php?r=52",
-    );
-    expect(result.segments[3].key!.uri).toBe(
-      "https://priv.example.com/key.php?r=53",
-    );
+    expect(result.segments[0].key!.uri).toBe("https://priv.example.com/key.php?r=52");
+    expect(result.segments[3].key!.uri).toBe("https://priv.example.com/key.php?r=53");
   });
 });
 
@@ -2168,9 +2123,7 @@ low.m3u8`) as MasterPlaylist;
   });
 
   it("handles resolveUrl with base ending without filename", () => {
-    expect(resolveUrl("https://example.com/", "segment.ts")).toBe(
-      "https://example.com/segment.ts",
-    );
+    expect(resolveUrl("https://example.com/", "segment.ts")).toBe("https://example.com/segment.ts");
   });
 
   it("handles ALLOWED-CPC empty list", () => {
@@ -2458,17 +2411,12 @@ seg100.ts
       { uri: "https://example.com/dir/playlist.m3u8" },
     ) as MediaPlaylist;
 
-    expect(result.prefetchSegments[0].uri).toBe(
-      "https://example.com/dir/seg101.ts",
-    );
+    expect(result.prefetchSegments[0].uri).toBe("https://example.com/dir/seg101.ts");
   });
 
   it("handles resolveUrl with complex fallback", () => {
     // Test the fallback path in resolveUrl
-    const result = resolveUrl(
-      "https://example.com/a/b/playlist.m3u8",
-      "../../c/segment.ts",
-    );
+    const result = resolveUrl("https://example.com/a/b/playlist.m3u8", "../../c/segment.ts");
     expect(result).toBe("https://example.com/c/segment.ts");
   });
 
@@ -2657,10 +2605,7 @@ seg.ts
   it("handles fallback path with valid base for absolute path", () => {
     // Test the resolveUrl fallback with an absolute path (starts with /)
     // when the base has a valid http URL
-    const result = resolveUrl(
-      "https://example.com/base/playlist.m3u8",
-      "/absolute/segment.ts",
-    );
+    const result = resolveUrl("https://example.com/base/playlist.m3u8", "/absolute/segment.ts");
     expect(result).toBe("https://example.com/absolute/segment.ts");
   });
 

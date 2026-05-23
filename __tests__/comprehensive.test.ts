@@ -522,16 +522,10 @@ video.m3u8`,
 
     expect(p.variants[0].uri).toBe("https://example.com/hls/video.m3u8");
     // Audio rendition URIs should be resolved
-    expect(p.variants[0].audio![0].uri).toBe(
-      "https://example.com/hls/audio/en.m3u8",
-    );
-    expect(p.variants[0].audio![1].uri).toBe(
-      "https://example.com/hls/audio/es.m3u8",
-    );
+    expect(p.variants[0].audio![0].uri).toBe("https://example.com/hls/audio/en.m3u8");
+    expect(p.variants[0].audio![1].uri).toBe("https://example.com/hls/audio/es.m3u8");
     // Subtitle rendition URIs should be resolved
-    expect(p.variants[0].subtitles![0].uri).toBe(
-      "https://example.com/hls/subs/en.vtt",
-    );
+    expect(p.variants[0].subtitles![0].uri).toBe("https://example.com/hls/subs/en.vtt");
   });
 
   it("leaves absolute rendition URIs unchanged", () => {
@@ -543,9 +537,7 @@ video.m3u8`,
       { uri: "https://example.com/hls/master.m3u8" },
     ) as MasterPlaylist;
 
-    expect(p.variants[0].audio![0].uri).toBe(
-      "https://cdn.example.com/audio/en.m3u8",
-    );
+    expect(p.variants[0].audio![0].uri).toBe("https://cdn.example.com/audio/en.m3u8");
   });
 
   it("resolves session key URIs", () => {
@@ -557,9 +549,7 @@ video.m3u8`,
       { uri: "https://example.com/hls/master.m3u8" },
     ) as MasterPlaylist;
 
-    expect(p.sessionKeyList[0].uri).toBe(
-      "https://example.com/hls/keys/enc.key",
-    );
+    expect(p.sessionKeyList[0].uri).toBe("https://example.com/hls/keys/enc.key");
   });
 });
 
@@ -736,9 +726,7 @@ XXXXXXX_1_1-mediaV-003721948562-5.cmfv
   it("segment has MAP with URI", () => {
     const p = parse(cmfv) as MediaPlaylist;
     expect(p.segments[0].map).toBeDefined();
-    expect(p.segments[0].map!.uri).toBe(
-      "XXXXXXX_1_1-headerV-003721948562-1.cmfv",
-    );
+    expect(p.segments[0].map!.uri).toBe("XXXXXXX_1_1-headerV-003721948562-1.cmfv");
   });
 
   it("segment has program date time captured", () => {
@@ -757,9 +745,7 @@ XXXXXXX_1_1-mediaV-003721948562-5.cmfv
     const p = parse(cmfv) as MediaPlaylist;
     expect(p.segments[0].parts![0].independent).toBe(true);
     expect(p.segments[0].parts![0].duration).toBe(1.05);
-    expect(p.segments[0].parts![0].uri).toBe(
-      "XXXXXXX_1_1-mediaV-003721948562-5.0.cmfv",
-    );
+    expect(p.segments[0].parts![0].uri).toBe("XXXXXXX_1_1-mediaV-003721948562-5.0.cmfv");
   });
 
   it("second/third partial segments not independent", () => {

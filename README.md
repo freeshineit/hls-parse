@@ -24,7 +24,7 @@ npm install hls-parse
 ## Quick Start
 
 ```typescript
-import { parse } from 'hls-parse';
+import { parse } from "hls-parse";
 
 // Parse a Media Playlist
 const playlist = parse(`#EXTM3U
@@ -51,10 +51,10 @@ console.log(master.variants[0].bandwidth); // 1280000
 ## URL Resolution
 
 ```typescript
-import { parse } from 'hls-parse';
+import { parse } from "hls-parse";
 
 const playlist = parse(m3u8Content, {
-  uri: 'https://example.com/hls/main.m3u8'
+  uri: "https://example.com/hls/main.m3u8",
 });
 
 // All relative URIs are resolved to absolute URLs
@@ -67,9 +67,9 @@ console.log(playlist.segments[0].uri); // https://example.com/hls/segment1.ts
 
 Parses an M3U8 playlist string into a structured object.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `text` | `string` | The raw M3U8 playlist content |
+| Parameter     | Type     | Description                                     |
+| ------------- | -------- | ----------------------------------------------- |
+| `text`        | `string` | The raw M3U8 playlist content                   |
 | `options.uri` | `string` | (Optional) Base URI for resolving relative URLs |
 
 **Returns:** `MasterPlaylist | MediaPlaylist`
@@ -87,90 +87,98 @@ Error class thrown when parsing invalid playlists.
 ## Types
 
 ### `Playlist`
+
 Union type of `MasterPlaylist` and `MediaPlaylist`.
 
 ### `MasterPlaylist`
-| Property | Type | Description |
-|----------|------|-------------|
-| `isMasterPlaylist` | `true` | Type discriminator |
-| `version?` | `number` | Protocol version |
-| `variants` | `Variant[]` | Variant streams |
-| `sessionDataList` | `SessionData[]` | Session data entries |
-| `sessionKeyList` | `Key[]` | Session keys |
-| `independentSegments?` | `boolean` | Whether segments are independently decodable |
-| `start?` | `StartData` | Preferred start position |
-| `contentSteering?` | `ContentSteering` | Content steering configuration |
-| `defines?` | `Record<string, any>[]` | Variable definitions |
+
+| Property               | Type                    | Description                                  |
+| ---------------------- | ----------------------- | -------------------------------------------- |
+| `isMasterPlaylist`     | `true`                  | Type discriminator                           |
+| `version?`             | `number`                | Protocol version                             |
+| `variants`             | `Variant[]`             | Variant streams                              |
+| `sessionDataList`      | `SessionData[]`         | Session data entries                         |
+| `sessionKeyList`       | `Key[]`                 | Session keys                                 |
+| `independentSegments?` | `boolean`               | Whether segments are independently decodable |
+| `start?`               | `StartData`             | Preferred start position                     |
+| `contentSteering?`     | `ContentSteering`       | Content steering configuration               |
+| `defines?`             | `Record<string, any>[]` | Variable definitions                         |
 
 ### `MediaPlaylist`
-| Property | Type | Description |
-|----------|------|-------------|
-| `isMasterPlaylist` | `false` | Type discriminator |
-| `version?` | `number` | Protocol version |
-| `targetDuration?` | `number` | Maximum segment duration |
-| `mediaSequenceBase?` | `number` | Base media sequence number |
-| `discontinuitySequenceBase?` | `number` | Base discontinuity sequence number |
-| `endlist?` | `boolean` | Whether the playlist is complete |
-| `playlistType?` | `string` | `"EVENT"` or `"VOD"` |
-| `isIFrame?` | `boolean` | Whether this is an I-frame only playlist |
-| `segments` | `Segment[]` | Media segments |
-| `prefetchSegments` | `PrefetchSegment[]` | Prefetch segments (LL-HLS) |
-| `renditionReports` | `RenditionReport[]` | Rendition reports (LL-HLS) |
-| `dateRanges` | `DateRange[]` | Date ranges |
-| `lowLatencyCompatibility?` | `LowLatencyCompatibility` | LL-HLS server control |
-| `partTargetDuration?` | `number` | Partial segment target duration (LL-HLS) |
-| `skip?` | `number` | Skipped segments (LL-HLS) |
+
+| Property                     | Type                      | Description                              |
+| ---------------------------- | ------------------------- | ---------------------------------------- |
+| `isMasterPlaylist`           | `false`                   | Type discriminator                       |
+| `version?`                   | `number`                  | Protocol version                         |
+| `targetDuration?`            | `number`                  | Maximum segment duration                 |
+| `mediaSequenceBase?`         | `number`                  | Base media sequence number               |
+| `discontinuitySequenceBase?` | `number`                  | Base discontinuity sequence number       |
+| `endlist?`                   | `boolean`                 | Whether the playlist is complete         |
+| `playlistType?`              | `string`                  | `"EVENT"` or `"VOD"`                     |
+| `isIFrame?`                  | `boolean`                 | Whether this is an I-frame only playlist |
+| `segments`                   | `Segment[]`               | Media segments                           |
+| `prefetchSegments`           | `PrefetchSegment[]`       | Prefetch segments (LL-HLS)               |
+| `renditionReports`           | `RenditionReport[]`       | Rendition reports (LL-HLS)               |
+| `dateRanges`                 | `DateRange[]`             | Date ranges                              |
+| `lowLatencyCompatibility?`   | `LowLatencyCompatibility` | LL-HLS server control                    |
+| `partTargetDuration?`        | `number`                  | Partial segment target duration (LL-HLS) |
+| `skip?`                      | `number`                  | Skipped segments (LL-HLS)                |
 
 ### `Segment`
-| Property | Type | Description |
-|----------|------|-------------|
-| `uri` | `string` | URI of the media segment |
-| `duration?` | `number` | Duration in seconds |
-| `title?` | `string` | Optional title |
-| `byterange?` | `Byterange` | Byte range |
-| `mediaSequenceNumber` | `number` | Media sequence number |
-| `discontinuitySequence` | `number` | Discontinuity sequence number |
-| `discontinuity?` | `boolean` | Whether this segment is a discontinuity |
-| `gap?` | `boolean` | Whether this segment is a gap |
-| `key?` | `Key \| null` | Encryption key |
-| `map?` | `MediaInitializationSection \| null` | Media initialization section |
-| `programDateTime?` | `Date` | Program date/time |
-| `dateRange?` | `DateRange` | Date range metadata |
-| `markers?` | `SpliceInfo[]` | Splice/marker information |
-| `parts?` | `PartialSegment[]` | Partial segments (LL-HLS) |
+
+| Property                | Type                                 | Description                             |
+| ----------------------- | ------------------------------------ | --------------------------------------- |
+| `uri`                   | `string`                             | URI of the media segment                |
+| `duration?`             | `number`                             | Duration in seconds                     |
+| `title?`                | `string`                             | Optional title                          |
+| `byterange?`            | `Byterange`                          | Byte range                              |
+| `mediaSequenceNumber`   | `number`                             | Media sequence number                   |
+| `discontinuitySequence` | `number`                             | Discontinuity sequence number           |
+| `discontinuity?`        | `boolean`                            | Whether this segment is a discontinuity |
+| `gap?`                  | `boolean`                            | Whether this segment is a gap           |
+| `key?`                  | `Key \| null`                        | Encryption key                          |
+| `map?`                  | `MediaInitializationSection \| null` | Media initialization section            |
+| `programDateTime?`      | `Date`                               | Program date/time                       |
+| `dateRange?`            | `DateRange`                          | Date range metadata                     |
+| `markers?`              | `SpliceInfo[]`                       | Splice/marker information               |
+| `parts?`                | `PartialSegment[]`                   | Partial segments (LL-HLS)               |
 
 ### `PartialSegment` (LL-HLS)
-| Property | Type | Description |
-|----------|------|-------------|
-| `hint?` | `boolean` | Whether this is a preload hint |
-| `uri` | `string` | URI of the partial segment |
-| `byterange?` | `Byterange` | Byte range |
-| `duration?` | `number` | Duration in seconds |
-| `independent?` | `boolean` | Whether independently decodable |
-| `gap?` | `boolean` | Whether this is a gap |
+
+| Property       | Type        | Description                     |
+| -------------- | ----------- | ------------------------------- |
+| `hint?`        | `boolean`   | Whether this is a preload hint  |
+| `uri`          | `string`    | URI of the partial segment      |
+| `byterange?`   | `Byterange` | Byte range                      |
+| `duration?`    | `number`    | Duration in seconds             |
+| `independent?` | `boolean`   | Whether independently decodable |
+| `gap?`         | `boolean`   | Whether this is a gap           |
 
 ### `Variant`
-| Property | Type | Description |
-|----------|------|-------------|
-| `uri` | `string` | URI of the media playlist |
-| `bandwidth` | `number` | Peak bit rate |
-| `averageBandwidth?` | `number` | Average bit rate |
-| `codecs?` | `string` | Codec identifiers |
-| `resolution?` | `Resolution` | Display resolution |
-| `frameRate?` | `number` | Maximum frame rate |
-| `audio?` | `Rendition[]` | Audio renditions |
-| `video?` | `Rendition[]` | Video renditions |
-| `subtitles?` | `Rendition[]` | Subtitle renditions |
-| `closedCaptions?` | `Rendition[]` | Closed-caption renditions |
+
+| Property            | Type          | Description               |
+| ------------------- | ------------- | ------------------------- |
+| `uri`               | `string`      | URI of the media playlist |
+| `bandwidth`         | `number`      | Peak bit rate             |
+| `averageBandwidth?` | `number`      | Average bit rate          |
+| `codecs?`           | `string`      | Codec identifiers         |
+| `resolution?`       | `Resolution`  | Display resolution        |
+| `frameRate?`        | `number`      | Maximum frame rate        |
+| `audio?`            | `Rendition[]` | Audio renditions          |
+| `video?`            | `Rendition[]` | Video renditions          |
+| `subtitles?`        | `Rendition[]` | Subtitle renditions       |
+| `closedCaptions?`   | `Rendition[]` | Closed-caption renditions |
 
 ## Supported Tags
 
 ### Basic Tags
+
 - `#EXTM3U`
 - `#EXT-X-VERSION`
 - `#EXT-X-CONTENT-STEERING`
 
 ### Media Segment Tags
+
 - `#EXTINF` – Segment duration and title
 - `#EXT-X-BYTERANGE` – Byte range
 - `#EXT-X-DISCONTINUITY` – Discontinuity marker
@@ -186,6 +194,7 @@ Union type of `MasterPlaylist` and `MediaPlaylist`.
 - `#EXT-X-PRELOAD-HINT` – Preload hint (LL-HLS)
 
 ### Media Playlist Tags
+
 - `#EXT-X-TARGETDURATION` – Maximum segment duration
 - `#EXT-X-MEDIA-SEQUENCE` – Media sequence number
 - `#EXT-X-DISCONTINUITY-SEQUENCE` – Discontinuity sequence number
@@ -199,6 +208,7 @@ Union type of `MasterPlaylist` and `MediaPlaylist`.
 - `#EXT-X-SKIP` – Skip segments (LL-HLS)
 
 ### Master Playlist Tags
+
 - `#EXT-X-MEDIA` – Alternative renditions
 - `#EXT-X-STREAM-INF` – Variant stream
 - `#EXT-X-I-FRAME-STREAM-INF` – I-frame variant stream
@@ -206,6 +216,7 @@ Union type of `MasterPlaylist` and `MediaPlaylist`.
 - `#EXT-X-SESSION-KEY` – Session encryption key
 
 ### Media or Master Playlist Tags
+
 - `#EXT-X-INDEPENDENT-SEGMENTS` – Independent segments
 - `#EXT-X-START` – Preferred start position
 - `#EXT-X-DEFINE` – Variable definitions
@@ -215,13 +226,13 @@ Union type of `MasterPlaylist` and `MediaPlaylist`.
 The parser throws `InvalidPlaylistError` (a subclass of `Error`) when a playlist violates RFC 8216 rules:
 
 ```typescript
-import { parse, InvalidPlaylistError } from 'hls-parse';
+import { parse, InvalidPlaylistError } from "hls-parse";
 
 try {
   const playlist = parse(invalidM3u8);
 } catch (error) {
   if (error instanceof InvalidPlaylistError) {
-    console.error('Invalid playlist:', error.message);
+    console.error("Invalid playlist:", error.message);
   }
 }
 ```

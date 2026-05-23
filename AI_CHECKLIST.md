@@ -14,12 +14,12 @@
 npm test
 ```
 
-| 检查项 | 阈值 | 说明 |
-|--------|------|------|
-| Lines | ≥ 96% | 行覆盖率 |
-| Statements | ≥ 94% | 语句覆盖率 |
-| Branches | ≥ 92% | 分支覆盖率 |
-| Functions | ≥ 95% | 函数覆盖率 |
+| 检查项       | 阈值     | 说明       |
+| ------------ | -------- | ---------- |
+| Lines        | ≥ 96%    | 行覆盖率   |
+| Statements   | ≥ 94%    | 语句覆盖率 |
+| Branches     | ≥ 92%    | 分支覆盖率 |
+| Functions    | ≥ 95%    | 函数覆盖率 |
 | 测试全部通过 | 0 failed | 无失败用例 |
 
 ### 新增功能/修复 Bug 时
@@ -45,14 +45,14 @@ npm test
 npx prettier --write "src/**/*.ts" "__tests__/**/*.ts"
 ```
 
-| 规则 | 配置 |
-|------|------|
-| 缩进 | 2 spaces |
-| 引号 | 双引号 `"` |
-| 分号 | 必须 |
-| 行宽 | 100 |
-| 尾逗号 | all |
-| 换行符 | LF |
+| 规则   | 配置       |
+| ------ | ---------- |
+| 缩进   | 2 spaces   |
+| 引号   | 双引号 `"` |
+| 分号   | 必须       |
+| 行宽   | 100        |
+| 尾逗号 | all        |
+| 换行符 | LF         |
 
 ### TypeScript 规范
 
@@ -72,7 +72,7 @@ npm run build
 
 - [ ] `dist/cjs/` — CommonJS 产物存在
 - [ ] `dist/esm/` — ESM 产物存在
-- [ ] `dist/browser/` — IIFE 浏览器产物存在
+- [ ] `dist/browser/` — UMD 浏览器产物存在
 - [ ] `dist/**/*.d.ts` — 类型声明文件存在
 - [ ] 无 Rollup 错误
 
@@ -140,36 +140,36 @@ find dist -name "*.d.ts" | wc -l  # 应 > 3
 
 ## 7. M3U8 规范覆盖矩阵
 
-| RFC 章节 | 标签 | 解析 | 测试 | 注释 |
-|----------|------|------|------|------|
-| 4.3.1.1 | EXTM3U | ✅ | ✅ | ✅ |
-| 4.3.1.2 | EXT-X-VERSION | ✅ | ✅ | ✅ |
-| 4.3.2.1 | EXTINF | ✅ | ✅ | ✅ |
-| 4.3.2.2 | EXT-X-BYTERANGE | ✅ | ✅ | ✅ |
-| 4.3.2.3 | EXT-X-DISCONTINUITY | ✅ | ✅ | ✅ |
-| 4.3.2.4 | EXT-X-KEY | ✅ | ✅ | ✅ |
-| 4.3.2.5 | EXT-X-MAP | ✅ | ✅ | ✅ |
-| 4.3.2.6 | EXT-X-PROGRAM-DATE-TIME | ✅ | ✅ | ✅ |
-| 4.3.2.7 | EXT-X-DATERANGE | ✅ | ✅ | ✅ |
-| 4.3.3.1 | EXT-X-TARGETDURATION | ✅ | ✅ | ✅ |
-| 4.3.3.2 | EXT-X-MEDIA-SEQUENCE | ✅ | ✅ | ✅ |
-| 4.3.3.3 | EXT-X-DISCONTINUITY-SEQUENCE | ✅ | ✅ | ✅ |
-| 4.3.3.4 | EXT-X-ENDLIST | ✅ | ✅ | ✅ |
-| 4.3.3.5 | EXT-X-PLAYLIST-TYPE | ✅ | ✅ | ✅ |
-| 4.3.3.6 | EXT-X-I-FRAMES-ONLY | ✅ | ✅ | ✅ |
-| 4.3.4.1 | EXT-X-MEDIA | ✅ | ✅ | ✅ |
-| 4.3.4.2 | EXT-X-STREAM-INF | ✅ | ✅ | ✅ |
-| 4.3.4.3 | EXT-X-I-FRAME-STREAM-INF | ✅ | ✅ | ✅ |
-| 4.3.4.4 | EXT-X-SESSION-DATA | ✅ | ✅ | ✅ |
-| 4.3.4.5 | EXT-X-SESSION-KEY | ✅ | ✅ | ✅ |
-| 4.3.5.1 | EXT-X-INDEPENDENT-SEGMENTS | ✅ | ✅ | ✅ |
-| 4.3.5.2 | EXT-X-START | ✅ | ✅ | ✅ |
-| — | EXT-X-DEFINE | ✅ | ✅ | ✅ |
-| — | EXT-X-CONTENT-STEERING | ✅ | ✅ | ✅ |
-| LL-HLS | EXT-X-PART | ✅ | ✅ | ✅ |
-| LL-HLS | EXT-X-PRELOAD-HINT | ✅ | ✅ | ✅ |
-| LL-HLS | EXT-X-SERVER-CONTROL | ✅ | ✅ | ✅ |
-| LL-HLS | EXT-X-PART-INF | ✅ | ✅ | ✅ |
-| LL-HLS | EXT-X-RENDITION-REPORT | ✅ | ✅ | ✅ |
-| LL-HLS | EXT-X-SKIP | ✅ | ✅ | ✅ |
-| LL-HLS | EXT-X-PREFETCH | ✅ | ✅ | ✅ |
+| RFC 章节 | 标签                         | 解析 | 测试 | 注释 |
+| -------- | ---------------------------- | ---- | ---- | ---- |
+| 4.3.1.1  | EXTM3U                       | ✅   | ✅   | ✅   |
+| 4.3.1.2  | EXT-X-VERSION                | ✅   | ✅   | ✅   |
+| 4.3.2.1  | EXTINF                       | ✅   | ✅   | ✅   |
+| 4.3.2.2  | EXT-X-BYTERANGE              | ✅   | ✅   | ✅   |
+| 4.3.2.3  | EXT-X-DISCONTINUITY          | ✅   | ✅   | ✅   |
+| 4.3.2.4  | EXT-X-KEY                    | ✅   | ✅   | ✅   |
+| 4.3.2.5  | EXT-X-MAP                    | ✅   | ✅   | ✅   |
+| 4.3.2.6  | EXT-X-PROGRAM-DATE-TIME      | ✅   | ✅   | ✅   |
+| 4.3.2.7  | EXT-X-DATERANGE              | ✅   | ✅   | ✅   |
+| 4.3.3.1  | EXT-X-TARGETDURATION         | ✅   | ✅   | ✅   |
+| 4.3.3.2  | EXT-X-MEDIA-SEQUENCE         | ✅   | ✅   | ✅   |
+| 4.3.3.3  | EXT-X-DISCONTINUITY-SEQUENCE | ✅   | ✅   | ✅   |
+| 4.3.3.4  | EXT-X-ENDLIST                | ✅   | ✅   | ✅   |
+| 4.3.3.5  | EXT-X-PLAYLIST-TYPE          | ✅   | ✅   | ✅   |
+| 4.3.3.6  | EXT-X-I-FRAMES-ONLY          | ✅   | ✅   | ✅   |
+| 4.3.4.1  | EXT-X-MEDIA                  | ✅   | ✅   | ✅   |
+| 4.3.4.2  | EXT-X-STREAM-INF             | ✅   | ✅   | ✅   |
+| 4.3.4.3  | EXT-X-I-FRAME-STREAM-INF     | ✅   | ✅   | ✅   |
+| 4.3.4.4  | EXT-X-SESSION-DATA           | ✅   | ✅   | ✅   |
+| 4.3.4.5  | EXT-X-SESSION-KEY            | ✅   | ✅   | ✅   |
+| 4.3.5.1  | EXT-X-INDEPENDENT-SEGMENTS   | ✅   | ✅   | ✅   |
+| 4.3.5.2  | EXT-X-START                  | ✅   | ✅   | ✅   |
+| —        | EXT-X-DEFINE                 | ✅   | ✅   | ✅   |
+| —        | EXT-X-CONTENT-STEERING       | ✅   | ✅   | ✅   |
+| LL-HLS   | EXT-X-PART                   | ✅   | ✅   | ✅   |
+| LL-HLS   | EXT-X-PRELOAD-HINT           | ✅   | ✅   | ✅   |
+| LL-HLS   | EXT-X-SERVER-CONTROL         | ✅   | ✅   | ✅   |
+| LL-HLS   | EXT-X-PART-INF               | ✅   | ✅   | ✅   |
+| LL-HLS   | EXT-X-RENDITION-REPORT       | ✅   | ✅   | ✅   |
+| LL-HLS   | EXT-X-SKIP                   | ✅   | ✅   | ✅   |
+| LL-HLS   | EXT-X-PREFETCH               | ✅   | ✅   | ✅   |

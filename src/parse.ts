@@ -53,13 +53,7 @@ import * as T from "./constants";
 // ---------------------------------------------------------------------------
 
 /** Internal tag category for grouping tags */
-type TagCategory =
-  | "Basic"
-  | "Segment"
-  | "MasterPlaylist"
-  | "MediaPlaylist"
-  | "MediaorMasterPlaylist"
-  | "Unknown";
+type TagCategory = "Basic" | "Segment" | "MasterPlaylist" | "MediaPlaylist" | "MediaorMasterPlaylist" | "Unknown";
 
 /** Parsed tag representation */
 interface Tag {
@@ -199,8 +193,7 @@ function parseResolution(str: string): Resolution {
  * Parses ALLOWED-CPC attribute value.
  */
 function parseAllowedCpc(str: string): AllowedCpc[] {
-  const message =
-    "ALLOWED-CPC: Each entry must consist of KEYFORMAT and Content Protection Configuration";
+  const message = "ALLOWED-CPC: Each entry must consist of KEYFORMAT and Content Protection Configuration";
   const list = str.split(",");
   if (list.length === 0) {
     utils.INVALIDPLAYLIST(message);
@@ -246,17 +239,11 @@ function parseUserAttribute(str: string): UserAttribute {
 /**
  * Updates compatible version based on Key attributes.
  */
-function setCompatibleVersionOfKey(
-  params: ParseState,
-  attributes: Record<string, any>,
-) {
+function setCompatibleVersionOfKey(params: ParseState, attributes: Record<string, any>) {
   if (attributes["IV"] && params.compatibleVersion < 2) {
     params.compatibleVersion = 2;
   }
-  if (
-    (attributes["KEYFORMAT"] || attributes["KEYFORMATVERSIONS"]) &&
-    params.compatibleVersion < 5
-  ) {
+  if ((attributes["KEYFORMAT"] || attributes["KEYFORMATVERSIONS"]) && params.compatibleVersion < 5) {
     params.compatibleVersion = 5;
   }
 }
@@ -325,12 +312,7 @@ function parseAttributeList(param: string): Record<string, any> {
         } else if (key.startsWith("X-")) {
           attributes[key] = parseUserAttribute(value!);
         } else {
-          if (
-            key === "VIDEO-RANGE" &&
-            val !== "SDR" &&
-            val !== "HLG" &&
-            val !== "PQ"
-          ) {
+          if (key === "VIDEO-RANGE" && val !== "SDR" && val !== "HLG" && val !== "PQ") {
             utils.INVALIDPLAYLIST(`VIDEO-RANGE: unknown value "${val}"`);
           }
           attributes[key] = val;
@@ -421,9 +403,7 @@ function parseTagParam(name: string, param: string | null): TagParam {
  * 当播放列表同时包含 Media 和 Master 标签时抛出混合标签错误。
  */
 function MIXEDTAGS(): never {
-  utils.INVALIDPLAYLIST(
-    "The file contains both media and master playlist tags.",
-  );
+  utils.INVALIDPLAYLIST("The file contains both media and master playlist tags.");
 }
 
 // ---------------------------------------------------------------------------
@@ -444,15 +424,9 @@ function parseTag(line: string, params: ParseState): Tag | null {
   }
   // Media playlist tags (except RENDITION-REPORT and PREFETCH) must be unique
   // 媒体播放列表标签（RENDITION-REPORT 和 PREFETCH 除外）同一类型只能出现一次
-  if (
-    category === "MediaPlaylist" &&
-    name !== T.EXT_X_RENDITION_REPORT &&
-    name !== T.EXT_X_PREFETCH
-  ) {
+  if (category === "MediaPlaylist" && name !== T.EXT_X_RENDITION_REPORT && name !== T.EXT_X_PREFETCH) {
     if (params.hash[name]) {
-      utils.INVALIDPLAYLIST(
-        "There MUST NOT be more than one Media Playlist tag of each type in any Media Playlist",
-      );
+      utils.INVALIDPLAYLIST("There MUST NOT be more than one Media Playlist tag of each type in any Media Playlist");
     }
     params.hash[name] = true;
   }
@@ -535,11 +509,7 @@ function lexicalParse(text: string, params: ParseState): Line[] {
   }
 
   // Validate that the first line is EXTM3U
-  if (
-    lines.length === 0 ||
-    typeof lines[0] !== "object" ||
-    (lines[0] as Tag).name !== T.EXTM3U
-  ) {
+  if (lines.length === 0 || typeof lines[0] !== "object" || (lines[0] as Tag).name !== T.EXTM3U) {
     utils.INVALIDPLAYLIST("The EXTM3U tag MUST be the first line.");
   }
 
@@ -575,10 +545,7 @@ function parseRendition(tag: Tag): Rendition {
 /**
  * Validates that a rendition doesn't violate uniqueness constraints.
  */
-function checkRedundantRendition(
-  renditions: Rendition[],
-  rendition: Rendition,
-): string {
+function checkRedundantRendition(renditions: Rendition[], rendition: Rendition): string {
   for (const item of renditions) {
     if (item.name === rendition.name) {
       return "All EXT-X-MEDIA tags in the same Group MUST have different NAME attributes.";
@@ -611,11 +578,7 @@ function addRendition(variant: Variant, tag: Tag, type: string) {
 /**
  * Validates that variant attributes reference valid rendition groups.
  */
-function matchTypes(
-  attrs: Record<string, any>,
-  variant: Variant,
-  params: ParseState,
-) {
+function matchTypes(attrs: Record<string, any>, variant: Variant, params: ParseState) {
   for (const type of ["AUDIO", "VIDEO", "SUBTITLES", "CLOSED-CAPTIONS"]) {
     if (type === "CLOSED-CAPTIONS" && attrs[type] === "NONE") {
       params.isClosedCaptionsNone = true;
@@ -623,13 +586,8 @@ function matchTypes(
     } else if (attrs[type]) {
       const key = utils.camelify(type) as keyof Variant;
       const renditions = (variant[key] as Rendition[]) || [];
-      if (
-        renditions.length > 0 &&
-        !renditions.some((item) => item.groupId === attrs[type])
-      ) {
-        utils.INVALIDPLAYLIST(
-          `${type} attribute MUST match the value of the GROUP-ID attribute of an EXT-X-MEDIA tag whose TYPE attribute is ${type}.`,
-        );
+      if (renditions.length > 0 && !renditions.some((item) => item.groupId === attrs[type])) {
+        utils.INVALIDPLAYLIST(`${type} attribute MUST match the value of the GROUP-ID attribute of an EXT-X-MEDIA tag whose TYPE attribute is ${type}.`);
       }
     }
   }
@@ -638,13 +596,7 @@ function matchTypes(
 /**
  * Parses a Variant Stream from EXT-X-STREAM-INF or EXT-X-I-FRAME-STREAM-INF.
  */
-function parseVariant(
-  lines: Line[],
-  variantAttrs: Record<string, any>,
-  uri: string,
-  iFrameOnly: boolean,
-  params: ParseState,
-): Variant {
+function parseVariant(lines: Line[], variantAttrs: Record<string, any>, uri: string, iFrameOnly: boolean, params: ParseState): Variant {
   const variant: Variant = {
     uri,
     bandwidth: variantAttrs["BANDWIDTH"],
@@ -703,10 +655,7 @@ function sameKey(key1: Key, key2: Key): boolean {
 /**
  * Parses a Master Playlist (contains EXT-X-STREAM-INF, EXT-X-MEDIA, etc.).
  */
-function parseMasterPlaylist(
-  lines: Line[],
-  params: ParseState,
-): MasterPlaylist {
+function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist {
   const playlist: MasterPlaylist = {
     isMasterPlaylist: true,
     variants: [],
@@ -730,34 +679,18 @@ function parseMasterPlaylist(
     } else if (name === T.EXT_X_STREAM_INF) {
       const uriLine = lines[index + 1];
       if (typeof uriLine !== "string" || uriLine.startsWith("#")) {
-        utils.INVALIDPLAYLIST(
-          "EXT-X-STREAM-INF must be followed by a URI line",
-        );
+        utils.INVALIDPLAYLIST("EXT-X-STREAM-INF must be followed by a URI line");
       }
-      const variant = parseVariant(
-        lines,
-        attributes,
-        uriLine as string,
-        false,
-        params,
-      );
+      const variant = parseVariant(lines, attributes, uriLine as string, false, params);
       if (typeof variant.score === "number") {
         variantIsScored = true;
         if (variant.score < 0) {
-          utils.INVALIDPLAYLIST(
-            "SCORE attribute on EXT-X-STREAM-INF must be a positive decimal-floating-point number.",
-          );
+          utils.INVALIDPLAYLIST("SCORE attribute on EXT-X-STREAM-INF must be a positive decimal-floating-point number.");
         }
       }
       playlist.variants.push(variant);
     } else if (name === T.EXT_X_I_FRAME_STREAM_INF) {
-      const variant = parseVariant(
-        lines,
-        attributes,
-        attributes.URI,
-        true,
-        params,
-      );
+      const variant = parseVariant(lines, attributes, attributes.URI, true, params);
       playlist.variants.push(variant);
     } else if (name === T.EXT_X_SESSION_DATA) {
       const sessionData: SessionData = {
@@ -766,23 +699,13 @@ function parseMasterPlaylist(
         uri: attributes["URI"],
         language: attributes["LANGUAGE"],
       };
-      if (
-        playlist.sessionDataList.some(
-          (item) =>
-            item.id === sessionData.id &&
-            item.language === sessionData.language,
-        )
-      ) {
-        utils.INVALIDPLAYLIST(
-          "A Playlist MUST NOT contain more than one EXT-X-SESSION-DATA tag with the same DATA-ID attribute and the same LANGUAGE attribute.",
-        );
+      if (playlist.sessionDataList.some((item) => item.id === sessionData.id && item.language === sessionData.language)) {
+        utils.INVALIDPLAYLIST("A Playlist MUST NOT contain more than one EXT-X-SESSION-DATA tag with the same DATA-ID attribute and the same LANGUAGE attribute.");
       }
       playlist.sessionDataList.push(sessionData);
     } else if (name === T.EXT_X_SESSION_KEY) {
       if (attributes["METHOD"] === "NONE") {
-        utils.INVALIDPLAYLIST(
-          "EXT-X-SESSION-KEY: The value of the METHOD attribute MUST NOT be NONE",
-        );
+        utils.INVALIDPLAYLIST("EXT-X-SESSION-KEY: The value of the METHOD attribute MUST NOT be NONE");
       }
       const sessionKey: Key = {
         method: attributes["METHOD"],
@@ -792,24 +715,18 @@ function parseMasterPlaylist(
         formatVersion: attributes["KEYFORMATVERSIONS"],
       };
       if (playlist.sessionKeyList.some((item) => sameKey(item, sessionKey))) {
-        utils.INVALIDPLAYLIST(
-          "A Master Playlist MUST NOT contain more than one EXT-X-SESSION-KEY tag with the same METHOD, URI, IV, KEYFORMAT, and KEYFORMATVERSIONS attribute values.",
-        );
+        utils.INVALIDPLAYLIST("A Master Playlist MUST NOT contain more than one EXT-X-SESSION-KEY tag with the same METHOD, URI, IV, KEYFORMAT, and KEYFORMATVERSIONS attribute values.");
       }
       setCompatibleVersionOfKey(params, attributes);
       playlist.sessionKeyList.push(sessionKey);
     } else if (name === T.EXT_X_INDEPENDENT_SEGMENTS) {
       if (playlist.independentSegments) {
-        utils.INVALIDPLAYLIST(
-          "EXT-X-INDEPENDENT-SEGMENTS tag MUST NOT appear more than once in a Playlist",
-        );
+        utils.INVALIDPLAYLIST("EXT-X-INDEPENDENT-SEGMENTS tag MUST NOT appear more than once in a Playlist");
       }
       playlist.independentSegments = true;
     } else if (name === T.EXT_X_START) {
       if (playlist.start) {
-        utils.INVALIDPLAYLIST(
-          "EXT-X-START tag MUST NOT appear more than once in a Playlist",
-        );
+        utils.INVALIDPLAYLIST("EXT-X-START tag MUST NOT appear more than once in a Playlist");
       }
       if (typeof attributes["TIME-OFFSET"] !== "number") {
         utils.INVALIDPLAYLIST("EXT-X-START: TIME-OFFSET attribute is REQUIRED");
@@ -828,9 +745,7 @@ function parseMasterPlaylist(
   if (variantIsScored) {
     for (const variant of playlist.variants) {
       if (typeof variant.score !== "number") {
-        utils.INVALIDPLAYLIST(
-          "If any Variant Stream contains the SCORE attribute, then all Variant Streams in the Master Playlist SHOULD have a SCORE attribute",
-        );
+        utils.INVALIDPLAYLIST("If any Variant Stream contains the SCORE attribute, then all Variant Streams in the Master Playlist SHOULD have a SCORE attribute");
       }
     }
   }
@@ -840,9 +755,7 @@ function parseMasterPlaylist(
     for (const variant of playlist.variants) {
       const cc = variant.closedCaptions;
       if (cc && cc.length > 0) {
-        utils.INVALIDPLAYLIST(
-          "If there is a variant with CLOSED-CAPTIONS attribute of NONE, all EXT-X-STREAM-INF tags MUST have this attribute with a value of NONE",
-        );
+        utils.INVALIDPLAYLIST("If there is a variant with CLOSED-CAPTIONS attribute of NONE, all EXT-X-STREAM-INF tags MUST have this attribute with a value of NONE");
       }
     }
   }
@@ -881,15 +794,7 @@ function parseDateRange(attributes: Record<string, any>): DateRange {
  * Parses a Media Segment from a range of lines in the playlist.
  * Collects all the segment-level tags that apply to a URI.
  */
-function parseSegment(
-  lines: Line[],
-  uri: string,
-  start: number,
-  end: number,
-  mediaSequenceNumber: number,
-  discontinuitySequence: number,
-  params: ParseState,
-): Segment {
+function parseSegment(lines: Line[], uri: string, start: number, end: number, mediaSequenceNumber: number, discontinuitySequence: number, params: ParseState): Segment {
   const segment: Segment = {
     uri,
     mediaSequenceNumber,
@@ -909,9 +814,7 @@ function parseSegment(
         params.compatibleVersion = 3;
       }
       if (Math.round(value.duration) > params.targetDuration) {
-        utils.INVALIDPLAYLIST(
-          "EXTINF duration, when rounded to the nearest integer, MUST be less than or equal to the target duration",
-        );
+        utils.INVALIDPLAYLIST("EXTINF duration, when rounded to the nearest integer, MUST be less than or equal to the target duration");
       }
       segment.duration = value.duration;
       segment.title = value.title;
@@ -922,9 +825,7 @@ function parseSegment(
       segment.byterange = value;
     } else if (name === T.EXT_X_DISCONTINUITY) {
       if (segment.parts && segment.parts.length > 0) {
-        utils.INVALIDPLAYLIST(
-          "EXT-X-DISCONTINUITY must appear before the first EXT-X-PART tag of the Parent Segment.",
-        );
+        utils.INVALIDPLAYLIST("EXT-X-DISCONTINUITY must appear before the first EXT-X-PART tag of the Parent Segment.");
       }
       segment.discontinuity = true;
     } else if (name === T.EXT_X_GAP) {
@@ -934,9 +835,7 @@ function parseSegment(
       segment.gap = true;
     } else if (name === T.EXT_X_KEY) {
       if (segment.parts && segment.parts.length > 0) {
-        utils.INVALIDPLAYLIST(
-          "EXT-X-KEY must appear before the first EXT-X-PART tag of the Parent Segment.",
-        );
+        utils.INVALIDPLAYLIST("EXT-X-KEY must appear before the first EXT-X-PART tag of the Parent Segment.");
       }
       setCompatibleVersionOfKey(params, attributes);
       segment.key = {
@@ -948,9 +847,7 @@ function parseSegment(
       };
     } else if (name === T.EXT_X_MAP) {
       if (segment.parts && segment.parts.length > 0) {
-        utils.INVALIDPLAYLIST(
-          "EXT-X-MAP must appear before the first EXT-X-PART tag of the Parent Segment.",
-        );
+        utils.INVALIDPLAYLIST("EXT-X-MAP must appear before the first EXT-X-PART tag of the Parent Segment.");
       }
       if (params.compatibleVersion < 5) {
         params.compatibleVersion = 5;
@@ -973,13 +870,7 @@ function parseSegment(
     } else if (name === T.EXT_X_CUE_IN) {
       if (!segment.markers) segment.markers = [];
       segment.markers.push({ type: "IN" });
-    } else if (
-      name === T.EXT_X_CUE_OUT_CONT ||
-      name === T.EXT_X_CUE ||
-      name === T.EXT_OATCLS_SCTE35 ||
-      name === T.EXT_X_ASSET ||
-      name === T.EXT_X_SCTE35
-    ) {
+    } else if (name === T.EXT_X_CUE_OUT_CONT || name === T.EXT_X_CUE || name === T.EXT_OATCLS_SCTE35 || name === T.EXT_X_ASSET || name === T.EXT_X_SCTE35) {
       if (!segment.markers) segment.markers = [];
       segment.markers.push({
         type: "RAW",
@@ -988,21 +879,10 @@ function parseSegment(
       });
     } else if (name === T.EXT_X_PRELOAD_HINT && !attributes["TYPE"]) {
       utils.INVALIDPLAYLIST("EXT-X-PRELOAD-HINT: TYPE attribute is mandatory");
-    } else if (
-      name === T.EXT_X_PRELOAD_HINT &&
-      attributes["TYPE"] === "PART" &&
-      partHint
-    ) {
-      utils.INVALIDPLAYLIST(
-        "Servers should not add more than one EXT-X-PRELOAD-HINT tag with the same TYPE attribute to a Playlist.",
-      );
-    } else if (
-      (name === T.EXT_X_PART || name === T.EXT_X_PRELOAD_HINT) &&
-      !attributes["URI"]
-    ) {
-      utils.INVALIDPLAYLIST(
-        "EXT-X-PART / EXT-X-PRELOAD-HINT: URI attribute is mandatory",
-      );
+    } else if (name === T.EXT_X_PRELOAD_HINT && attributes["TYPE"] === "PART" && partHint) {
+      utils.INVALIDPLAYLIST("Servers should not add more than one EXT-X-PRELOAD-HINT tag with the same TYPE attribute to a Playlist.");
+    } else if ((name === T.EXT_X_PART || name === T.EXT_X_PRELOAD_HINT) && !attributes["URI"]) {
+      utils.INVALIDPLAYLIST("EXT-X-PART / EXT-X-PRELOAD-HINT: URI attribute is mandatory");
     } else if (name === T.EXT_X_PRELOAD_HINT && attributes["TYPE"] === "MAP") {
       params.hasMap = true;
       segment.map = {
@@ -1013,10 +893,7 @@ function parseSegment(
           offset: attributes["BYTERANGE-START"] || 0,
         },
       };
-    } else if (
-      name === T.EXT_X_PART ||
-      (name === T.EXT_X_PRELOAD_HINT && attributes["TYPE"] === "PART")
-    ) {
+    } else if (name === T.EXT_X_PART || (name === T.EXT_X_PRELOAD_HINT && attributes["TYPE"] === "PART")) {
       if (name === T.EXT_X_PART && !attributes["DURATION"]) {
         utils.INVALIDPLAYLIST("EXT-X-PART: DURATION attribute is mandatory");
       }
@@ -1039,9 +916,7 @@ function parseSegment(
         gap: attributes["GAP"],
       };
       if (segment.gap && !partialSegment.gap) {
-        utils.INVALIDPLAYLIST(
-          "Partial segments must have GAP=YES if they are in a gap (EXT-X-GAP)",
-        );
+        utils.INVALIDPLAYLIST("Partial segments must have GAP=YES if they are in a gap (EXT-X-GAP)");
       }
       segment.parts.push(partialSegment);
     }
@@ -1053,15 +928,7 @@ function parseSegment(
 /**
  * Parses a Prefetch Segment (EXT-X-PREFETCH) for LL-HLS.
  */
-function parsePrefetchSegment(
-  lines: Line[],
-  uri: string,
-  start: number,
-  end: number,
-  mediaSequenceNumber: number,
-  discontinuitySequence: number,
-  params: ParseState,
-): PrefetchSegment {
+function parsePrefetchSegment(lines: Line[], uri: string, start: number, end: number, mediaSequenceNumber: number, discontinuitySequence: number, params: ParseState): PrefetchSegment {
   const segment: PrefetchSegment = {
     uri,
     mediaSequenceNumber,
@@ -1073,13 +940,9 @@ function parsePrefetchSegment(
     const { name, attributes } = lines[i] as Tag;
 
     if (name === T.EXTINF) {
-      utils.INVALIDPLAYLIST(
-        "A prefetch segment must not be advertised with an EXTINF tag.",
-      );
+      utils.INVALIDPLAYLIST("A prefetch segment must not be advertised with an EXTINF tag.");
     } else if (name === T.EXT_X_DISCONTINUITY) {
-      utils.INVALIDPLAYLIST(
-        "A prefetch segment must not be advertised with an EXT-X-DISCONTINUITY tag.",
-      );
+      utils.INVALIDPLAYLIST("A prefetch segment must not be advertised with an EXT-X-DISCONTINUITY tag.");
     } else if (name === T.EXT_X_PREFETCH_DISCONTINUITY) {
       segment.discontinuity = true;
     } else if (name === T.EXT_X_KEY) {
@@ -1092,9 +955,7 @@ function parsePrefetchSegment(
         formatVersion: attributes["KEYFORMATVERSIONS"],
       };
     } else if (name === T.EXT_X_MAP) {
-      utils.INVALIDPLAYLIST(
-        "Prefetch segments must not be advertised with an EXT-X-MAP tag.",
-      );
+      utils.INVALIDPLAYLIST("Prefetch segments must not be advertised with an EXT-X-MAP tag.");
     }
   }
 
@@ -1135,27 +996,18 @@ function addSegment(
     if (segments.length > 0) {
       const prevSegment = segments[segments.length - 1];
       if (prevSegment.byterange && prevSegment.uri === uri) {
-        byterange.offset =
-          prevSegment.byterange.offset + prevSegment.byterange.length;
+        byterange.offset = prevSegment.byterange.offset + prevSegment.byterange.length;
       } else {
-        utils.INVALIDPLAYLIST(
-          "If offset of EXT-X-BYTERANGE is not present, a previous Media Segment MUST be a sub-range of the same media resource",
-        );
+        utils.INVALIDPLAYLIST("If offset of EXT-X-BYTERANGE is not present, a previous Media Segment MUST be a sub-range of the same media resource");
       }
     } else {
-      utils.INVALIDPLAYLIST(
-        "If offset of EXT-X-BYTERANGE is not present, a previous Media Segment MUST appear in the Playlist file",
-      );
+      utils.INVALIDPLAYLIST("If offset of EXT-X-BYTERANGE is not present, a previous Media Segment MUST appear in the Playlist file");
     }
   }
 
   playlist.segments.push(segment);
 
-  return [
-    segment.discontinuitySequence,
-    segment.key ?? null,
-    segment.map ?? null,
-  ];
+  return [segment.discontinuitySequence, segment.key ?? null, segment.map ?? null];
 }
 
 /**
@@ -1177,9 +1029,7 @@ function checkDateRange(segments: Segment[]) {
 
       // END-ON-NEXT cannot coexist with DURATION or END-DATE
       if (dateRange.endOnNext && (dateRange.end || dateRange.duration)) {
-        utils.INVALIDPLAYLIST(
-          "An EXT-X-DATERANGE tag with an END-ON-NEXT=YES attribute MUST NOT contain DURATION or END-DATE attributes.",
-        );
+        utils.INVALIDPLAYLIST("An EXT-X-DATERANGE tag with an END-ON-NEXT=YES attribute MUST NOT contain DURATION or END-DATE attributes.");
       }
 
       const start = dateRange.start.getTime();
@@ -1188,9 +1038,7 @@ function checkDateRange(segments: Segment[]) {
       // END-DATE must equal START-DATE + DURATION
       if (dateRange.end && dateRange.duration) {
         if (start + duration * 1000 !== dateRange.end.getTime()) {
-          utils.INVALIDPLAYLIST(
-            "END-DATE MUST be equal to the value of the START-DATE attribute plus the value of the DURATION",
-          );
+          utils.INVALIDPLAYLIST("END-DATE MUST be equal to the value of the START-DATE attribute plus the value of the DURATION");
         }
       }
 
@@ -1201,22 +1049,15 @@ function checkDateRange(segments: Segment[]) {
 
       earliestDates.set(dateRange.classId!, dateRange.start);
 
-      const end = dateRange.end
-        ? dateRange.end.getTime()
-        : start + duration * 1000;
+      const end = dateRange.end ? dateRange.end.getTime() : start + duration * 1000;
 
       // Check overlapping ranges with same CLASS
       if (dateRange.classId) {
         const range = rangeList.get(dateRange.classId);
         if (range) {
           for (const entry of range) {
-            if (
-              (entry.start <= start && entry.end > start) ||
-              (entry.start >= start && entry.start < end)
-            ) {
-              utils.INVALIDPLAYLIST(
-                "DATERANGE tags with the same CLASS should not overlap",
-              );
+            if ((entry.start <= start && entry.end > start) || (entry.start >= start && entry.start < end)) {
+              utils.INVALIDPLAYLIST("DATERANGE tags with the same CLASS should not overlap");
             }
           }
           range.push({ start, end });
@@ -1229,21 +1070,15 @@ function checkDateRange(segments: Segment[]) {
 
   // If any DateRange exists, there must be at least one PROGRAM-DATE-TIME
   if (hasDateRange && !hasProgramDateTime) {
-    utils.INVALIDPLAYLIST(
-      "If a Playlist contains an EXT-X-DATERANGE tag, it MUST also contain at least one EXT-X-PROGRAM-DATE-TIME tag.",
-    );
+    utils.INVALIDPLAYLIST("If a Playlist contains an EXT-X-DATERANGE tag, it MUST also contain at least one EXT-X-PROGRAM-DATE-TIME tag.");
   }
 }
 
 /**
  * Validates LL-HLS (Low-Latency HLS) compatibility constraints.
  */
-function checkLowLatencyCompatibility(
-  playlist: MediaPlaylist,
-  containsParts: boolean,
-) {
-  const { lowLatencyCompatibility, targetDuration, partTargetDuration } =
-    playlist;
+function checkLowLatencyCompatibility(playlist: MediaPlaylist, containsParts: boolean) {
+  const { lowLatencyCompatibility, targetDuration, partTargetDuration } = playlist;
 
   if (!lowLatencyCompatibility) return;
 
@@ -1251,23 +1086,17 @@ function checkLowLatencyCompatibility(
 
   // Skip boundary must be at least 6x target duration
   if (canSkipUntil !== undefined && canSkipUntil < targetDuration! * 6) {
-    utils.INVALIDPLAYLIST(
-      "The Skip Boundary must be at least six times the EXT-X-TARGETDURATION.",
-    );
+    utils.INVALIDPLAYLIST("The Skip Boundary must be at least six times the EXT-X-TARGETDURATION.");
   }
 
   // HOLD-BACK must be at least 3x target duration
   if (holdBack !== undefined && holdBack < targetDuration! * 3) {
-    utils.INVALIDPLAYLIST(
-      "HOLD-BACK must be at least three times the EXT-X-TARGETDURATION.",
-    );
+    utils.INVALIDPLAYLIST("HOLD-BACK must be at least three times the EXT-X-TARGETDURATION.");
   }
 
   if (containsParts) {
     if (partTargetDuration === undefined) {
-      utils.INVALIDPLAYLIST(
-        "EXT-X-PART-INF is required if a Playlist contains one or more EXT-X-PART tags",
-      );
+      utils.INVALIDPLAYLIST("EXT-X-PART-INF is required if a Playlist contains one or more EXT-X-PART tags");
     }
     if (partHoldBack === undefined) {
       utils.INVALIDPLAYLIST("PART-HOLD-BACK attribute is mandatory");
@@ -1280,24 +1109,15 @@ function checkLowLatencyCompatibility(
     for (const [segmentIndex, { parts }] of playlist.segments.entries()) {
       if (!parts || parts.length === 0) continue;
       if (segmentIndex < playlist.segments.length - 3) {
-        utils.INVALIDPLAYLIST(
-          "Remove EXT-X-PART tags from the Playlist after they are greater than three target durations from the end of the Playlist.",
-        );
+        utils.INVALIDPLAYLIST("Remove EXT-X-PART tags from the Playlist after they are greater than three target durations from the end of the Playlist.");
       }
       for (const [partIndex, { duration }] of parts.entries()) {
         if (duration === undefined) continue;
         if (duration > partTargetDuration!) {
-          utils.INVALIDPLAYLIST(
-            "PART-TARGET is the maximum duration of any Partial Segment",
-          );
+          utils.INVALIDPLAYLIST("PART-TARGET is the maximum duration of any Partial Segment");
         }
-        if (
-          partIndex < parts.length - 1 &&
-          duration < partTargetDuration! * 0.85
-        ) {
-          utils.INVALIDPLAYLIST(
-            "All Partial Segments except the last part of a segment must have a duration of at least 85% of PART-TARGET",
-          );
+        if (partIndex < parts.length - 1 && duration < partTargetDuration! * 0.85) {
+          utils.INVALIDPLAYLIST("All Partial Segments except the last part of a segment must have a duration of at least 85% of PART-TARGET");
         }
       }
     }
@@ -1308,12 +1128,7 @@ function checkLowLatencyCompatibility(
       if (report.lastMSN === undefined && lastSegment) {
         report.lastMSN = lastSegment.mediaSequenceNumber;
       }
-      if (
-        (report.lastPart === undefined || report.lastPart === null) &&
-        lastSegment &&
-        lastSegment.parts &&
-        lastSegment.parts.length > 0
-      ) {
+      if ((report.lastPart === undefined || report.lastPart === null) && lastSegment && lastSegment.parts && lastSegment.parts.length > 0) {
         report.lastPart = lastSegment.parts.length - 1;
       }
     }
@@ -1350,28 +1165,12 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
         utils.INVALIDPLAYLIST("The EXT-X-TARGETDURATION tag is REQUIRED");
       }
       if (prefetchFound) {
-        utils.INVALIDPLAYLIST(
-          "These segments must appear after all complete segments.",
-        );
+        utils.INVALIDPLAYLIST("These segments must appear after all complete segments.");
       }
 
-      const segment = parseSegment(
-        lines,
-        line,
-        segmentStart,
-        index - 1,
-        mediaSequence++,
-        discontinuitySequence,
-        params,
-      );
+      const segment = parseSegment(lines, line, segmentStart, index - 1, mediaSequence++, discontinuitySequence, params);
 
-      const [newDiscSeq, newKey, newMap] = addSegment(
-        playlist,
-        segment,
-        discontinuitySequence,
-        currentKey,
-        currentMap,
-      );
+      const [newDiscSeq, newKey, newMap] = addSegment(playlist, segment, discontinuitySequence, currentKey, currentMap);
       discontinuitySequence = newDiscSeq;
       currentKey = newKey;
       currentMap = newMap;
@@ -1404,30 +1203,22 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       if (playlist.version === undefined) {
         playlist.version = value;
       } else {
-        utils.INVALIDPLAYLIST(
-          "A Playlist file MUST NOT contain more than one EXT-X-VERSION tag.",
-        );
+        utils.INVALIDPLAYLIST("A Playlist file MUST NOT contain more than one EXT-X-VERSION tag.");
       }
     } else if (name === T.EXT_X_TARGETDURATION) {
       playlist.targetDuration = params.targetDuration = value;
     } else if (name === T.EXT_X_MEDIA_SEQUENCE) {
       if (playlist.segments.length > 0) {
-        utils.INVALIDPLAYLIST(
-          "The EXT-X-MEDIA-SEQUENCE tag MUST appear before the first Media Segment in the Playlist.",
-        );
+        utils.INVALIDPLAYLIST("The EXT-X-MEDIA-SEQUENCE tag MUST appear before the first Media Segment in the Playlist.");
       }
       playlist.mediaSequenceBase = value;
       mediaSequence = value;
     } else if (name === T.EXT_X_DISCONTINUITY_SEQUENCE) {
       if (playlist.segments.length > 0) {
-        utils.INVALIDPLAYLIST(
-          "The EXT-X-DISCONTINUITY-SEQUENCE tag MUST appear before the first Media Segment in the Playlist.",
-        );
+        utils.INVALIDPLAYLIST("The EXT-X-DISCONTINUITY-SEQUENCE tag MUST appear before the first Media Segment in the Playlist.");
       }
       if (segmentStart !== -1) {
-        utils.INVALIDPLAYLIST(
-          "The EXT-X-DISCONTINUITY-SEQUENCE tag MUST appear before any EXT-X-DISCONTINUITY tag.",
-        );
+        utils.INVALIDPLAYLIST("The EXT-X-DISCONTINUITY-SEQUENCE tag MUST appear before any EXT-X-DISCONTINUITY tag.");
       }
       playlist.discontinuitySequenceBase = value;
       discontinuitySequence = value;
@@ -1442,16 +1233,12 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       playlist.isIFrame = true;
     } else if (name === T.EXT_X_INDEPENDENT_SEGMENTS) {
       if (playlist.independentSegments) {
-        utils.INVALIDPLAYLIST(
-          "EXT-X-INDEPENDENT-SEGMENTS tag MUST NOT appear more than once in a Playlist",
-        );
+        utils.INVALIDPLAYLIST("EXT-X-INDEPENDENT-SEGMENTS tag MUST NOT appear more than once in a Playlist");
       }
       playlist.independentSegments = true;
     } else if (name === T.EXT_X_START) {
       if (playlist.start) {
-        utils.INVALIDPLAYLIST(
-          "EXT-X-START tag MUST NOT appear more than once in a Playlist",
-        );
+        utils.INVALIDPLAYLIST("EXT-X-START tag MUST NOT appear more than once in a Playlist");
       }
       if (typeof attributes["TIME-OFFSET"] !== "number") {
         utils.INVALIDPLAYLIST("EXT-X-START: TIME-OFFSET attribute is REQUIRED");
@@ -1462,9 +1249,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       };
     } else if (name === T.EXT_X_SERVER_CONTROL) {
       if (!attributes["CAN-BLOCK-RELOAD"]) {
-        utils.INVALIDPLAYLIST(
-          "EXT-X-SERVER-CONTROL: CAN-BLOCK-RELOAD=YES is mandatory for Low-Latency HLS",
-        );
+        utils.INVALIDPLAYLIST("EXT-X-SERVER-CONTROL: CAN-BLOCK-RELOAD=YES is mandatory for Low-Latency HLS");
       }
       playlist.lowLatencyCompatibility = {
         canBlockReload: attributes["CAN-BLOCK-RELOAD"],
@@ -1474,21 +1259,15 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       };
     } else if (name === T.EXT_X_PART_INF) {
       if (!attributes["PART-TARGET"]) {
-        utils.INVALIDPLAYLIST(
-          "EXT-X-PART-INF: PART-TARGET attribute is mandatory",
-        );
+        utils.INVALIDPLAYLIST("EXT-X-PART-INF: PART-TARGET attribute is mandatory");
       }
       playlist.partTargetDuration = attributes["PART-TARGET"];
     } else if (name === T.EXT_X_RENDITION_REPORT) {
       if (!attributes["URI"]) {
-        utils.INVALIDPLAYLIST(
-          "EXT-X-RENDITION-REPORT: URI attribute is mandatory",
-        );
+        utils.INVALIDPLAYLIST("EXT-X-RENDITION-REPORT: URI attribute is mandatory");
       }
       if (/^[a-z]+:/i.test(attributes["URI"])) {
-        utils.INVALIDPLAYLIST(
-          "EXT-X-RENDITION-REPORT: URI must be relative to the playlist uri",
-        );
+        utils.INVALIDPLAYLIST("EXT-X-RENDITION-REPORT: URI must be relative to the playlist uri");
       }
       playlist.renditionReports.push({
         uri: attributes["URI"],
@@ -1497,9 +1276,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       });
     } else if (name === T.EXT_X_SKIP) {
       if (!attributes["SKIPPED-SEGMENTS"]) {
-        utils.INVALIDPLAYLIST(
-          "EXT-X-SKIP: SKIPPED-SEGMENTS attribute is mandatory",
-        );
+        utils.INVALIDPLAYLIST("EXT-X-SKIP: SKIPPED-SEGMENTS attribute is mandatory");
       }
       if (params.compatibleVersion < 9) {
         params.compatibleVersion = 9;
@@ -1507,15 +1284,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       playlist.skip = attributes["SKIPPED-SEGMENTS"];
       mediaSequence += playlist.skip!;
     } else if (name === T.EXT_X_PREFETCH) {
-      const segment = parsePrefetchSegment(
-        lines,
-        value,
-        segmentStart === -1 ? index : segmentStart,
-        index - 1,
-        mediaSequence++,
-        discontinuitySequence,
-        params,
-      );
+      const segment = parsePrefetchSegment(lines, value, segmentStart === -1 ? index : segmentStart, index - 1, mediaSequence++, discontinuitySequence, params);
       if (segment.discontinuity) {
         segment.discontinuitySequence++;
         discontinuitySequence = segment.discontinuitySequence;
@@ -1534,33 +1303,12 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
 
   // Handle trailing segments (no URI line at end)
   if (segmentStart !== -1) {
-    const segment = parseSegment(
-      lines,
-      "",
-      segmentStart,
-      lines.length - 1,
-      mediaSequence++,
-      discontinuitySequence,
-      params,
-    );
+    const segment = parseSegment(lines, "", segmentStart, lines.length - 1, mediaSequence++, discontinuitySequence, params);
     const { parts } = segment;
-    if (
-      parts &&
-      parts.length > 0 &&
-      !playlist.endlist &&
-      !parts[parts.length - 1]?.hint
-    ) {
-      utils.INVALIDPLAYLIST(
-        "If the Playlist contains EXT-X-PART tags and does not contain an EXT-X-ENDLIST tag, the Playlist must contain an EXT-X-PRELOAD-HINT tag with a TYPE=PART attribute",
-      );
+    if (parts && parts.length > 0 && !playlist.endlist && !parts[parts.length - 1]?.hint) {
+      utils.INVALIDPLAYLIST("If the Playlist contains EXT-X-PART tags and does not contain an EXT-X-ENDLIST tag, the Playlist must contain an EXT-X-PRELOAD-HINT tag with a TYPE=PART attribute");
     }
-    addSegment(
-      playlist,
-      segment,
-      discontinuitySequence,
-      currentKey,
-      currentMap,
-    );
+    addSegment(playlist, segment, discontinuitySequence, currentKey, currentMap);
     if (!containsParts && segment.parts && segment.parts.length > 0) {
       containsParts = true;
     }
@@ -1585,22 +1333,14 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
  * Performs semantic analysis on the parsed lines to produce
  * a structured MasterPlaylist or MediaPlaylist.
  */
-function semanticParse(
-  lines: Line[],
-  params: ParseState,
-): MasterPlaylist | MediaPlaylist {
+function semanticParse(lines: Line[], params: ParseState): MasterPlaylist | MediaPlaylist {
   let playlist: MasterPlaylist | MediaPlaylist;
 
   if (params.isMasterPlaylist) {
     playlist = parseMasterPlaylist(lines, params);
   } else {
     playlist = parseMediaPlaylist(lines, params);
-    if (
-      !playlist.isMasterPlaylist &&
-      !playlist.isIFrame &&
-      params.hasMap &&
-      params.compatibleVersion < 6
-    ) {
+    if (!playlist.isMasterPlaylist && !playlist.isIFrame && params.hasMap && params.compatibleVersion < 6) {
       params.compatibleVersion = 6;
     }
   }
@@ -1609,14 +1349,8 @@ function semanticParse(
   // Only throw if an explicit EXT-X-VERSION tag is present and is too low.
   // If no version tag is specified, we accept the playlist for interoperability.
   if (params.compatibleVersion > 1) {
-    if (
-      playlist.version !== undefined &&
-      playlist.version !== null &&
-      playlist.version < params.compatibleVersion
-    ) {
-      utils.INVALIDPLAYLIST(
-        `EXT-X-VERSION needs to be ${params.compatibleVersion} or higher.`,
-      );
+    if (playlist.version !== undefined && playlist.version !== null && playlist.version < params.compatibleVersion) {
+      utils.INVALIDPLAYLIST(`EXT-X-VERSION needs to be ${params.compatibleVersion} or higher.`);
     }
   }
 
@@ -1631,10 +1365,7 @@ function semanticParse(
  * Resolves all relative URIs in a playlist against a base URI.
  * This supports both Master Playlists and Media Playlists.
  */
-function resolvePlaylistUris(
-  playlist: MasterPlaylist | MediaPlaylist,
-  baseUri: string,
-): void {
+function resolvePlaylistUris(playlist: MasterPlaylist | MediaPlaylist, baseUri: string): void {
   if (playlist.isMasterPlaylist) {
     const master = playlist as MasterPlaylist;
 
@@ -1643,12 +1374,7 @@ function resolvePlaylistUris(
       variant.uri = utils.resolveUrl(baseUri, variant.uri);
 
       // Resolve rendition URIs inside each variant (audio / video / subtitles)
-      for (const type of [
-        "audio",
-        "video",
-        "subtitles",
-        "closedCaptions",
-      ] as const) {
+      for (const type of ["audio", "video", "subtitles", "closedCaptions"] as const) {
         const renditions = variant[type];
         if (renditions) {
           for (const r of renditions) {
@@ -1746,10 +1472,7 @@ function resolvePlaylistUris(
  * });
  * ```
  */
-function parse(
-  text: string,
-  options?: ParseOptions,
-): MasterPlaylist | MediaPlaylist {
+function parse(text: string, options?: ParseOptions): MasterPlaylist | MediaPlaylist {
   const params: ParseState = {
     isMasterPlaylist: undefined,
     hasMap: false,

@@ -4,7 +4,7 @@
  * Run with: npx ts-node examples/basic.ts
  */
 
-import { parse, Playlist, MasterPlaylist, MediaPlaylist } from '../src';
+import { parse, Playlist, MasterPlaylist, MediaPlaylist } from "../src";
 
 // ---------------------------------------------------------------------------
 // Example 1: Parse a simple Media Playlist
@@ -22,7 +22,7 @@ http://media.example.com/third.ts
 #EXT-X-ENDLIST`;
 
   const playlist = parse(m3u8) as MediaPlaylist;
-  console.log('=== Simple Media Playlist ===');
+  console.log("=== Simple Media Playlist ===");
   console.log(`Target Duration: ${playlist.targetDuration}s`);
   console.log(`Version: ${playlist.version}`);
   console.log(`Segments: ${playlist.segments.length}`);
@@ -46,7 +46,7 @@ mid.m3u8
 hi.m3u8`;
 
   const playlist = parse(m3u8) as MasterPlaylist;
-  console.log('=== Master Playlist ===');
+  console.log("=== Master Playlist ===");
   console.log(`Variants: ${playlist.variants.length}`);
   for (const variant of playlist.variants) {
     console.log(`  - ${variant.uri}`);
@@ -70,10 +70,10 @@ segment2.ts
 #EXT-X-ENDLIST`;
 
   const playlist = parse(m3u8, {
-    uri: 'https://cdn.example.com/hls/main.m3u8',
+    uri: "https://cdn.example.com/hls/main.m3u8",
   }) as MediaPlaylist;
 
-  console.log('=== URL Resolution ===');
+  console.log("=== URL Resolution ===");
   for (const seg of playlist.segments) {
     console.log(`  Resolved: ${seg.uri}`);
   }
@@ -105,7 +105,7 @@ seg101.ts
 #EXT-X-ENDLIST`;
 
   const playlist = parse(m3u8) as MediaPlaylist;
-  console.log('=== LL-HLS (Low-Latency HLS) ===');
+  console.log("=== LL-HLS (Low-Latency HLS) ===");
   console.log(`Server Control: ${JSON.stringify(playlist.lowLatencyCompatibility, null, 2)}`);
   console.log(`Part Target: ${playlist.partTargetDuration}s`);
   console.log(`Rendition Reports: ${playlist.renditionReports.length}`);
@@ -113,7 +113,7 @@ seg101.ts
     console.log(`  Segment #${seg.mediaSequenceNumber}: ${seg.uri} (${seg.duration}s)`);
     if (seg.parts && seg.parts.length > 0) {
       for (const part of seg.parts) {
-        console.log(`    Part: ${part.uri}${part.hint ? ' (preload hint)' : ''} ${part.duration ? `(${part.duration}s)` : ''}`);
+        console.log(`    Part: ${part.uri}${part.hint ? " (preload hint)" : ""} ${part.duration ? `(${part.duration}s)` : ""}`);
       }
     }
   }
@@ -142,7 +142,7 @@ http://media.example.com/fileSequence53-A.ts
 #EXT-X-ENDLIST`;
 
   const playlist = parse(m3u8) as MediaPlaylist;
-  console.log('=== Encrypted Playlist ===');
+  console.log("=== Encrypted Playlist ===");
   for (const seg of playlist.segments) {
     console.log(`  Segment: ${seg.uri}`);
     if (seg.key) {
@@ -161,4 +161,4 @@ exampleUrlResolution();
 exampleLLHLS();
 exampleEncryptedPlaylist();
 
-console.log('All examples completed!');
+console.log("All examples completed!");
