@@ -70,10 +70,10 @@ npx prettier --write "src/**/*.ts" "__tests__/**/*.ts"
 npm run build
 ```
 
-- [ ] `dist/cjs/` — CommonJS 产物存在
-- [ ] `dist/esm/` — ESM 产物存在
-- [ ] `dist/browser/` — UMD 浏览器产物存在
-- [ ] `dist/**/*.d.ts` — 类型声明文件存在
+- [ ] `dist/index.js` — CommonJS 产物存在
+- [ ] `dist/index.esm.js` — ESM 产物存在
+- [ ] `dist/index.umd.js` — UMD 浏览器产物存在
+- [ ] `dist/types/*.d.ts` — 类型声明文件存在
 - [ ] 无 Rollup 错误
 
 ---
