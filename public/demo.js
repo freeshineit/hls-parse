@@ -3,10 +3,10 @@
  */
 (function () {
   "use strict";
-  /* global HLSParse */
-  var parser = HLSParse.parser;
-  var resolveUrl = HLSParse.resolveUrl;
-  var InvalidPlaylistError = HLSParse.InvalidPlaylistError;
+  /* global HlsParse */
+  var parser = HlsParse.parser;
+  var resolveUrl = HlsParse.resolveUrl;
+  var InvalidPlaylistError = HlsParse.InvalidPlaylistError;
 
   // ---- DOM refs ----
   var $ = function (id) {
