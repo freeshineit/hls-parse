@@ -28,6 +28,10 @@ pnpm install @skax/hls-parse
 yarn add @skax/hls-parse
 ```
 
+## Demo
+
+[https://freeshineit.github.io/hls-parse/media/](https://freeshineit.github.io/hls-parse/media/)
+
 ## Quick Start
 
 ```typescript
