@@ -22,14 +22,14 @@ jobs:
       - run: pnpm run docs
 
       # - name: Copy static files to docs
-      # - name: Ensure target directory exists
-      #   run: mkdir -p docs/media/style
+      - name: Ensure target directory exists
+        run: mkdir -p docs/media
 
-      # - name: Copy JS to docs
-      #   run: cp dist/index.umd.js docs/media/index.umd.js
+      - name: Copy demo to docs
+        run: cp public/* docs/media
 
-      # - name: Copy CSS to docs
-      #   run: cp dist/style/css.css docs/media/style/css.css
+      - name: Copy UMD to docs/media
+        run: cp dist/index.umd.js docs/media/index.umd.js
 
       - name: Deploy to gh-pages
         uses: JamesIves/github-pages-deploy-action@v4
