@@ -394,7 +394,8 @@ function parseTagParam(name: string, param: string | null): TagParam {
     case T.EXT_X_BYTERANGE:
       return [parseBYTERANGE(param), null];
     case T.EXT_X_PROGRAM_DATE_TIME:
-      return [new Date(param), null];
+      // 不对时间进行处理
+      return [param, null];
     case T.EXT_X_PLAYLIST_TYPE:
       return [param, null]; // <EVENT|VOD>
     default:
@@ -505,6 +506,7 @@ function lexicalParser(text: string, params: ParseState): Line[] {
       // Empty line - skip
       continue;
     }
+
     if (line.startsWith("#")) {
       if (line.startsWith("#EXT")) {
         // Tag line
