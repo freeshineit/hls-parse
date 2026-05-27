@@ -664,8 +664,7 @@ seg2.ts
 segment.ts
 #EXT-X-ENDLIST`) as MediaPlaylist;
 
-    expect(result.segments[0].programDateTime).toBeInstanceOf(Date);
-    expect(result.segments[0].programDateTime!.getFullYear()).toBe(2010);
+    expect(result.segments[0].programDateTime).toBe("2010-02-19T14:54:23.031+08:00");
   });
 
   it("parses EXT-X-GAP", () => {

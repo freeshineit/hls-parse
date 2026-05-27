@@ -283,7 +283,7 @@ describe("Trailing segment (no URI)", () => {
     expect(p.segments).toHaveLength(1);
     expect(p.segments[0].uri).toBe("");
     expect(p.segments[0].duration).toBe(5);
-    expect(p.segments[0].programDateTime).toBeInstanceOf(Date);
+    expect(p.segments[0].programDateTime).toBe("2014-03-05T11:15:00Z");
   });
 });
 
@@ -732,7 +732,7 @@ XXXXXXX_1_1-mediaV-003721948562-5.cmfv
   it("segment has program date time captured", () => {
     const p = parser(cmfv) as MediaPlaylist;
     expect(p.segments[0].programDateTime).toBeDefined();
-    expect(p.segments[0].programDateTime).toBeInstanceOf(Date);
+    expect(p.segments[0].programDateTime).toBe("20240101T120000Z");
   });
 
   it("segment has 3 partial segments", () => {
