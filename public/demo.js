@@ -4,24 +4,25 @@
 (function () {
   "use strict";
   /* global HlsParse */
-  var parser = HlsParse.parser;
-  var resolveUrl = HlsParse.resolveUrl;
-  var InvalidPlaylistError = HlsParse.InvalidPlaylistError;
+  const parser = HlsParse.parser;
+  const resolveUrl = HlsParse.resolveUrl;
+  const InvalidPlaylistError = HlsParse.InvalidPlaylistError;
 
   // ---- DOM refs ----
-  var $ = function (id) {
+  const $ = function (id) {
     return document.getElementById(id);
   };
-  var urlInput = $("url-input");
-  var textInput = $("text-input");
-  var fetchBtn = $("fetch-btn");
-  var parseBtn = $("parse-btn");
-  var statusBar = $("status");
-  var resultsDiv = $("results");
-  var emptyPlaceholder = $("empty-placeholder");
+  const urlInput = $("url-input");
+  const textInput = $("text-input");
+  const uriInput = $("uri");
+  const fetchBtn = $("fetch-btn");
+  const parseBtn = $("parse-btn");
+  const statusBar = $("status");
+  const resultsDiv = $("results");
+  const emptyPlaceholder = $("empty-placeholder");
 
   // ---- Embedded samples ----
-  var SAMPLES = {
+  const SAMPLES = {
     master:
       '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1280000,AVERAGE-BANDWIDTH=1000000,CODECS="mp4a.40.2,avc1.4d401e",RESOLUTION=1280x720\nvideo/1000k.m3u8\n#EXT-X-STREAM-INF:BANDWIDTH=2560000,AVERAGE-BANDWIDTH=2000000,CODECS="mp4a.40.2,avc1.4d401e",RESOLUTION=1920x1080\nvideo/2000k.m3u8\n#EXT-X-STREAM-INF:BANDWIDTH=5120000,AVERAGE-BANDWIDTH=4000000,CODECS="mp4a.40.2,avc1.640028",RESOLUTION=3840x2160\nvideo/4000k.m3u8\n#EXT-X-STREAM-INF:BANDWIDTH=65000,CODECS="mp4a.40.5"\naudio/only.m3u8',
     media:
@@ -85,7 +86,7 @@
     return '<div class="j-kv"><span class="j-key">' + esc(key) + "</span>" + valSpan(val) + "</div>";
   }
 
-  var _id = 0;
+  let _id = 0;
 
   /**
    * Build a collapsible section.
@@ -101,11 +102,11 @@
 
     /* ----- Array of objects => table ----- */
     if (Array.isArray(data) && data.length > 0 && typeof data[0] === "object" && !(data[0] instanceof Date)) {
-      var id = "t" + ++_id;
-      var cols = meta.cols || Object.keys(data[0]);
-      var badge = meta.badge ? '<span class="j-type' + (meta.badgeClass || "") + '">' + meta.badge + "</span>" : "";
+      const id = "t" + ++_id;
+      const cols = meta.cols || Object.keys(data[0]);
+      const badge = meta.badge ? '<span class="j-type' + (meta.badgeClass || "") + '">' + meta.badge + "</span>" : "";
 
-      var h = '<div class="j-section">';
+      let h = '<div class="j-section">';
       h += '<div class="j-toggle" onclick="var b=document.getElementById(\'' + id + "');b.classList.toggle('open');this.firstElementChild.classList.toggle('open')\">";
       h += '<span class="j-arr">▶</span>' + label + ' <span class="j-count">[' + data.length + "]</span>" + badge + "</div>";
       h += '<div class="j-body" id="' + id + '"><div class="j-table-wrap"><table class="j-table">';
@@ -119,10 +120,10 @@
 
       // Rows
       data.forEach(function (item, i) {
-        var rid = "r" + ++_id;
+        const rid = "r" + ++_id;
         h += "<tr>";
         cols.forEach(function (c) {
-          var v = meta.rowFmt ? meta.rowFmt(c, item) : item[c];
+          const v = meta.rowFmt ? meta.rowFmt(c, item) : item[c];
           if (v === undefined || v === null) h += '<td class="j-mono">-</td>';
           else if (typeof v === "boolean") h += '<td class="j-mono">' + (v ? "✓" : "-") + "</td>";
           else h += '<td class="j-mono">' + esc(String(v)) + "</td>";
@@ -141,17 +142,17 @@
 
     /* ----- Object => nested sections ----- */
     if (data && typeof data === "object" && !(data instanceof Date)) {
-      var keys = Object.keys(data);
+      const keys = Object.keys(data);
       if (keys.length === 0) return '<div class="j-section"><div class="j-toggle" style="cursor:default">' + kv(label, "{}") + "</div></div>";
 
-      var id2 = "o" + ++_id;
-      var badge2 = meta.badge ? '<span class="j-type' + (meta.badgeClass || "") + '">' + meta.badge + "</span>" : "";
-      var h2 = '<div class="j-section">';
+      const id2 = "o" + ++_id;
+      const badge2 = meta.badge ? '<span class="j-type' + (meta.badgeClass || "") + '">' + meta.badge + "</span>" : "";
+      let h2 = '<div class="j-section">';
       h2 += '<div class="j-toggle" onclick="var b=document.getElementById(\'' + id2 + "');b.classList.toggle('open');this.firstElementChild.classList.toggle('open')\">";
       h2 += '<span class="j-arr">▶</span>' + label + ' <span class="j-count">{' + keys.length + "}</span>" + badge2 + "</div>";
       h2 += '<div class="j-body" id="' + id2 + '">';
       keys.forEach(function (k) {
-        var v = data[k];
+        const v = data[k];
         if (v && typeof v === "object" && !(v instanceof Date)) {
           h2 += section(k, v, {});
         } else {
@@ -171,8 +172,8 @@
     _id = 0;
     emptyPlaceholder.style.display = "none";
 
-    var isMst = pl.isMasterPlaylist;
-    var html = '<div class="j-root">';
+    const isMst = pl.isMasterPlaylist;
+    let html = '<div class="j-root">';
 
     // Top bar
     html += '<div class="j-toggle" style="background:#0f172a;font-size:.9rem">';
@@ -247,7 +248,7 @@
 
   // ---- Handle fetch ----
   fetchBtn.addEventListener("click", function () {
-    var url = urlInput.value.trim();
+    const url = urlInput.value.trim();
     if (!url) return showStatus("请输入 URL", "error");
     showStatus("正在获取...", "loading");
     fetch(url)
@@ -257,7 +258,7 @@
       })
       .then(function (text) {
         showStatus("解析中...", "loading");
-        var pl = parser(text, { uri: url });
+        const pl = parser(text, { uri: url });
         showStatus("解析成功: " + (pl.isMasterPlaylist ? "Master" : "Media") + " Playlist", "success");
         render(pl);
       })
@@ -269,10 +270,10 @@
 
   // ---- Handle text parse ----
   parseBtn.addEventListener("click", function () {
-    var text = textInput.value.trim();
+    const text = textInput.value.trim();
     if (!text) return showStatus("请输入 M3U8 文本", "error");
     try {
-      var pl = parser(text);
+      const pl = parser(text, { uri: uriInput.value.trim() || undefined });
       showStatus("解析成功: " + (pl.isMasterPlaylist ? "Master" : "Media") + " Playlist", "success");
       render(pl);
     } catch (e) {

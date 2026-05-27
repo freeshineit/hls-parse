@@ -101,6 +101,7 @@ body {
 }
 input[type="text"],
 input[type="url"],
+input#uri,
 textarea {
   width: 100%;
   padding: 0.75rem 1rem;
@@ -117,6 +118,9 @@ textarea:focus {
   outline: none;
   border-color: #60a5fa;
   box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+}
+input#uri {
+  margin-top: 0.5rem;
 }
 textarea {
   resize: vertical;

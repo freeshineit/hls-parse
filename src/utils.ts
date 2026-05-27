@@ -218,6 +218,8 @@ export function camelify(str: string): string {
  */
 export function resolveUrl(base: string | undefined, relative: string): string {
   if (!base) return relative;
+  // 不支持空地址
+  if (!relative) return "";
 
   // If already absolute, return as-is
   if (/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(relative)) {
