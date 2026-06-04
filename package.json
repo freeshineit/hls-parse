@@ -1,6 +1,6 @@
 {
   "name": "@skax/hls-parse",
-  "version": "0.0.1-beta.8",
+  "version": "0.0.1-beta.9",
   "description": "A robust M3U8/HLS playlist parser supporting RFC 8216, Master playlists, Media playlists, and LL-HLS (Low-Latency HLS)",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",

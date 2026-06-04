@@ -181,6 +181,8 @@ export interface Segment {
   map?: MediaInitializationSection | null;
   /** Program date/time (`#EXT-X-PROGRAM-DATE-TIME`). */
   programDateTime?: Date;
+  /** Device timestamp (`#EXT-X-DEVICE-TIME`). */
+  deviceTime?: string;
   /** Date range metadata (`#EXT-X-DATERANGE`). */
   dateRange?: DateRange;
   /** Splice / marker information. */

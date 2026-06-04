@@ -116,6 +116,10 @@ function getTagCategory(tagName: string): TagCategory {
     case T.EXT_X_GAP:
       return "Segment";
 
+    // -- Custom tags
+    case T.EXT_X_DEVICE_TIME:
+      return "Segment";
+
     // -- RFC 8216bis
     case T.EXT_X_BITRATE:
       return "MediaPlaylist";
@@ -363,6 +367,8 @@ function parseTagParam(name: string, param: string | null): TagParam {
     case T.EXT_X_DISCONTINUITY_SEQUENCE:
     case T.EXT_X_BITRATE:
       return [utils.toNumber(param), null];
+    case T.EXT_X_DEVICE_TIME:
+      return [param, null];
     case T.EXT_X_CUE_OUT:
       // For backwards compatibility: attributes list is optional.
       // If only a number is found, use it as the duration.
@@ -897,6 +903,8 @@ function parseSegment(lines: Line[], uri: string, start: number, end: number, me
       };
     } else if (name === T.EXT_X_PROGRAM_DATE_TIME) {
       segment.programDateTime = value;
+    } else if (name === T.EXT_X_DEVICE_TIME) {
+      segment.deviceTime = value;
     } else if (name === T.EXT_X_DATERANGE) {
       segment.dateRange = parseDateRange(attributes);
     } else if (name === T.EXT_X_CUE_OUT) {

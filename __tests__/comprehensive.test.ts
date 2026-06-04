@@ -785,6 +785,107 @@ XXXXXXX_1_1-mediaV-003721948562-5.cmfv
 });
 
 // ============================================================================
+// 27.  Production LL-HLS with DEVICE-TIME
+// ============================================================================
+describe("Production LL-HLS with DEVICE-TIME", () => {
+  const prod = `#EXTM3U
+#EXT-X-VERSION:6
+#EXT-X-MEDIA-SEQUENCE:1
+#EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=2.100
+#EXT-X-PART-INF:PART-TARGET=1.050
+#EXT-X-TARGETDURATION:5
+#EXT-X-MAP:URI="BE0181275_1_1_6-headerV-000958453649-1.cmfv"
+#EXT-X-PROGRAM-DATE-TIME:20260604T110749Z
+#EXT-X-DEVICE-TIME:20260603013413
+#EXTINF:3.933,
+BE0181275_1_1_6-mediaV-000958453649-1.cmfv
+#EXT-X-PROGRAM-DATE-TIME:20260604T110753Z
+#EXT-X-DEVICE-TIME:20260603013417
+#EXTINF:4.800,
+BE0181275_1_1_6-mediaV-000958453649-2.cmfv
+#EXT-X-PROGRAM-DATE-TIME:20260604T110758Z
+#EXT-X-DEVICE-TIME:20260603013421
+#EXT-X-PART:DURATION=1.000,URI="BE0181275_1_1_6-mediaV-000958453649-3.0.cmfv",INDEPENDENT=YES
+#EXT-X-PART:DURATION=1.000,URI="BE0181275_1_1_6-mediaV-000958453649-3.1.cmfv"
+#EXT-X-PART:DURATION=1.000,URI="BE0181275_1_1_6-mediaV-000958453649-3.2.cmfv"
+#EXT-X-PART:DURATION=1.000,URI="BE0181275_1_1_6-mediaV-000958453649-3.3.cmfv"
+#EXTINF:4.000,
+BE0181275_1_1_6-mediaV-000958453649-3.cmfv
+#EXT-X-PROGRAM-DATE-TIME:20260604T110802Z
+#EXT-X-DEVICE-TIME:20260603013425
+#EXT-X-PART:DURATION=1.000,URI="BE0181275_1_1_6-mediaV-000958453649-4.0.cmfv",INDEPENDENT=YES
+#EXT-X-PART:DURATION=1.000,URI="BE0181275_1_1_6-mediaV-000958453649-4.1.cmfv"
+#EXT-X-PRELOAD-HINT:TYPE=PART,URI="BE0181275_1_1_6-mediaV-000958453649-4.2.cmfv"`;
+
+  it("parses as MediaPlaylist", () => {
+    const p = parser(prod);
+    expect(p.isMasterPlaylist).toBe(false);
+  });
+
+  it("version = 6, targetDuration = 5", () => {
+    const p = parser(prod) as MediaPlaylist;
+    expect(p.version).toBe(6);
+    expect(p.targetDuration).toBe(5);
+  });
+
+  it("LL-HLS metadata present", () => {
+    const p = parser(prod) as MediaPlaylist;
+    expect(p.lowLatencyCompatibility!.canBlockReload).toBe(true);
+    expect(p.lowLatencyCompatibility!.partHoldBack).toBe(2.1);
+    expect(p.partTargetDuration).toBe(1.05);
+    expect(p.mediaSequenceBase).toBe(1);
+  });
+
+  it("segment 0: 3.933s, no parts, has deviceTime", () => {
+    const p = parser(prod) as MediaPlaylist;
+    const s = p.segments[0];
+    expect(s.duration).toBe(3.933);
+    expect(s.uri).toBe("BE0181275_1_1_6-mediaV-000958453649-1.cmfv");
+    expect(s.parts || []).toHaveLength(0);
+    expect(s.deviceTime).toBe("20260603013413");
+    expect(s.programDateTime).toBeDefined();
+  });
+
+  it("segment 1: 4.800s, no parts, has deviceTime", () => {
+    const p = parser(prod) as MediaPlaylist;
+    const s = p.segments[1];
+    expect(s.duration).toBe(4.8);
+    expect(s.uri).toBe("BE0181275_1_1_6-mediaV-000958453649-2.cmfv");
+    expect(s.parts || []).toHaveLength(0);
+    expect(s.deviceTime).toBe("20260603013417");
+  });
+
+  it("segment 2: 4.000s, 4 parts, INDEPENDENT on first", () => {
+    const p = parser(prod) as MediaPlaylist;
+    const s = p.segments[2];
+    expect(s.duration).toBe(4);
+    expect(s.uri).toBe("BE0181275_1_1_6-mediaV-000958453649-3.cmfv");
+    expect(s.parts).toHaveLength(4);
+    expect(s.parts![0].independent).toBe(true);
+    expect(s.parts![0].duration).toBe(1);
+    expect(s.parts![1].independent).toBeUndefined();
+    expect(s.deviceTime).toBe("20260603013421");
+  });
+
+  it("trailing segment has preload hint + deviceTime", () => {
+    const p = parser(prod) as MediaPlaylist;
+    const allParts = p.segments.flatMap(function (s) {
+      return s.parts || [];
+    });
+    const hints = allParts.filter(function (p) {
+      return p.hint;
+    });
+    expect(hints).toHaveLength(1);
+    expect(hints[0].uri).toBe("BE0181275_1_1_6-mediaV-000958453649-4.2.cmfv");
+    // The trailing segment should have deviceTime of 20260603013425
+    const trailing = p.segments.find(function (s) {
+      return s.deviceTime === "20260603013425";
+    });
+    expect(trailing).toBeDefined();
+  });
+});
+
+// ============================================================================
 // 25.  BYTERANGE first segment without offset
 // ============================================================================
 describe("First byterange without offset", () => {

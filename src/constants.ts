@@ -194,6 +194,17 @@ export const EXT_X_GAP = "EXT-X-GAP";
  */
 export const EXT_X_BITRATE = "EXT-X-BITRATE";
 
+// -- Custom: EXT-X-DEVICE-TIME (device timestamp on segment)
+/**
+ * 设备时间戳
+ *
+ * Device timestamp associated with a Media Segment.
+ * Format: `#EXT-X-DEVICE-TIME:<timestamp>`
+ *
+ * @example `#EXT-X-DEVICE-TIME:20260603013421`
+ */
+export const EXT_X_DEVICE_TIME = "EXT-X-DEVICE-TIME";
+
 // ============================================================================
 // Media Playlist Tags — 媒体播放列表全局标签
 // ============================================================================
