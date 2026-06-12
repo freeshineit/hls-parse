@@ -24,6 +24,7 @@ import {
   AllowedCpc,
   Byterange,
   ContentSteering,
+  CustomTagParser,
   DateRange,
   ExtInfo,
   Key,
@@ -70,6 +71,8 @@ interface ParseState {
   compatibleVersion: number;
   isClosedCaptionsNone: boolean;
   hash: Record<string, boolean>;
+  /** Custom tag parsers from ParserOptions */
+  customParsers?: Record<string, CustomTagParser>;
 }
 
 // ---------------------------------------------------------------------------
@@ -429,7 +432,20 @@ function parseTag(line: string, params: ParseState): Tag | null {
   const category = getTagCategory(name);
   CHECKTAGCATEGORY(category, params);
   if (category === "Unknown") {
-    return null; // RFC 8216: unrecognized tags MUST be ignored / 未识别标签必须忽略
+    // If a custom parser is registered, use it; otherwise pass raw value.
+    // Detect attribute-list syntax (contains = before first comma) for proper parsing.
+    const looksLikeAttrs = param && /^[A-Z0-9-]+=/.test(param);
+    const [value, attributes] = looksLikeAttrs ? [null, parseAttributeList(param)] : parseTagParam(name, param);
+    let customResult: any = value ?? param;
+    if (params.customParsers && params.customParsers[name]) {
+      customResult = params.customParsers[name](name, value ?? param, attributes || {});
+    }
+    return {
+      name,
+      category,
+      value: customResult,
+      attributes: attributes || {},
+    };
   }
   // Media playlist tags (except RENDITION-REPORT and PREFETCH) must be unique
   // 媒体播放列表标签（RENDITION-REPORT 和 PREFETCH 除外）同一类型只能出现一次
@@ -687,6 +703,14 @@ function buildMediaGroupIndex(lines: Line[]): Map<string, Map<string, Rendition[
   return index;
 }
 
+function addCustomTag(playlist: MasterPlaylist | MediaPlaylist, name: string, value: any, attributes: Record<string, any> | undefined) {
+  if (!playlist.customTags) playlist.customTags = {};
+  const key = name.replace(/-/g, "_");
+  if (!playlist.customTags[key]) playlist.customTags[key] = [];
+  // Prefer value (which may be a custom parser result), fallback to attributes
+  playlist.customTags[key].push(value && typeof value === "object" && !Array.isArray(value) ? value : attributes && Object.keys(attributes).length > 0 ? attributes : value);
+}
+
 /**
  * Parses a Master Playlist (contains EXT-X-STREAM-INF, EXT-X-MEDIA, etc.).
  */
@@ -706,7 +730,7 @@ function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist 
 
   for (const [index, line] of lines.entries()) {
     if (typeof line === "string") continue;
-    const { name, value, attributes } = line;
+    const { name, value, attributes, category } = line;
 
     if (name === T.EXT_X_VERSION) {
       playlist.version = value;
@@ -777,6 +801,8 @@ function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist 
     } else if (name === T.EXT_X_DEFINE) {
       if (!playlist.defines) playlist.defines = [];
       playlist.defines.push(attributes);
+    } else if (category === "Unknown") {
+      addCustomTag(playlist, name, value, attributes);
     }
   }
 
@@ -1343,6 +1369,8 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
     } else if (name === T.EXT_X_DEFINE) {
       if (!playlist.defines) playlist.defines = [];
       playlist.defines.push(attributes);
+    } else if (category === "Unknown") {
+      addCustomTag(playlist, name, value, attributes);
     }
   }
 
@@ -1525,6 +1553,7 @@ function parser(text: string, options?: ParserOptions): MasterPlaylist | MediaPl
     compatibleVersion: 1,
     isClosedCaptionsNone: false,
     hash: {},
+    customParsers: options?.customTagParsers,
   };
 
   const lines = lexicalParser(text, params);

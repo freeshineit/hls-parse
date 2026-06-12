@@ -71,4 +71,5 @@ export type {
   UserAttribute,
   ExtInfo,
   ParserOptions,
+  CustomTagParser,
 } from "./types";

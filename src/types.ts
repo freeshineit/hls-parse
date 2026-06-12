@@ -483,6 +483,8 @@ export interface MasterPlaylist {
   sessionKeyList: Key[];
   /** Variant streams (`#EXT-X-STREAM-INF` / `#EXT-X-I-FRAME-STREAM-INF`). */
   variants: Variant[];
+  /** Custom/unknown tags. Tag `-` → `_`. */
+  customTags?: Record<string, any[]>;
 }
 
 /**
@@ -543,6 +545,8 @@ export interface MediaPlaylist {
   renditionReports: RenditionReport[];
   /** Date ranges in the playlist. */
   dateRanges: DateRange[];
+  /** Custom/unknown tags. Tag `-` → `_`. */
+  customTags?: Record<string, any[]>;
 }
 
 /**
@@ -559,6 +563,24 @@ export interface MediaPlaylist {
  * ```
  */
 export type Playlist = MasterPlaylist | MediaPlaylist;
+
+/**
+ * Custom tag parser function.
+ * Receives the parsed tag and returns structured data.
+ *
+ * @param tagName - The tag name (e.g., `"EXT-X-CUSTOM"`)
+ * @param value - The parsed value from the tag
+ * @param attributes - Parsed attribute key-value pairs
+ * @returns Any structured data to attach to the segment or playlist
+ *
+ * @example
+ * ```ts
+ * const myParser: CustomTagParser = (name, value, attrs) => {
+ *   return { timestamp: Number(value) };
+ * };
+ * ```
+ */
+export type CustomTagParser = (tagName: string, value: any, attributes: Record<string, any>) => any;
 
 /**
  * Options for the {@link parser} function.
@@ -578,6 +600,22 @@ export interface ParserOptions {
    * ```
    */
   uri?: string;
+  /**
+   * Custom tag parsers keyed by tag name (without `#` prefix).
+   * When a matching tag is encountered, the parser is called and its
+   * return value is stored on `playlist.customTags[tagName]`.
+   *
+   * @example
+   * ```ts
+   * const pl = parser(m3u8, {
+   *   customTagParsers: {
+   *     'EXT-X-MY-TAG': (name, value, attrs) => ({ ts: Number(value) }),
+   *   },
+   * });
+   * // pl.customTags.EXT_X_MY_TAG → [{ ts: 123 }]
+   * ```
+   */
+  customTagParsers?: Record<string, CustomTagParser>;
 }
 
 // ============================================================================
