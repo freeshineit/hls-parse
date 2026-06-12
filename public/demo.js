@@ -33,16 +33,32 @@
       '#EXTM3U\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:3\n#EXT-X-MEDIA-SEQUENCE:0\n#EXT-X-KEY:METHOD=AES-128,URI="https://priv.example.com/key.php?r=52"\n#EXTINF:9.009,\nhttp://media.example.com/fileSequence52-A.ts\n#EXTINF:9.009,\nhttp://media.example.com/fileSequence52-B.ts\n#EXTINF:3.003,\nhttp://media.example.com/fileSequence52-C.ts\n#EXT-X-ENDLIST',
   };
 
-  // ---- Tabs ----
+  // ---- Tabs with URL persistence ----
+  function setTab(tab) {
+    document.querySelectorAll(".tab-btn,.tab-panel").forEach(function (el) {
+      el.classList.remove("active");
+    });
+    var btn = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
+    var panel = document.getElementById(tab === "url" ? "tab-url" : "tab-text");
+    if (btn) btn.classList.add("active");
+    if (panel) panel.classList.add("active");
+    location.hash = "#" + tab;
+    // Clear results and status when switching tabs
+    resultsDiv.innerHTML = '<div id="empty-placeholder"><div class="icon">◈</div><h3>输入 M3U8 内容开始解析</h3><p>从 URL 获取或直接粘贴播放列表文本</p></div>';
+    statusBar.className = "status-bar";
+  }
+
   document.querySelectorAll(".tab-btn").forEach(function (btn) {
-    btn.addEventListener("click", function (e) {
-      document.querySelectorAll(".tab-btn,.tab-panel").forEach(function (el) {
-        el.classList.remove("active");
-      });
-      this.classList.add("active");
-      $(this.dataset.tab === "url" ? "tab-url" : "tab-text").classList.add("active");
+    btn.addEventListener("click", function () {
+      setTab(this.dataset.tab);
     });
   });
+
+  // Restore tab from URL hash on load
+  var hash = location.hash.replace("#", "");
+  if (hash === "text" || hash === "url") {
+    setTab(hash);
+  }
 
   // ---- Sample URLs ----
   document.querySelectorAll("#tab-url .sample-btn").forEach(function (btn) {
@@ -170,7 +186,8 @@
   /** Main render function */
   function render(pl) {
     _id = 0;
-    emptyPlaceholder.style.display = "none";
+    var ph = document.getElementById("empty-placeholder");
+    if (ph) ph.style.display = "none";
 
     const isMst = pl.isMasterPlaylist;
     let html = '<div class="j-root">';

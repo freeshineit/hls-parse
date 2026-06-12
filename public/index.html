@@ -7,22 +7,23 @@
     <link href="./style.css" rel="stylesheet" />
   </head>
   <body>
+    <div class="scanlines"></div>
     <header class="app-header">
-      <h1>📺 HLS M3U8 解析器</h1>
+      <h1>◈ HLS M3U8 解析器</h1>
       <span class="badge">@skax/hls-parse</span>
       <span class="version">v1.0.0 · RFC 8216 · LL-HLS</span>
     </header>
     <div class="container">
       <div class="tabs">
-        <button class="tab-btn active" data-tab="url">🌐 从 URL 获取</button>
-        <button class="tab-btn" data-tab="text">📝 粘贴文本</button>
+        <button class="tab-btn active" data-tab="url">◈ 从 URL 获取</button>
+        <button class="tab-btn" data-tab="text">◈ 粘贴文本</button>
       </div>
       <div class="tab-panel active" id="tab-url">
         <div class="form-group">
           <label>M3U8 播放列表地址</label>
           <div class="form-row">
             <input type="url" id="url-input" value="https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8" />
-            <button class="btn btn-primary" id="fetch-btn">📥 获取并解析</button>
+            <button class="btn btn-primary" id="fetch-btn">⬇ 获取并解析</button>
           </div>
         </div>
         <div class="samples">
@@ -48,12 +49,12 @@
             <button class="sample-btn" data-sample="encrypted">加密</button>
           </div>
         </div>
-        <button class="btn btn-primary" id="parse-btn">🔍 解析</button>
+        <button class="btn btn-primary" id="parse-btn">▶ 解析</button>
       </div>
       <div class="status-bar" id="status"></div>
       <div id="results">
         <div id="empty-placeholder">
-          <div class="icon">📋</div>
+          <div class="icon">◈</div>
           <h3>输入 M3U8 内容开始解析</h3>
           <p>从 URL 获取或直接粘贴播放列表文本</p>
         </div>
