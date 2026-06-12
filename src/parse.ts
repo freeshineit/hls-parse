@@ -158,91 +158,9 @@ function getTagCategory(tagName: string): TagCategory {
 }
 
 // ---------------------------------------------------------------------------
-// Tag parameter parsers
+// Tag parameter parsers — all moved to utils.ts
+// Use utils.parseEXTINF, utils.parseAttributeList, utils.parseTagParam, etc.
 // ---------------------------------------------------------------------------
-
-/**
- * Parses the EXTINF tag value.
- * Format: #EXTINF:<duration>,[<title>]
- *
- * The title field may contain percent-encoded UTF-8 characters.
- * We use encodeURIComponent + decodeURIComponent for safe decoding
- * (replaces the deprecated escape() function).
- */
-function parseEXTINF(param: string): ExtInfo {
-  const pair = utils.splitAt(param, ",") as [string, string];
-  return {
-    duration: utils.toNumber(pair[0]),
-    title: pair[1] ? decodeURIComponent(encodeURIComponent(pair[1])) : undefined,
-  };
-}
-
-/**
- * Parses the EXT-X-BYTERANGE tag value.
- * Format: #EXT-X-BYTERANGE:<n>[@<o>]
- */
-function parseBYTERANGE(param: string): Byterange {
-  const pair = utils.splitAt(param, "@");
-  return {
-    length: utils.toNumber(pair[0]),
-    offset: pair[1] ? utils.toNumber(pair[1]) : -1,
-  };
-}
-
-/**
- * Parses a resolution string "widthxheight".
- */
-function parseResolution(str: string): Resolution {
-  const pair = utils.splitAt(str, "x") as [string, string];
-  return {
-    width: utils.toNumber(pair[0]),
-    height: utils.toNumber(pair[1]),
-  };
-}
-
-/**
- * Parses ALLOWED-CPC attribute value.
- */
-function parseAllowedCpc(str: string): AllowedCpc[] {
-  const message = "ALLOWED-CPC: Each entry must consist of KEYFORMAT and Content Protection Configuration";
-  const list = str.split(",");
-  const allowedCpcList: AllowedCpc[] = [];
-  for (const item of list) {
-    const [format, cpcText] = utils.splitAt(item, ":");
-    if (!format || !cpcText) {
-      utils.INVALIDPLAYLIST(message);
-      continue;
-    }
-    allowedCpcList.push({ format, cpcList: cpcText.split("/") });
-  }
-  return allowedCpcList;
-}
-
-/**
- * Parses an Initialization Vector from a hex string.
- * Must be exactly 128 bits (16 bytes).
- */
-function parseIV(str: string): Uint8Array {
-  const iv = utils.hexToByteSequence(str);
-  if (iv.length !== 16) {
-    utils.INVALIDPLAYLIST("IV must be a 128-bit unsigned integer");
-  }
-  return iv;
-}
-
-/**
- * Parses a user-defined attribute value (X- prefixed).
- * Can be a quoted string, hex sequence, or number.
- */
-function parseUserAttribute(str: string): UserAttribute {
-  if (str.startsWith('"')) {
-    return utils.trim(str, '"')!;
-  }
-  if (str.startsWith("0x") || str.startsWith("0X")) {
-    return utils.hexToByteSequence(str);
-  }
-  return utils.toNumber(str);
-}
 
 /**
  * Updates compatible version based on Key attributes.
@@ -256,157 +174,7 @@ function setCompatibleVersionOfKey(params: ParseState, attributes: Record<string
   }
 }
 
-/**
- * Parses an attribute list (comma-separated key=value pairs).
- * This handles all the attribute types defined in RFC 8216 Section 4.2.
- */
-function parseAttributeList(param: string): Record<string, any> {
-  const attributes: Record<string, any> = {};
-  for (const item of utils.splitByCommaWithPreservingQuotes(param)) {
-    const [key, value] = utils.splitAt(item, "=");
-    const val = utils.trim(value, '"')!;
-    switch (key) {
-      case "URI":
-        attributes[key] = val;
-        break;
-      case "START-DATE":
-      case "END-DATE":
-        attributes[key] = new Date(val);
-        break;
-      case "IV":
-        attributes[key] = parseIV(val);
-        break;
-      case "BYTERANGE":
-        attributes[key] = parseBYTERANGE(val);
-        break;
-      case "RESOLUTION":
-        attributes[key] = parseResolution(val);
-        break;
-      case "ALLOWED-CPC":
-        attributes[key] = parseAllowedCpc(val);
-        break;
-      case "END-ON-NEXT":
-      case "DEFAULT":
-      case "AUTOSELECT":
-      case "FORCED":
-      case "PRECISE":
-      case "CAN-BLOCK-RELOAD":
-      case "INDEPENDENT":
-      case "GAP":
-        attributes[key] = val === "YES";
-        break;
-      case "DURATION":
-      case "PLANNED-DURATION":
-      case "BANDWIDTH":
-      case "AVERAGE-BANDWIDTH":
-      case "FRAME-RATE":
-      case "TIME-OFFSET":
-      case "CAN-SKIP-UNTIL":
-      case "HOLD-BACK":
-      case "PART-HOLD-BACK":
-      case "PART-TARGET":
-      case "BYTERANGE-START":
-      case "BYTERANGE-LENGTH":
-      case "LAST-MSN":
-      case "LAST-PART":
-      case "SKIPPED-SEGMENTS":
-      case "SCORE":
-      case "PROGRAM-ID":
-        attributes[key] = utils.toNumber(val);
-        break;
-      default:
-        if (key.startsWith("SCTE35-")) {
-          attributes[key] = utils.hexToByteSequence(val);
-        } else if (key.startsWith("X-")) {
-          attributes[key] = parseUserAttribute(value!);
-        } else {
-          if (key === "VIDEO-RANGE" && val !== "SDR" && val !== "HLG" && val !== "PQ") {
-            utils.INVALIDPLAYLIST(`VIDEO-RANGE: unknown value "${val}"`);
-          }
-          attributes[key] = val;
-        }
-    }
-  }
-  return attributes;
-}
-
-/**
- * Splits a tag line into name and parameter.
- * Format: #EXT-TAG-NAME:parameter or #EXT-TAG-NAME
- */
-function splitTag(line: string): [string, string | null] {
-  const index = line.indexOf(":");
-  if (index === -1) {
-    return [line.slice(1).trim(), null];
-  }
-  return [line.slice(1, index).trim(), line.slice(index + 1).trim()];
-}
-
-/**
- * Parses a tag's parameters into a structured [value, attributes] pair.
- * Different tags have different parameter formats.
- */
-function parseTagParam(name: string, param: string | null): TagParam {
-  if (param === null) {
-    return [null, null];
-  }
-
-  switch (name) {
-    case T.EXTM3U:
-    case T.EXT_X_DISCONTINUITY:
-    case T.EXT_X_ENDLIST:
-    case T.EXT_X_I_FRAMES_ONLY:
-    case T.EXT_X_INDEPENDENT_SEGMENTS:
-    case T.EXT_X_CUE_IN:
-    case T.EXT_X_GAP:
-      return [null, null];
-    case T.EXT_X_VERSION:
-    case T.EXT_X_TARGETDURATION:
-    case T.EXT_X_MEDIA_SEQUENCE:
-    case T.EXT_X_DISCONTINUITY_SEQUENCE:
-    case T.EXT_X_BITRATE:
-      return [utils.toNumber(param), null];
-    case T.EXT_X_DEVICE_TIME:
-      return [param, null];
-    case T.EXT_X_CUE_OUT:
-      // For backwards compatibility: attributes list is optional.
-      // If only a number is found, use it as the duration.
-      if (!Number.isNaN(Number(param))) {
-        return [utils.toNumber(param), null];
-      }
-      // If attributes are found, parse them (e.g., DURATION=...)
-      return [null, parseAttributeList(param)];
-    case T.EXT_X_KEY:
-    case T.EXT_X_MAP:
-    case T.EXT_X_DATERANGE:
-    case T.EXT_X_MEDIA:
-    case T.EXT_X_STREAM_INF:
-    case T.EXT_X_I_FRAME_STREAM_INF:
-    case T.EXT_X_SESSION_DATA:
-    case T.EXT_X_SESSION_KEY:
-    case T.EXT_X_START:
-    case T.EXT_X_SERVER_CONTROL:
-    case T.EXT_X_PART_INF:
-    case T.EXT_X_PART:
-    case T.EXT_X_PRELOAD_HINT:
-    case T.EXT_X_RENDITION_REPORT:
-    case T.EXT_X_SKIP:
-    case T.EXT_X_DEFINE:
-    case T.EXT_X_CONTENT_STEERING:
-      return [null, parseAttributeList(param)];
-    case T.EXTINF:
-      return [parseEXTINF(param), null];
-    case T.EXT_X_BYTERANGE:
-      return [parseBYTERANGE(param), null];
-    case T.EXT_X_PROGRAM_DATE_TIME:
-      // 不对时间进行处理
-      return [param, null];
-    case T.EXT_X_PLAYLIST_TYPE:
-      return [param, null]; // <EVENT|VOD>
-    default:
-      return [param, null]; // Unknown tag - return raw value
-  }
-}
+// parseAttributeList, splitTag, parseTagParam — all moved to utils.ts
 
 /**
  * Throws a mixed tags error when a playlist contains both
@@ -428,14 +196,14 @@ function MIXEDTAGS() {
  * 解析单个 tag 行并判断其分类。
  */
 function parseTag(line: string, params: ParseState): Tag | null {
-  const [name, param] = splitTag(line);
+  const [name, param] = utils.splitTag(line);
   const category = getTagCategory(name);
   CHECKTAGCATEGORY(category, params);
   if (category === "Unknown") {
     // If a custom parser is registered, use it; otherwise pass raw value.
     // Detect attribute-list syntax (contains = before first comma) for proper parsing.
     const looksLikeAttrs = param && /^[A-Z0-9-]+=/.test(param);
-    const [value, attributes] = looksLikeAttrs ? [null, parseAttributeList(param)] : parseTagParam(name, param);
+    const [value, attributes] = looksLikeAttrs ? [null, utils.parseAttributeList(param)] : utils.parseTagParam(name, param);
     let customResult: any = value ?? param;
     if (params.customParsers && params.customParsers[name]) {
       customResult = params.customParsers[name](name, value ?? param, attributes || {});
@@ -455,7 +223,7 @@ function parseTag(line: string, params: ParseState): Tag | null {
     }
     params.hash[name] = true;
   }
-  const [value, attributes] = parseTagParam(name, param);
+  const [value, attributes] = utils.parseTagParam(name, param);
   return { name, category, value, attributes: attributes || {} };
 }
 

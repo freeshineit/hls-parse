@@ -260,3 +260,201 @@ export function resolveUrl(base: string | undefined, relative: string): string {
     return result.join("/");
   }
 }
+
+// ============================================================================
+// Tag parameter parsers
+// ============================================================================
+
+import type { AllowedCpc, Byterange, ExtInfo, Resolution, TagParam, UserAttribute } from "./types";
+import * as T from "./constants";
+
+/**
+ * Parses the EXTINF tag value.
+ * Format: #EXTINF:<duration>,[<title>]
+ *
+ * The title field may contain percent-encoded UTF-8 characters.
+ */
+export function parseEXTINF(param: string): ExtInfo {
+  const pair = splitAt(param, ",") as [string, string];
+  return {
+    duration: toNumber(pair[0]),
+    title: pair[1] ? decodeURIComponent(encodeURIComponent(pair[1])) : undefined,
+  };
+}
+
+/** Parses the EXT-X-BYTERANGE tag value. Format: #EXT-X-BYTERANGE:<n>[@<o>] */
+export function parseBYTERANGE(param: string): Byterange {
+  const pair = splitAt(param, "@");
+  return {
+    length: toNumber(pair[0]),
+    offset: pair[1] ? toNumber(pair[1]) : -1,
+  };
+}
+
+/** Parses a resolution string "widthxheight". */
+export function parseResolution(str: string): Resolution {
+  const pair = splitAt(str, "x") as [string, string];
+  return { width: toNumber(pair[0]), height: toNumber(pair[1]) };
+}
+
+/** Parses ALLOWED-CPC attribute value. */
+export function parseAllowedCpc(str: string): AllowedCpc[] {
+  const message = "ALLOWED-CPC: Each entry must consist of KEYFORMAT and Content Protection Configuration";
+  const list = str.split(",");
+  const allowedCpcList: AllowedCpc[] = [];
+  for (const item of list) {
+    const [format, cpcText] = splitAt(item, ":");
+    if (!format || !cpcText) {
+      INVALIDPLAYLIST(message);
+      continue;
+    }
+    allowedCpcList.push({ format, cpcList: cpcText.split("/") });
+  }
+  return allowedCpcList;
+}
+
+/** Parses an Initialization Vector from a hex string. Must be 128 bits (16 bytes). */
+export function parseIV(str: string): Uint8Array {
+  const iv = hexToByteSequence(str);
+  if (iv.length !== 16) {
+    INVALIDPLAYLIST("IV must be a 128-bit unsigned integer");
+  }
+  return iv;
+}
+
+/** Parses a user-defined attribute value (X- prefixed). */
+export function parseUserAttribute(str: string): UserAttribute {
+  if (str.startsWith('"')) return trim(str, '"')!;
+  if (str.startsWith("0x") || str.startsWith("0X")) return hexToByteSequence(str);
+  return toNumber(str);
+}
+
+/** Parses an attribute list (comma-separated key=value pairs). */
+export function parseAttributeList(param: string): Record<string, any> {
+  const attributes: Record<string, any> = {};
+  for (const item of splitByCommaWithPreservingQuotes(param)) {
+    const [key, value] = splitAt(item, "=");
+    const val = trim(value, '"')!;
+    switch (key) {
+      case "URI":
+        attributes[key] = val;
+        break;
+      case "START-DATE":
+      case "END-DATE":
+        attributes[key] = new Date(val);
+        break;
+      case "IV":
+        attributes[key] = parseIV(val);
+        break;
+      case "BYTERANGE":
+        attributes[key] = parseBYTERANGE(val);
+        break;
+      case "RESOLUTION":
+        attributes[key] = parseResolution(val);
+        break;
+      case "ALLOWED-CPC":
+        attributes[key] = parseAllowedCpc(val);
+        break;
+      case "END-ON-NEXT":
+      case "DEFAULT":
+      case "AUTOSELECT":
+      case "FORCED":
+      case "PRECISE":
+      case "CAN-BLOCK-RELOAD":
+      case "INDEPENDENT":
+      case "GAP":
+        attributes[key] = val === "YES";
+        break;
+      case "DURATION":
+      case "PLANNED-DURATION":
+      case "BANDWIDTH":
+      case "AVERAGE-BANDWIDTH":
+      case "FRAME-RATE":
+      case "TIME-OFFSET":
+      case "CAN-SKIP-UNTIL":
+      case "HOLD-BACK":
+      case "PART-HOLD-BACK":
+      case "PART-TARGET":
+      case "BYTERANGE-START":
+      case "BYTERANGE-LENGTH":
+      case "LAST-MSN":
+      case "LAST-PART":
+      case "SKIPPED-SEGMENTS":
+      case "SCORE":
+      case "PROGRAM-ID":
+        attributes[key] = toNumber(val);
+        break;
+      default:
+        if (key.startsWith("SCTE35-")) attributes[key] = hexToByteSequence(val);
+        else if (key.startsWith("X-")) attributes[key] = parseUserAttribute(value!);
+        else {
+          if (key === "VIDEO-RANGE" && val !== "SDR" && val !== "HLG" && val !== "PQ") {
+            INVALIDPLAYLIST(`VIDEO-RANGE: unknown value "${val}"`);
+          }
+          attributes[key] = val;
+        }
+    }
+  }
+  return attributes;
+}
+
+/** Splits a tag line into name and parameter. Format: #EXT-TAG-NAME:parameter */
+export function splitTag(line: string): [string, string | null] {
+  const index = line.indexOf(":");
+  if (index === -1) return [line.slice(1).trim(), null];
+  return [line.slice(1, index).trim(), line.slice(index + 1).trim()];
+}
+
+/** Parses a tag's parameters into a structured [value, attributes] pair. */
+export function parseTagParam(name: string, param: string | null): TagParam {
+  if (param === null) return [null, null];
+  switch (name) {
+    case T.EXTM3U:
+    case T.EXT_X_DISCONTINUITY:
+    case T.EXT_X_ENDLIST:
+    case T.EXT_X_I_FRAMES_ONLY:
+    case T.EXT_X_INDEPENDENT_SEGMENTS:
+    case T.EXT_X_CUE_IN:
+    case T.EXT_X_GAP:
+      return [null, null];
+    case T.EXT_X_VERSION:
+    case T.EXT_X_TARGETDURATION:
+    case T.EXT_X_MEDIA_SEQUENCE:
+    case T.EXT_X_DISCONTINUITY_SEQUENCE:
+    case T.EXT_X_BITRATE:
+      return [toNumber(param), null];
+    case T.EXT_X_DEVICE_TIME:
+      return [param, null];
+    case T.EXT_X_CUE_OUT:
+      if (!Number.isNaN(Number(param))) return [toNumber(param), null];
+      return [null, parseAttributeList(param)];
+    case T.EXT_X_KEY:
+    case T.EXT_X_MAP:
+    case T.EXT_X_DATERANGE:
+    case T.EXT_X_MEDIA:
+    case T.EXT_X_STREAM_INF:
+    case T.EXT_X_I_FRAME_STREAM_INF:
+    case T.EXT_X_SESSION_DATA:
+    case T.EXT_X_SESSION_KEY:
+    case T.EXT_X_START:
+    case T.EXT_X_SERVER_CONTROL:
+    case T.EXT_X_PART_INF:
+    case T.EXT_X_PART:
+    case T.EXT_X_PRELOAD_HINT:
+    case T.EXT_X_RENDITION_REPORT:
+    case T.EXT_X_SKIP:
+    case T.EXT_X_DEFINE:
+    case T.EXT_X_CONTENT_STEERING:
+      return [null, parseAttributeList(param)];
+    case T.EXTINF:
+      return [parseEXTINF(param), null];
+    case T.EXT_X_BYTERANGE:
+      return [parseBYTERANGE(param), null];
+    case T.EXT_X_PROGRAM_DATE_TIME:
+      return [param, null];
+    case T.EXT_X_PLAYLIST_TYPE:
+      return [param, null];
+    default:
+      return [param, null];
+  }
+}
