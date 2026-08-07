@@ -38,8 +38,8 @@
     document.querySelectorAll(".tab-btn,.tab-panel").forEach(function (el) {
       el.classList.remove("active");
     });
-    var btn = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
-    var panel = document.getElementById(tab === "url" ? "tab-url" : "tab-text");
+    const btn = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
+    const panel = document.getElementById(tab === "url" ? "tab-url" : "tab-text");
     if (btn) btn.classList.add("active");
     if (panel) panel.classList.add("active");
     location.hash = "#" + tab;
@@ -55,7 +55,7 @@
   });
 
   // Restore tab from URL hash on load
-  var hash = location.hash.replace("#", "");
+  const hash = location.hash.replace("#", "");
   if (hash === "text" || hash === "url") {
     setTab(hash);
   }
@@ -186,7 +186,7 @@
   /** Main render function */
   function render(pl) {
     _id = 0;
-    var ph = document.getElementById("empty-placeholder");
+    const ph = document.getElementById("empty-placeholder");
     if (ph) ph.style.display = "none";
 
     const isMst = pl.isMasterPlaylist;
