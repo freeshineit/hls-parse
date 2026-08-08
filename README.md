@@ -2,6 +2,8 @@
 
 A robust M3U8/HLS playlist parser for JavaScript/TypeScript, compliant with [RFC 8216](https://datatracker.ietf.org/doc/html/rfc8216) (HTTP Live Streaming).
 
+[README.zh-CN.md](./README.zh-CN.md)
+
 ## Features
 
 - ✅ **Full RFC 8216 Compliance** – Supports all standard HLS tags and attributes
@@ -22,7 +24,7 @@ A robust M3U8/HLS playlist parser for JavaScript/TypeScript, compliant with [RFC
 npm install @skax/hls-parse
 
 # or pnpm
-pnpm install @skax/hls-parse
+pnpm add @skax/hls-parse
 
 # or yarn
 yarn add @skax/hls-parse
