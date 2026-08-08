@@ -9,7 +9,7 @@
 /**
  * Custom error class for invalid playlist parsing.
  *
- * Thrown by {@link parser} when a playlist violates RFC 8216 syntax rules.
+ * Thrown by the `parser` function when a playlist violates RFC 8216 syntax rules.
  * Extends the standard `Error` class.
  *
  * @example
@@ -265,7 +265,7 @@ export function resolveUrl(base: string | undefined, relative: string): string {
 // Tag parameter parsers
 // ============================================================================
 
-import type { AllowedCpc, Byterange, ExtInfo, Resolution, TagParam, UserAttribute } from "./types";
+import type { AllowedCpc, Byterange, ExtInfo, ParsedAttrs, Resolution, TagParam, UserAttribute } from "./types";
 import * as T from "./constants";
 
 /**
@@ -330,8 +330,8 @@ export function parseUserAttribute(str: string): UserAttribute {
 }
 
 /** Parses an attribute list (comma-separated key=value pairs). */
-export function parseAttributeList(param: string): Record<string, any> {
-  const attributes: Record<string, any> = {};
+export function parseAttributeList(param: string): ParsedAttrs {
+  const attributes: ParsedAttrs = {};
   for (const item of splitByCommaWithPreservingQuotes(param)) {
     const [key, value] = splitAt(item, "=");
     const val = trim(value, '"')!;
