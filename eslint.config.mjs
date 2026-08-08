@@ -9,6 +9,12 @@ export default defineConfig([
   globalIgnores(["dist", "build"]),
   ...configs,
   {
+    settings: {
+      // 消除 React 版本检测警告。该设置仅告诉 `eslint-plugin-react` 使用指定的版本号，不影响项目本身（非 React 项目)
+      react: { version: "100.100.100" },
+    },
+  },
+  {
     files: ["**/*.{js,jsx,ts,tsx}"],
     rules: {
       "no-unused-vars": ["warn", { varsIgnorePattern: "^[A-Z_]" }],
