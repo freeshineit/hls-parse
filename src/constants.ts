@@ -196,7 +196,7 @@ export const EXT_X_BITRATE = "EXT-X-BITRATE";
 
 // -- Custom: EXT-X-DEVICE-TIME (device timestamp on segment)
 /**
- * 设备时间戳
+ * 流片段设备时间
  *
  * Device timestamp associated with a Media Segment.
  * Format: `#EXT-X-DEVICE-TIME:<timestamp>`
