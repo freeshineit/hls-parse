@@ -11,15 +11,15 @@
 
 ```bash
 # 全量测试 + 覆盖率
-npm test
+pnpm test
 ```
 
 | 检查项       | 阈值     | 说明       |
 | ------------ | -------- | ---------- |
-| Lines        | ≥ 96%    | 行覆盖率   |
-| Statements   | ≥ 94%    | 语句覆盖率 |
-| Branches     | ≥ 92%    | 分支覆盖率 |
-| Functions    | ≥ 95%    | 函数覆盖率 |
+| Lines        | ≥ 100%   | 行覆盖率   |
+| Statements   | ≥ 100%   | 语句覆盖率 |
+| Branches     | ≥ 100%   | 分支覆盖率 |
+| Functions    | ≥ 100%   | 函数覆盖率 |
 | 测试全部通过 | 0 failed | 无失败用例 |
 
 ### 新增功能/修复 Bug 时
@@ -41,8 +41,8 @@ npm test
 ### 规则
 
 ```bash
-# 使用 Prettier 统一格式（如已配置）
-npx prettier --write "src/**/*.ts" "__tests__/**/*.ts"
+# 使用 Prettier 统一格式
+pnpm fmt
 ```
 
 | 规则   | 配置       |
@@ -67,7 +67,7 @@ npx prettier --write "src/**/*.ts" "__tests__/**/*.ts"
 
 ```bash
 # 构建检查
-npm run build
+pnpm run build
 ```
 
 - [ ] `dist/index.js` — CommonJS 产物存在
@@ -119,10 +119,10 @@ npm run build
 
 ```bash
 # 1. 测试 + 覆盖率
-npm test
+pnpm test
 
 # 2. 构建
-npm run build
+pnpm run build
 
 # 3. 检查产物完整性
 ls -la dist/
