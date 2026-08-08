@@ -1,8 +1,12 @@
 # @skax/hls-parse
 
-A robust M3U8/HLS playlist parser for JavaScript/TypeScript, compliant with [RFC 8216](https://datatracker.ietf.org/doc/html/rfc8216) (HTTP Live Streaming).
+[![Version](https://img.shields.io/badge/version-0.0.1–beta.11-blue)](https://www.npmjs.com/package/@skax/hls-parse)
+[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+[![RFC 8216](https://img.shields.io/badge/RFC-8216-orange)](https://datatracker.ietf.org/doc/html/rfc8216)
 
-[README.zh-CN.md](./README.zh-CN.md)
+> A robust M3U8/HLS playlist parser for JavaScript/TypeScript, compliant with [RFC 8216](https://datatracker.ietf.org/doc/html/rfc8216) (HTTP Live Streaming).
+
+🌐 [中文文档](./README.zh-CN.md)
 
 ## Features
 
@@ -271,6 +275,10 @@ Produces CJS, ESM, and TypeScript declaration files in `dist/`.
 ```bash
 npm test
 ```
+
+Test coverage: 100% statements, 100% branches, 100% functions, 100% lines.
+
+## Build
 
 ## License
 

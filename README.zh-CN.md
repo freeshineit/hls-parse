@@ -1,8 +1,12 @@
 # @skax/hls-parse
 
-一个健壮的 M3U8 / HLS 播放列表解析器，全面兼容 [RFC 8216](https://datatracker.ietf.org/doc/html/rfc8216)（HTTP Live Streaming），使用 TypeScript 编写。
+[![Version](https://img.shields.io/badge/version-0.0.1–beta.11-blue)](https://www.npmjs.com/package/@skax/hls-parse)
+[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+[![RFC 8216](https://img.shields.io/badge/RFC-8216-orange)](https://datatracker.ietf.org/doc/html/rfc8216)
 
-[README.md](./README.md)
+> 一个健壮的 M3U8 / HLS 播放列表解析器，全面兼容 [RFC 8216](https://datatracker.ietf.org/doc/html/rfc8216)（HTTP Live Streaming），使用 TypeScript 编写。
+
+🌐 [English](./README.md)
 
 ## 特性
 
@@ -412,7 +416,7 @@ npm run build
 npm test
 ```
 
-测试覆盖率：语句 99%、分支 98%、函数 100%、行 100%。
+测试覆盖率：语句 100%、分支 100%、函数 100%、行 100%。
 
 ## 项目结构
 
