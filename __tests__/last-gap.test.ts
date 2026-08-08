@@ -1,7 +1,7 @@
 /**
  * Last-mile branch gap filler
  */
-import { parser, InvalidPlaylistError } from "../src";
+import { parser } from "../src";
 import { MediaPlaylist, MasterPlaylist } from "../src/types";
 
 describe("Last gap — 0X prefix", () => {

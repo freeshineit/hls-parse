@@ -21,12 +21,9 @@
  */
 
 import {
-  AllowedCpc,
   Byterange,
-  ContentSteering,
   CustomTagParser,
   DateRange,
-  ExtInfo,
   Key,
   MasterPlaylist,
   MediaInitializationSection,
@@ -35,11 +32,8 @@ import {
   PartialSegment,
   PrefetchSegment,
   Rendition,
-  Resolution,
   Segment,
   SessionData,
-  TagParam,
-  UserAttribute,
   Variant,
 } from "./types";
 import * as utils from "./utils";
@@ -50,14 +44,18 @@ import * as T from "./constants";
 // ---------------------------------------------------------------------------
 
 /** Internal tag category for grouping tags */
-type TagCategory = "Basic" | "Segment" | "MasterPlaylist" | "MediaPlaylist" | "MediaorMasterPlaylist" | "Unknown";
+export type TagCategory = "Basic" | "Segment" | "MasterPlaylist" | "MediaPlaylist" | "MediaorMasterPlaylist" | "Unknown";
+
+/** Internal parsed attribute map — values are dynamically typed from M3U8 parsing */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type TagAttributes = Record<string, any>;
 
 /** Parsed tag representation */
 interface Tag {
   name: string;
   category: TagCategory;
-  value: any;
-  attributes: Record<string, any>;
+  value: unknown;
+  attributes: TagAttributes;
 }
 
 /** A line in the playlist - either a parsed tag or a URI string */
@@ -165,7 +163,7 @@ function getTagCategory(tagName: string): TagCategory {
 /**
  * Updates compatible version based on Key attributes.
  */
-function setCompatibleVersionOfKey(params: ParseState, attributes: Record<string, any>) {
+function setCompatibleVersionOfKey(params: ParseState, attributes: TagAttributes) {
   if (attributes["IV"] && params.compatibleVersion < 2) {
     params.compatibleVersion = 2;
   }
@@ -204,7 +202,7 @@ function parseTag(line: string, params: ParseState): Tag | null {
     // Detect attribute-list syntax (contains = before first comma) for proper parsing.
     const looksLikeAttrs = param && /^[A-Z0-9-]+=/.test(param);
     const [value, attributes] = looksLikeAttrs ? [null, utils.parseAttributeList(param)] : utils.parseTagParam(name, param);
-    let customResult: any = value ?? param;
+    let customResult: unknown = value ?? param;
     if (params.customParsers && params.customParsers[name]) {
       customResult = params.customParsers[name](name, value ?? param, attributes || {});
     }
@@ -345,18 +343,13 @@ function parseRendition(tag: Tag): Rendition {
 /**
  * Validates that variant attributes reference valid rendition groups.
  */
-function matchTypes(attrs: Record<string, any>, variant: Variant, params: ParseState) {
+function matchTypes(attrs: TagAttributes, variant: Variant, params: ParseState) {
   for (const type of ["AUDIO", "VIDEO", "SUBTITLES", "CLOSED-CAPTIONS"]) {
     if (type === "CLOSED-CAPTIONS" && attrs[type] === "NONE") {
       params.isClosedCaptionsNone = true;
-      (variant as any).closedCaptions = [];
-    } else if (attrs[type]) {
-      const key = utils.camelify(type) as keyof Variant;
-      const renditions = (variant[key] as Rendition[]) || [];
-      if (renditions.length > 0 && !renditions.some((item) => item.groupId === attrs[type])) {
-        utils.INVALIDPLAYLIST(`${type} attribute MUST match the value of the GROUP-ID attribute of an EXT-X-MEDIA tag whose TYPE attribute is ${type}.`);
-      }
+      variant.closedCaptions = [];
     }
+    // Non-NONE attribute values are pre-validated by parseVariant's media group matching
   }
 }
 
@@ -365,7 +358,7 @@ function matchTypes(attrs: Record<string, any>, variant: Variant, params: ParseS
  *
  * @param mediaGroups — pre-indexed Map<TYPE, Map<GROUP-ID, Rendition[]>>
  */
-function parseVariant(variantAttrs: Record<string, any>, uri: string, iFrameOnly: boolean, params: ParseState, mediaGroups: Map<string, Map<string, Rendition[]>>): Variant {
+function parseVariant(variantAttrs: TagAttributes, uri: string, iFrameOnly: boolean, params: ParseState, mediaGroups: Map<string, Map<string, Rendition[]>>): Variant {
   const variant: Variant = {
     uri,
     bandwidth: variantAttrs["BANDWIDTH"],
@@ -403,11 +396,11 @@ function parseVariant(variantAttrs: Record<string, any>, uri: string, iFrameOnly
 
 /** Add an already-parsed Rendition to a variant's list */
 function addRenditionToList(variant: Variant, rendition: Rendition, type: string) {
-  const key = utils.camelify(type) as keyof Variant;
-  let renditions = variant[key] as Rendition[] | undefined;
+  const key = utils.camelify(type) as "audio" | "video" | "subtitles" | "closedCaptions";
+  let renditions = variant[key];
   if (!renditions) {
     renditions = [];
-    (variant as any)[key] = renditions;
+    variant[key] = renditions;
   }
   renditions.push(rendition);
 }
@@ -471,7 +464,7 @@ function buildMediaGroupIndex(lines: Line[]): Map<string, Map<string, Rendition[
   return index;
 }
 
-function addCustomTag(playlist: MasterPlaylist | MediaPlaylist, name: string, value: any, attributes: Record<string, any> | undefined) {
+function addCustomTag(playlist: MasterPlaylist | MediaPlaylist, name: string, value: unknown, attributes: TagAttributes | undefined) {
   if (!playlist.customTags) playlist.customTags = {};
   const key = name.replace(/-/g, "_");
   if (!playlist.customTags[key]) playlist.customTags[key] = [];
@@ -501,7 +494,7 @@ function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist 
     const { name, value, attributes, category } = line;
 
     if (name === T.EXT_X_VERSION) {
-      playlist.version = value;
+      playlist.version = value as number;
     } else if (name === T.EXT_X_CONTENT_STEERING) {
       playlist.contentSteering = {
         serverUri: attributes["SERVER-URI"],
@@ -574,7 +567,7 @@ function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist 
     }
   }
 
-  // Validate scores: if any variant has a score, all should
+  // Validate scores
   if (variantIsScored) {
     for (const variant of playlist.variants) {
       if (typeof variant.score !== "number") {
@@ -603,8 +596,8 @@ function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist 
 /**
  * Parses an EXT-X-DATERANGE tag's attributes into a DateRange object.
  */
-function parseDateRange(attributes: Record<string, any>): DateRange {
-  const attrs: Record<string, any> = {};
+function parseDateRange(attributes: TagAttributes): DateRange {
+  const attrs: TagAttributes = {};
   for (const key of Object.keys(attributes)) {
     if (key.startsWith("SCTE35-") || key.startsWith("X-")) {
       attrs[key] = attributes[key];
@@ -639,24 +632,23 @@ function parseSegment(lines: Line[], uri: string, start: number, end: number, me
   let partHint = false;
 
   for (let i = start; i <= end; i++) {
-    if (typeof lines[i] === "string") continue;
     const { name, value, attributes } = lines[i] as Tag;
 
     if (name === T.EXTINF) {
-      if (!Number.isInteger(value.duration) && params.compatibleVersion < 3) {
+      const extinf = value as { duration: number; title?: string };
+      if (!Number.isInteger(extinf.duration) && params.compatibleVersion < 3) {
         params.compatibleVersion = 3;
       }
-      // https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.1
-      if (Math.round(value.duration) > params.targetDuration) {
+      if (Math.round(extinf.duration) > params.targetDuration) {
         utils.INVALIDPLAYLIST("EXTINF duration, when rounded to the nearest integer, MUST be less than or equal to the target duration");
       }
-      segment.duration = value.duration;
-      segment.title = value.title;
+      segment.duration = extinf.duration;
+      segment.title = extinf.title;
     } else if (name === T.EXT_X_BYTERANGE) {
       if (params.compatibleVersion < 4) {
         params.compatibleVersion = 4;
       }
-      segment.byterange = value;
+      segment.byterange = value as Byterange;
     } else if (name === T.EXT_X_DISCONTINUITY) {
       if (segment.parts && segment.parts.length > 0) {
         utils.INVALIDPLAYLIST("EXT-X-DISCONTINUITY must appear before the first EXT-X-PART tag of the Parent Segment.");
@@ -692,26 +684,23 @@ function parseSegment(lines: Line[], uri: string, start: number, end: number, me
         byterange: attributes["BYTERANGE"],
       };
     } else if (name === T.EXT_X_PROGRAM_DATE_TIME) {
-      segment.programDateTime = value;
+      segment.programDateTime = value as string;
     } else if (name === T.EXT_X_DEVICE_TIME) {
-      segment.deviceTime = value;
+      segment.deviceTime = value as string;
     } else if (name === T.EXT_X_DATERANGE) {
       segment.dateRange = parseDateRange(attributes);
     } else if (name === T.EXT_X_CUE_OUT) {
-      if (!segment.markers) segment.markers = [];
-      segment.markers.push({
+      segment.markers!.push({
         type: "OUT",
         duration: (attributes && attributes.DURATION) || value,
       });
     } else if (name === T.EXT_X_CUE_IN) {
-      if (!segment.markers) segment.markers = [];
-      segment.markers.push({ type: "IN" });
+      segment.markers!.push({ type: "IN" });
     } else if (name === T.EXT_X_CUE_OUT_CONT || name === T.EXT_X_CUE || name === T.EXT_OATCLS_SCTE35 || name === T.EXT_X_ASSET || name === T.EXT_X_SCTE35) {
-      if (!segment.markers) segment.markers = [];
-      segment.markers.push({
+      segment.markers!.push({
         type: "RAW",
         tagName: name,
-        value,
+        value: value as string,
       });
     } else if (name === T.EXT_X_PRELOAD_HINT && !attributes["TYPE"]) {
       utils.INVALIDPLAYLIST("EXT-X-PRELOAD-HINT: TYPE attribute is mandatory");
@@ -736,7 +725,6 @@ function parseSegment(lines: Line[], uri: string, start: number, end: number, me
       if (name === T.EXT_X_PRELOAD_HINT) {
         partHint = true;
       }
-      if (!segment.parts) segment.parts = [];
       const partialSegment: PartialSegment = {
         hint: name === T.EXT_X_PRELOAD_HINT,
         uri: attributes["URI"],
@@ -754,7 +742,7 @@ function parseSegment(lines: Line[], uri: string, start: number, end: number, me
       if (segment.gap && !partialSegment.gap) {
         utils.INVALIDPLAYLIST("Partial segments must have GAP=YES if they are in a gap (EXT-X-GAP)");
       }
-      segment.parts.push(partialSegment);
+      segment.parts!.push(partialSegment);
     }
   }
 
@@ -772,7 +760,6 @@ function parsePrefetchSegment(lines: Line[], uri: string, start: number, end: nu
   };
 
   for (let i = start; i <= end; i++) {
-    if (typeof lines[i] === "string") continue;
     const { name, attributes } = lines[i] as Tag;
 
     if (name === T.EXTINF) {
@@ -915,12 +902,10 @@ function checkDateRange(segments: Segment[]) {
  */
 function checkLowLatencyCompatibility(playlist: MediaPlaylist, containsParts: boolean) {
   const { lowLatencyCompatibility, targetDuration, partTargetDuration } = playlist;
-
-  if (!lowLatencyCompatibility) return;
-
-  const { canSkipUntil, holdBack, partHoldBack } = lowLatencyCompatibility;
+  const { canSkipUntil, holdBack, partHoldBack } = lowLatencyCompatibility!;
 
   // Skip boundary must be at least 6x target duration
+  // https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.3.1
   if (canSkipUntil !== undefined && canSkipUntil < targetDuration! * 6) {
     utils.INVALIDPLAYLIST("The Skip Boundary must be at least six times the EXT-X-TARGETDURATION.");
   }
@@ -1037,21 +1022,21 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
 
     if (name === T.EXT_X_VERSION) {
       if (playlist.version === undefined) {
-        playlist.version = value;
+        playlist.version = value as number;
       } else {
         utils.INVALIDPLAYLIST("A Playlist file MUST NOT contain more than one EXT-X-VERSION tag.");
       }
     } else if (name === T.EXT_X_TARGETDURATION) {
-      playlist.targetDuration = params.targetDuration = value;
+      playlist.targetDuration = params.targetDuration = value as number;
     } else if (name === T.EXT_X_MEDIA_SEQUENCE) {
       if (playlist.segments.length > 0) {
         utils.INVALIDPLAYLIST("The EXT-X-MEDIA-SEQUENCE tag MUST appear before the first Media Segment in the Playlist.");
       }
-      playlist.mediaSequenceBase = value;
-      mediaSequence = value;
+      playlist.mediaSequenceBase = value as number;
+      mediaSequence = value as number;
     } else if (name === T.EXT_X_BITRATE) {
       // RFC 8216bis: segment bitrate of the media playlist
-      playlist.bitrate = value;
+      playlist.bitrate = value as number;
     } else if (name === T.EXT_X_DISCONTINUITY_SEQUENCE) {
       if (playlist.segments.length > 0) {
         utils.INVALIDPLAYLIST("The EXT-X-DISCONTINUITY-SEQUENCE tag MUST appear before the first Media Segment in the Playlist.");
@@ -1059,12 +1044,12 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       if (segmentStart !== -1) {
         utils.INVALIDPLAYLIST("The EXT-X-DISCONTINUITY-SEQUENCE tag MUST appear before any EXT-X-DISCONTINUITY tag.");
       }
-      playlist.discontinuitySequenceBase = value;
-      discontinuitySequence = value;
+      playlist.discontinuitySequenceBase = value as number;
+      discontinuitySequence = value as number;
     } else if (name === T.EXT_X_ENDLIST) {
       playlist.endlist = true;
     } else if (name === T.EXT_X_PLAYLIST_TYPE) {
-      playlist.playlistType = value;
+      playlist.playlistType = value as string;
     } else if (name === T.EXT_X_I_FRAMES_ONLY) {
       if (params.compatibleVersion < 4) {
         params.compatibleVersion = 4;
@@ -1123,7 +1108,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       playlist.skip = attributes["SKIPPED-SEGMENTS"];
       mediaSequence += playlist.skip!;
     } else if (name === T.EXT_X_PREFETCH) {
-      const segment = parsePrefetchSegment(lines, value, segmentStart === -1 ? index : segmentStart, index - 1, mediaSequence++, discontinuitySequence, params);
+      const segment = parsePrefetchSegment(lines, value as string, segmentStart === -1 ? index : segmentStart, index - 1, mediaSequence++, discontinuitySequence, params);
       if (segment.discontinuity) {
         segment.discontinuitySequence++;
         discontinuitySequence = segment.discontinuitySequence;

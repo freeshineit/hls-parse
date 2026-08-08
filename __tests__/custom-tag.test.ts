@@ -41,7 +41,7 @@ describe("Custom tag parser", () => {
   it("custom tag in master playlist", () => {
     const pl = parser("#EXTM3U\n#EXT-X-CUSTOM:val1\n#EXT-X-STREAM-INF:BANDWIDTH=1\nv.m3u8", {
       customTagParsers: {
-        "EXT-X-CUSTOM": (_n, v) => v.toUpperCase(),
+        "EXT-X-CUSTOM": (_n, v) => (v as string).toUpperCase(),
       },
     }) as MasterPlaylist;
     expect(pl.customTags!.EXT_X_CUSTOM).toEqual(["VAL1"]);

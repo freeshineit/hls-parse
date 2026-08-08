@@ -4,7 +4,7 @@
  *
  * Purpose: push coverage > 97% lines / 95% branches
  */
-import { parser, InvalidPlaylistError, resolveUrl } from "../src";
+import { parser, resolveUrl } from "../src";
 import { MasterPlaylist, MediaPlaylist } from "../src/types";
 
 // ============================================================================

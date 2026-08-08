@@ -179,9 +179,18 @@ export interface Segment {
   key?: Key | null;
   /** Media Initialization Section (`#EXT-X-MAP`). Inherited if not present. */
   map?: MediaInitializationSection | null;
-  /** Program date/time (`#EXT-X-PROGRAM-DATE-TIME`). */
-  programDateTime?: Date;
-  /** Device timestamp (`#EXT-X-DEVICE-TIME`). */
+  /**
+   * Program date/time (`#EXT-X-PROGRAM-DATE-TIME`).
+   * https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.6
+   *
+   * #EXT-X-PROGRAM-DATE-TIME:2010-02-19T14:54:23.031+08:00
+   */
+  programDateTime?: string;
+  /**
+   * Ezviz device timestamp (`#EXT-X-DEVICE-TIME`).
+   *
+   * #EXT-X-DEVICE-TIME:20260603013421
+   */
   deviceTime?: string;
   /** Date range metadata (`#EXT-X-DATERANGE`). */
   dateRange?: DateRange;

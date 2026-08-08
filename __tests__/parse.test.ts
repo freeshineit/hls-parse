@@ -10,8 +10,9 @@
  * - Edge cases
  */
 
-import { parser, InvalidPlaylistError, resolveUrl } from "../src";
-import { MasterPlaylist, MediaPlaylist, Segment, PartialSegment, Variant } from "../src/types";
+import { parser, resolveUrl } from "../src";
+import { hexToByteSequence, toNumber, trim, splitAt, camelify, splitByCommaWithPreservingQuotes } from "../src/utils";
+import { MasterPlaylist, MediaPlaylist } from "../src/types";
 
 // ===========================================================================
 // URL Resolution
@@ -2236,7 +2237,6 @@ iframe1.ts
   });
 
   it("handles hexToByteSequence without 0x prefix", () => {
-    const { hexToByteSequence } = require("../src/utils");
     const result = hexToByteSequence("FF");
     expect(result).toBeInstanceOf(Uint8Array);
     expect(result.length).toBe(1);
@@ -2244,50 +2244,41 @@ iframe1.ts
   });
 
   it("handles hexToByteSequence with uppercase 0X prefix", () => {
-    const { hexToByteSequence } = require("../src/utils");
     const result = hexToByteSequence("0XFF");
     expect(result.length).toBe(1);
     expect(result[0]).toBe(255);
   });
 
   it("handles hexToByteSequence with odd length", () => {
-    const { hexToByteSequence } = require("../src/utils");
     const result = hexToByteSequence("0xF");
     expect(result.length).toBe(1);
     expect(result[0]).toBe(15);
   });
 
   it("handles toNumber with valid integer", () => {
-    const { toNumber } = require("../src/utils");
     expect(toNumber("42")).toBe(42);
   });
-
   it("handles toNumber with valid float", () => {
-    const { toNumber } = require("../src/utils");
     expect(toNumber("3.14")).toBe(3.14);
   });
 
   it("handles trim function", () => {
-    const { trim } = require("../src/utils");
     expect(trim('"hello"', '"')).toBe("hello");
     expect(trim(undefined, '"')).toBeUndefined();
   });
 
   it("handles splitAt without delimiter", () => {
-    const { splitAt } = require("../src/utils");
     const [a, b] = splitAt("hello", ",");
     expect(a).toBe("hello");
     expect(b).toBe("");
   });
 
   it("handles camelify function", () => {
-    const { camelify } = require("../src/utils");
     expect(camelify("AUDIO")).toBe("audio");
     expect(camelify("CLOSED-CAPTIONS")).toBe("closedCaptions");
   });
 
   it("handles splitByCommaWithPreservingQuotes", () => {
-    const { splitByCommaWithPreservingQuotes } = require("../src/utils");
     const result = splitByCommaWithPreservingQuotes('a="1,2",b="hello"');
     expect(result).toHaveLength(2);
     expect(result[0]).toBe('a="1,2"');
@@ -2581,7 +2572,6 @@ seg100.ts
   });
 
   it("handles toNumber with invalid value", () => {
-    const { toNumber } = require("../src/utils");
     expect(() => toNumber("not-a-number")).not.toThrow();
   });
 
@@ -2610,7 +2600,6 @@ seg.ts
   });
 
   it("handles splitByCommaWithPreservingQuotes with unmatched quotes", () => {
-    const { splitByCommaWithPreservingQuotes } = require("../src/utils");
     const result = splitByCommaWithPreservingQuotes('a="1,b=2');
     expect(result).toHaveLength(1);
   });
