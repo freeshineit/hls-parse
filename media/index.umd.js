@@ -1,5 +1,5 @@
 /*
-* @skax/hls-parse v0.0.1-beta.10
+* @skax/hls-parse v0.0.1-beta.11
 * Copyright (c) 2026-08-08 ShineShao <xiaoshaoqq@gmail.com>
 * Released under the MIT License.
 */
