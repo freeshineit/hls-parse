@@ -1,12 +1,14 @@
 {
   "name": "@skax/hls-parse",
-  "version": "0.0.1-beta.10",
+  "version": "0.0.1-beta.11",
   "description": "A robust M3U8/HLS playlist parser supporting RFC 8216, Master playlists, Media playlists, and LL-HLS (Low-Latency HLS)",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/types/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "README.zh-CN.md"
   ],
   "scripts": {
     "dev": "cross-env NODE_ENV=development rollup -c -w",
@@ -17,6 +19,8 @@
     "lint:check": "eslint \"./src/**/*.{ts,tsx,js,jsx,mjs,vue,cjs}\"",
     "fmt": "prettier --write \"./**/*.{ts,tsx,js,jsx,mjs,json,md,yml,yaml,vue,cjs,css,scss,sass}\"",
     "docs": "typedoc",
+    "docs:zh": "cross-env DOC_LANG=zh typedoc",
+    "docs:all": "npm run docs && npm run docs:zh",
     "fmt:check": "prettier --check \"./**/*.{ts,tsx,js,jsx,mjs,json,md,yml,yaml,vue,cjs,css,scss,sass}\"",
     "prepare": "husky"
   },
