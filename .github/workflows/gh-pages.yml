@@ -19,7 +19,7 @@ jobs:
           version: 8
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
-      - run: pnpm run docs
+      - run: pnpm run docs:all
 
       # - name: Copy static files to docs
       - name: Ensure target directory exists
