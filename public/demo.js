@@ -5,8 +5,6 @@
   "use strict";
   /* global HlsParse */
   const parser = HlsParse.parser;
-  const resolveUrl = HlsParse.resolveUrl;
-  const InvalidPlaylistError = HlsParse.InvalidPlaylistError;
 
   // ---- DOM refs ----
   const $ = function (id) {
@@ -19,7 +17,6 @@
   const parseBtn = $("parse-btn");
   const statusBar = $("status");
   const resultsDiv = $("results");
-  const emptyPlaceholder = $("empty-placeholder");
 
   // ---- Embedded samples ----
   const SAMPLES = {
@@ -135,7 +132,7 @@
       h += '<th class="j-mono">···</th></tr>';
 
       // Rows
-      data.forEach(function (item, i) {
+      data.forEach(function (item) {
         const rid = "r" + ++_id;
         h += "<tr>";
         cols.forEach(function (c) {
