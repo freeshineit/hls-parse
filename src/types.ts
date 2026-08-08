@@ -6,7 +6,7 @@
  *
  * @remarks
  * All URIs in these types will be resolved to absolute when
- * {@link ParserOptions.uri} is provided to {@link parser}.
+ * {@link ParserOptions.uri} is provided to the `parser` function.
  *
  * @module types
  * @category Types
@@ -220,7 +220,7 @@ export interface DateRange {
    */
   endOnNext?: boolean;
   /** Custom attributes (SCTE35- and X- prefixed). */
-  attributes?: Record<string, any>;
+  attributes?: Record<string, AttrValue>;
 }
 
 /**
@@ -236,7 +236,7 @@ export interface SpliceInfo {
   /** Original tag name (for `RAW` type). */
   tagName?: string;
   /** Raw tag value. */
-  value?: any;
+  value?: unknown;
 }
 
 /**
@@ -431,12 +431,18 @@ export interface LowLatencyCompatibility {
   partHoldBack?: number;
 }
 
+/** Union of all possible parsed attribute values. */
+export type AttrValue = string | number | boolean | Date | Uint8Array | Resolution | Byterange | AllowedCpc[];
+
+/** Map of parsed tag attributes. */
+export type ParsedAttrs = Record<string, AttrValue>;
+
 /**
  * Tag parameter tuple: `[value, attributes]`.
  *
  * @internal
  */
-export type TagParam = [any, Record<string, any> | null];
+export type TagParam = [string | number | ExtInfo | Byterange | null, ParsedAttrs | null];
 
 /**
  * User-defined attribute value.
@@ -476,7 +482,7 @@ export interface MasterPlaylist {
   /** Content steering configuration. */
   contentSteering?: ContentSteering;
   /** Variable definitions (`#EXT-X-DEFINE`). */
-  defines?: Record<string, any>[];
+  defines?: Record<string, AttrValue>[];
   /** Session data entries. */
   sessionDataList: SessionData[];
   /** Session keys. */
@@ -484,7 +490,7 @@ export interface MasterPlaylist {
   /** Variant streams (`#EXT-X-STREAM-INF` / `#EXT-X-I-FRAME-STREAM-INF`). */
   variants: Variant[];
   /** Custom/unknown tags. Tag `-` → `_`. */
-  customTags?: Record<string, any[]>;
+  customTags?: Record<string, unknown[]>;
 }
 
 /**
@@ -516,7 +522,7 @@ export interface MediaPlaylist {
   /** Preferred start position. */
   start?: StartData;
   /** Variable definitions (`#EXT-X-DEFINE`). */
-  defines?: Record<string, any>[];
+  defines?: Record<string, AttrValue>[];
   /** Maximum segment duration in seconds (`#EXT-X-TARGETDURATION`). */
   targetDuration?: number;
   /** Base media sequence number. */
@@ -546,7 +552,7 @@ export interface MediaPlaylist {
   /** Date ranges in the playlist. */
   dateRanges: DateRange[];
   /** Custom/unknown tags. Tag `-` → `_`. */
-  customTags?: Record<string, any[]>;
+  customTags?: Record<string, unknown[]>;
 }
 
 /**
@@ -568,9 +574,9 @@ export type Playlist = MasterPlaylist | MediaPlaylist;
  * Custom tag parser function.
  * Receives the parsed tag and returns structured data.
  *
- * @param tagName - The tag name (e.g., `"EXT-X-CUSTOM"`)
- * @param value - The parsed value from the tag
- * @param attributes - Parsed attribute key-value pairs
+ * @param _tagName - The tag name (e.g., `"EXT-X-CUSTOM"`)
+ * @param _value - The parsed value from the tag
+ * @param _attributes - Parsed attribute key-value pairs
  * @returns Any structured data to attach to the segment or playlist
  *
  * @example
@@ -580,10 +586,11 @@ export type Playlist = MasterPlaylist | MediaPlaylist;
  * };
  * ```
  */
-export type CustomTagParser = (tagName: string, value: any, attributes: Record<string, any>) => any;
+// eslint-disable-next-line no-unused-vars
+export type CustomTagParser = (_tagName: string, _value: unknown, _attributes: Record<string, unknown>) => unknown;
 
 /**
- * Options for the {@link parser} function.
+ * Options for the `parser` function.
  */
 export interface ParserOptions {
   /**
