@@ -63,7 +63,16 @@
     "typedoc-plugin-mdn-links": "^5.1.1",
     "typedoc-plugin-rename-defaults": "^0.7.3",
     "typedoc-plugin-replace-text": "^4.2.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "lint-staged": "^17.0.8"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "lint-staged": {
+    "*.{js,mjs,jsx,ts,tsx,vue,cjs}": [
+      "eslint --fix"
+    ]
   },
   "repository": {
     "type": "git",
