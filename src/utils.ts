@@ -1,4 +1,6 @@
 /**
+ * HLS 解析工具函数。
+ *
  * Utility functions for HLS parsing.
  *
  * @module utils
@@ -7,6 +9,8 @@
  */
 
 /**
+ * 无效播放列表错误类。
+ *
  * Custom error class for invalid playlist parsing.
  *
  * Thrown by the `parser` function when a playlist violates RFC 8216 syntax rules.
@@ -31,6 +35,8 @@ export class InvalidPlaylistError extends Error {
 }
 
 /**
+ * 抛出无效播放列表错误。
+ *
  * Throws an {@link InvalidPlaylistError} with the given message.
  * Used throughout the parser to enforce RFC 8216 compliance.
  *
@@ -45,6 +51,8 @@ export function INVALIDPLAYLIST(message: string) {
 }
 
 /**
+ * 从字符串两端修剪匹配的字符。
+ *
  * Trims matching characters from both ends of a string.
  * Used primarily for removing quotes from attribute values.
  *
@@ -69,6 +77,8 @@ export function trim(str: string | undefined, char: string): string | undefined 
 }
 
 /**
+ * 在第一个分隔符处将字符串分割为两部分。
+ *
  * Splits a string at the first occurrence of a delimiter.
  * Returns a `[before, after]` tuple.
  *
@@ -91,6 +101,8 @@ export function splitAt(str: string, delimiter: string): [string, string] {
 }
 
 /**
+ * 按逗号分割列表，同时保留引号内的字符串。
+ *
  * Splits a comma-separated list while preserving quoted strings.
  *
  * This is essential for correctly parsing HLS attribute lists where
@@ -132,6 +144,8 @@ export function splitByCommaWithPreservingQuotes(str: string): string[] {
 }
 
 /**
+ * 将字符串转换为数字（十进制整数或十进制浮点数）。
+ *
  * Converts a string to a number (decimal-integer or decimal-floating-point).
  * Handles the full range of HLS numeric formats.
  *
@@ -149,6 +163,8 @@ export function toNumber(str: string): number {
 }
 
 /**
+ * 将十六进制字符串转换为 Uint8Array。
+ *
  * Converts a hexadecimal string to a `Uint8Array`.
  *
  * Handles the `0x` / `0X` prefix and odd-length hex strings.
@@ -167,7 +183,7 @@ export function hexToByteSequence(hex: string): Uint8Array {
   if (h.startsWith("0x") || h.startsWith("0X")) {
     h = h.slice(2);
   }
-  // Ensure even length
+  // 确保偶数长度 / Ensure even length
   if (h.length % 2 !== 0) {
     h = "0" + h;
   }
@@ -179,6 +195,8 @@ export function hexToByteSequence(hex: string): Uint8Array {
 }
 
 /**
+ * 将 snake_case 或 UPPER-KEBAB 字符串转换为 camelCase。
+ *
  * Converts a snake_case or UPPER-KEBAB string to camelCase.
  * Used for mapping HLS attribute names (e.g., `GROUP-ID`) to
  * JavaScript property names (e.g., `groupId`).
@@ -197,6 +215,8 @@ export function camelify(str: string): string {
 }
 
 /**
+ * 解析相对 URL 为绝对地址。
+ *
  * Resolves a relative URI against a base URI.
  *
  * If the URI is absolute (has a scheme), it is returned as-is.
@@ -218,10 +238,10 @@ export function camelify(str: string): string {
  */
 export function resolveUrl(base: string | undefined, relative: string): string {
   if (!base) return relative;
-  // 不支持空地址
+  // 不支持空地址 / Unsupported empty address
   if (!relative) return "";
 
-  // If already absolute, return as-is
+  // 如果已是绝对地址，直接返回 / If already absolute, return as-is
   if (/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(relative)) {
     return relative;
   }
@@ -229,25 +249,25 @@ export function resolveUrl(base: string | undefined, relative: string): string {
   try {
     // Use the URL constructor for proper resolution
     const baseUrl = new URL(base);
-    // Handle protocol-relative URLs (starting with //)
+    // 处理协议相对 URL（以 // 开头）/ Handle protocol-relative URLs (starting with //)
     if (relative.startsWith("//")) {
       return baseUrl.protocol + relative;
     }
     return new URL(relative, baseUrl).href;
   } catch {
-    // If base is not a valid URL, try simple concatenation
+    // 如果基础 URL 无效，尝试简单拼接 / If base is not a valid URL, try simple concatenation
     if (relative.startsWith("/")) {
-      // Absolute path relative to domain
+      // 相对于域名的绝对路径 / Absolute path relative to domain
       const match = base.match(/^[a-zA-Z][a-zA-Z0-9+\-.]*:\/\/[^/]+/);
       if (match) {
         return match[0] + relative;
       }
     }
-    // Relative path
+    // 相对路径 / Relative path
     const baseDir = base.replace(/\/[^/]*$/, "/");
-    // Handle ./ and ../ in relative
+    // 处理相对路径中的 ./ 和 ../ / Handle ./ and ../ in relative
     const resolved = baseDir + relative;
-    // Normalize .. and .
+    // 规范化 .. 和 . 路径 / Normalize .. and .
     const parts = resolved.split("/");
     const result: string[] = [];
     for (const part of parts) {
@@ -262,13 +282,15 @@ export function resolveUrl(base: string | undefined, relative: string): string {
 }
 
 // ============================================================================
-// Tag parameter parsers
+// Tag parameter parsers — 标签参数解析器
 // ============================================================================
 
 import type { AllowedCpc, Byterange, ExtInfo, ParsedAttrs, Resolution, TagParam, UserAttribute } from "./types";
 import * as T from "./constants";
 
 /**
+ * 解析 EXTINF 标签值。
+ *
  * Parses the EXTINF tag value.
  * Format: #EXTINF:<duration>,[<title>]
  *
@@ -282,7 +304,11 @@ export function parseEXTINF(param: string): ExtInfo {
   };
 }
 
-/** Parses the EXT-X-BYTERANGE tag value. Format: #EXT-X-BYTERANGE:<n>[@<o>] */
+/**
+ * 解析 EXT-X-BYTERANGE 标签值。
+ *
+ * Parses the EXT-X-BYTERANGE tag value. Format: #EXT-X-BYTERANGE:<n>[@<o>]
+ */
 export function parseBYTERANGE(param: string): Byterange {
   const pair = splitAt(param, "@");
   return {
@@ -291,13 +317,21 @@ export function parseBYTERANGE(param: string): Byterange {
   };
 }
 
-/** Parses a resolution string "widthxheight". */
+/**
+ * 解析分辨率字符串。
+ *
+ * Parses a resolution string "widthxheight".
+ */
 export function parseResolution(str: string): Resolution {
   const pair = splitAt(str, "x") as [string, string];
   return { width: toNumber(pair[0]), height: toNumber(pair[1]) };
 }
 
-/** Parses ALLOWED-CPC attribute value. */
+/**
+ * 解析 ALLOWED-CPC 属性值。
+ *
+ * Parses ALLOWED-CPC attribute value.
+ */
 export function parseAllowedCpc(str: string): AllowedCpc[] {
   const message = "ALLOWED-CPC: Each entry must consist of KEYFORMAT and Content Protection Configuration";
   const list = str.split(",");
@@ -313,7 +347,11 @@ export function parseAllowedCpc(str: string): AllowedCpc[] {
   return allowedCpcList;
 }
 
-/** Parses an Initialization Vector from a hex string. Must be 128 bits (16 bytes). */
+/**
+ * 从十六进制字符串解析初始化向量。
+ *
+ * Parses an Initialization Vector from a hex string. Must be 128 bits (16 bytes).
+ */
 export function parseIV(str: string): Uint8Array {
   const iv = hexToByteSequence(str);
   if (iv.length !== 16) {
@@ -322,14 +360,22 @@ export function parseIV(str: string): Uint8Array {
   return iv;
 }
 
-/** Parses a user-defined attribute value (X- prefixed). */
+/**
+ * 解析用户自定义属性值（X- 前缀）。
+ *
+ * Parses a user-defined attribute value (X- prefixed).
+ */
 export function parseUserAttribute(str: string): UserAttribute {
   if (str.startsWith('"')) return trim(str, '"')!;
   if (str.startsWith("0x") || str.startsWith("0X")) return hexToByteSequence(str);
   return toNumber(str);
 }
 
-/** Parses an attribute list (comma-separated key=value pairs). */
+/**
+ * 解析属性列表（逗号分隔的 key=value 对）。
+ *
+ * Parses an attribute list (comma-separated key=value pairs).
+ */
 export function parseAttributeList(param: string): ParsedAttrs {
   const attributes: ParsedAttrs = {};
   for (const item of splitByCommaWithPreservingQuotes(param)) {
@@ -398,14 +444,22 @@ export function parseAttributeList(param: string): ParsedAttrs {
   return attributes;
 }
 
-/** Splits a tag line into name and parameter. Format: #EXT-TAG-NAME:parameter */
+/**
+ * 将标签行分割为名称和参数。
+ *
+ * Splits a tag line into name and parameter. Format: #EXT-TAG-NAME:parameter
+ */
 export function splitTag(line: string): [string, string | null] {
   const index = line.indexOf(":");
   if (index === -1) return [line.slice(1).trim(), null];
   return [line.slice(1, index).trim(), line.slice(index + 1).trim()];
 }
 
-/** Parses a tag's parameters into a structured [value, attributes] pair. */
+/**
+ * 将标签参数解析为结构化的 [value, attributes] 对。
+ *
+ * Parses a tag's parameters into a structured [value, attributes] pair.
+ */
 export function parseTagParam(name: string, param: string | null): TagParam {
   if (param === null) return [null, null];
   switch (name) {

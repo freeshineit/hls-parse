@@ -1,4 +1,6 @@
 /**
+ * HLS 播放列表类型定义。
+ *
  * HLS Playlist Type Definitions
  *
  * All types conforming to {@link https://datatracker.ietf.org/doc/html/rfc8216 | RFC 8216}
@@ -13,6 +15,8 @@
  */
 
 /**
+ * 媒体初始化段。
+ *
  * Media Initialization Section.
  *
  * Corresponds to the `#EXT-X-MAP` tag.
@@ -22,15 +26,29 @@
  * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.5 | RFC 8216 §4.3.2.5}
  */
 export interface MediaInitializationSection {
-  /** Whether this is a preload hint (LL-HLS). */
+  /**
+   * 是否为预加载提示（LL-HLS）。
+   *
+   * Whether this is a preload hint (LL-HLS).
+   */
   hint?: boolean;
-  /** URI to the initialization section resource. */
+  /**
+   * 初始化段资源的 URI。
+   *
+   * URI to the initialization section resource.
+   */
   uri: string;
-  /** Byte range within the resource. */
+  /**
+   * 资源的字节范围。
+   *
+   * Byte range within the resource.
+   */
   byterange?: Byterange;
 }
 
 /**
+ * 字节范围规范。
+ *
  * Byte range specification.
  *
  * Corresponds to the `#EXT-X-BYTERANGE` tag value.
@@ -42,9 +60,15 @@ export interface MediaInitializationSection {
  * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.2 | RFC 8216 §4.3.2.2}
  */
 export interface Byterange {
-  /** Length of the byte range in bytes. */
+  /**
+   * 字节范围的长度（以字节为单位）。
+   *
+   * Length of the byte range in bytes.
+   */
   length: number;
   /**
+   * 起始偏移量（以字节为单位）。
+   *
    * Start offset in bytes.
    *
    * @defaultValue `-1` (implicit offset)
@@ -53,6 +77,8 @@ export interface Byterange {
 }
 
 /**
+ * 显示分辨率。
+ *
  * Display resolution.
  *
  * Corresponds to the `RESOLUTION` attribute value.
@@ -60,13 +86,23 @@ export interface Byterange {
  * @example `{ width: 1920, height: 1080 }` for `RESOLUTION=1920x1080`
  */
 export interface Resolution {
-  /** Horizontal pixel dimension. */
+  /**
+   * 水平像素尺寸。
+   *
+   * Horizontal pixel dimension.
+   */
   width: number;
-  /** Vertical pixel dimension. */
+  /**
+   * 垂直像素尺寸。
+   *
+   * Vertical pixel dimension.
+   */
   height: number;
 }
 
 /**
+ * 加密/解密密钥。
+ *
  * Encryption / decryption key.
  *
  * Corresponds to `#EXT-X-KEY` and `#EXT-X-SESSION-KEY` tags.
@@ -75,42 +111,68 @@ export interface Resolution {
  */
 export interface Key {
   /**
+   * 加密方法。
+   *
    * Encryption method.
    *
    * @remarks Valid values: `"NONE"`, `"AES-128"`, `"SAMPLE-AES"`.
    */
   method: string;
-  /** URI to obtain the key file. */
+  /**
+   * 获取密钥文件的 URI。
+   *
+   * URI to obtain the key file.
+   */
   uri?: string;
   /**
+   * 初始化向量。
+   *
    * Initialization Vector.
    *
    * @remarks Must be exactly 128 bits (16 bytes) when present.
    */
   iv?: Uint8Array;
   /**
+   * 密钥格式标识符。
+   *
    * Key format identifier.
    *
    * @defaultValue `"identity"`
    */
   format?: string;
-  /** Key format version(s), separated by `/`. */
+  /**
+   * 密钥格式版本，以 "/" 分隔。
+   *
+   * Key format version(s), separated by `/`.
+   */
   formatVersion?: string;
 }
 
 /**
+ * 解析后的 #EXTINF 标签数据。
+ *
  * Parsed `#EXTINF` tag data.
  *
  * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.1 | RFC 8216 §4.3.2.1}
  */
 export interface ExtInfo {
-  /** Segment duration in seconds. */
+  /**
+   * 片段时长（秒）。
+   *
+   * Segment duration in seconds.
+   */
   duration: number;
-  /** Optional human-readable title. */
+  /**
+   * 可选的人类可读标题。
+   *
+   * Optional human-readable title.
+   */
   title?: string;
 }
 
 /**
+ * 低延迟 HLS 的部分片段。
+ *
  * Partial segment for Low-Latency HLS.
  *
  * Corresponds to `#EXT-X-PART` and `#EXT-X-PRELOAD-HINT` (TYPE=PART) tags.
@@ -118,21 +180,47 @@ export interface ExtInfo {
  * @beta LL-HLS feature
  */
 export interface PartialSegment {
-  /** Whether this is a preload hint (`#EXT-X-PRELOAD-HINT`). */
+  /**
+   * 是否为预加载提示（#EXT-X-PRELOAD-HINT）。
+   *
+   * Whether this is a preload hint (`#EXT-X-PRELOAD-HINT`).
+   */
   hint?: boolean;
-  /** URI to the partial segment. */
+  /**
+   * 部分片段的 URI。
+   *
+   * URI to the partial segment.
+   */
   uri: string;
-  /** Byte range within the resource. */
+  /**
+   * 资源的字节范围。
+   *
+   * Byte range within the resource.
+   */
   byterange?: Byterange;
-  /** Duration in seconds. */
+  /**
+   * 时长（秒）。
+   *
+   * Duration in seconds.
+   */
   duration?: number;
-  /** Whether this segment can be decoded independently. */
+  /**
+   * 此片段是否可以独立解码。
+   *
+   * Whether this segment can be decoded independently.
+   */
   independent?: boolean;
-  /** Whether this segment is a gap. */
+  /**
+   * 此片段是否为间隔。
+   *
+   * Whether this segment is a gap.
+   */
   gap?: boolean;
 }
 
 /**
+ * 低延迟 HLS 的预取片段。
+ *
  * Prefetch segment for Low-Latency HLS.
  *
  * Corresponds to the `#EXT-X-PREFETCH` tag.
@@ -140,46 +228,110 @@ export interface PartialSegment {
  * @beta LL-HLS feature
  */
 export interface PrefetchSegment {
-  /** URI of the prefetch segment. */
+  /**
+   * 预取片段的 URI。
+   *
+   * URI of the prefetch segment.
+   */
   uri: string;
-  /** Media Sequence Number. */
+  /**
+   * 媒体序列号。
+   *
+   * Media Sequence Number.
+   */
   mediaSequenceNumber: number;
-  /** Discontinuity Sequence Number. */
+  /**
+   * 间断序列号。
+   *
+   * Discontinuity Sequence Number.
+   */
   discontinuitySequence: number;
-  /** Whether this segment indicates a discontinuity. */
+  /**
+   * 此片段是否标识间断。
+   *
+   * Whether this segment indicates a discontinuity.
+   */
   discontinuity?: boolean;
-  /** Encryption key (inherited from previous segment if not specified). */
+  /**
+   * 加密密钥（如未指定则继承自前一个片段）。
+   *
+   * Encryption key (inherited from previous segment if not specified).
+   */
   key?: Key | null;
 }
 
 /**
+ * 媒体片段。
+ *
  * Media Segment.
  *
  * Represents a single segment in a Media Playlist, including all associated tags
  * (`#EXTINF`, `#EXT-X-KEY`, `#EXT-X-MAP`, `#EXT-X-BYTERANGE`, etc.).
  */
 export interface Segment {
-  /** URI of the media segment. */
+  /**
+   * 媒体片段的 URI。
+   *
+   * URI of the media segment.
+   */
   uri: string;
-  /** Duration in seconds (from `#EXTINF`). */
+  /**
+   * 时长（秒）（来自 #EXTINF）。
+   *
+   * Duration in seconds (from `#EXTINF`).
+   */
   duration?: number;
-  /** Optional title (from `#EXTINF`). */
+  /**
+   * 可选标题（来自 #EXTINF）。
+   *
+   * Optional title (from `#EXTINF`).
+   */
   title?: string;
-  /** Byte range within the resource (from `#EXT-X-BYTERANGE`). */
+  /**
+   * 资源的字节范围（来自 #EXT-X-BYTERANGE）。
+   *
+   * Byte range within the resource (from `#EXT-X-BYTERANGE`).
+   */
   byterange?: Byterange;
-  /** Media Sequence Number. */
+  /**
+   * 媒体序列号。
+   *
+   * Media Sequence Number.
+   */
   mediaSequenceNumber: number;
-  /** Discontinuity Sequence Number. */
+  /**
+   * 间断序列号。
+   *
+   * Discontinuity Sequence Number.
+   */
   discontinuitySequence: number;
-  /** Whether this segment is a discontinuity (`#EXT-X-DISCONTINUITY`). */
+  /**
+   * 此片段是否为间断（#EXT-X-DISCONTINUITY）。
+   *
+   * Whether this segment is a discontinuity (`#EXT-X-DISCONTINUITY`).
+   */
   discontinuity?: boolean;
-  /** Whether this segment is a gap (`#EXT-X-GAP`). */
+  /**
+   * 此片段是否为间隔（#EXT-X-GAP）。
+   *
+   * Whether this segment is a gap (`#EXT-X-GAP`).
+   */
   gap?: boolean;
-  /** Encryption key (`#EXT-X-KEY`). Inherited if not present. */
+  /**
+   * 加密密钥（#EXT-X-KEY）。如不存在则继承。
+   *
+   * Encryption key (`#EXT-X-KEY`). Inherited if not present.
+   */
   key?: Key | null;
-  /** Media Initialization Section (`#EXT-X-MAP`). Inherited if not present. */
+  /**
+   * 媒体初始化段（#EXT-X-MAP）。如不存在则继承。
+   *
+   * Media Initialization Section (`#EXT-X-MAP`). Inherited if not present.
+   */
   map?: MediaInitializationSection | null;
   /**
+   * 节目日期/时间（#EXT-X-PROGRAM-DATE-TIME）。
+   *
    * Program date/time (`#EXT-X-PROGRAM-DATE-TIME`).
    * https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.6
    *
@@ -187,20 +339,36 @@ export interface Segment {
    */
   programDateTime?: string;
   /**
+   * Ezviz 设备时间戳（#EXT-X-DEVICE-TIME）。
+   *
    * Ezviz device timestamp (`#EXT-X-DEVICE-TIME`).
    *
    * #EXT-X-DEVICE-TIME:20260603013421
    */
   deviceTime?: string;
-  /** Date range metadata (`#EXT-X-DATERANGE`). */
+  /**
+   * 日期范围元数据（#EXT-X-DATERANGE）。
+   *
+   * Date range metadata (`#EXT-X-DATERANGE`).
+   */
   dateRange?: DateRange;
-  /** Splice / marker information. */
+  /**
+   * 拼接/标记信息。
+   *
+   * Splice / marker information.
+   */
   markers?: SpliceInfo[];
-  /** Partial segments (LL-HLS `#EXT-X-PART` / `#EXT-X-PRELOAD-HINT`). */
+  /**
+   * 部分片段（LL-HLS #EXT-X-PART / #EXT-X-PRELOAD-HINT）。
+   *
+   * Partial segments (LL-HLS `#EXT-X-PART` / `#EXT-X-PRELOAD-HINT`).
+   */
   parts?: PartialSegment[];
 }
 
 /**
+ * 日期范围元数据。
+ *
  * Date Range metadata.
  *
  * Corresponds to the `#EXT-X-DATERANGE` tag.
@@ -208,47 +376,101 @@ export interface Segment {
  * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.7 | RFC 8216 §4.3.2.7}
  */
 export interface DateRange {
-  /** Unique identifier. */
+  /**
+   * 唯一标识符。
+   *
+   * Unique identifier.
+   */
   id: string;
-  /** CLASS name grouping ranges with shared semantics. */
+  /**
+   * CLASS 名称，用于分组具有共享语义的范围。
+   *
+   * CLASS name grouping ranges with shared semantics.
+   */
   classId?: string;
-  /** Start date/time. */
+  /**
+   * 开始日期/时间。
+   *
+   * Start date/time.
+   */
   start: Date;
-  /** Cue information. */
+  /**
+   * 提示信息。
+   *
+   * Cue information.
+   */
   cue?: string;
-  /** End date/time. */
+  /**
+   * 结束日期/时间。
+   *
+   * End date/time.
+   */
   end?: Date;
-  /** Duration in seconds. */
+  /**
+   * 时长（秒）。
+   *
+   * Duration in seconds.
+   */
   duration?: number;
-  /** Expected duration (when actual is not yet known). */
+  /**
+   * 预期时长（实际值尚未确定时）。
+   *
+   * Expected duration (when actual is not yet known).
+   */
   plannedDuration?: number;
   /**
+   * 此范围是否在同一 CLASS 的下一个范围开始时结束。
+   *
    * Whether this range ends at the start of the next range of the same CLASS.
    *
    * @remarks Cannot coexist with `duration` or `end`.
    */
   endOnNext?: boolean;
-  /** Custom attributes (SCTE35- and X- prefixed). */
+  /**
+   * 自定义属性（SCTE35- 和 X- 前缀）。
+   *
+   * Custom attributes (SCTE35- and X- prefixed).
+   */
   attributes?: Record<string, AttrValue>;
 }
 
 /**
+ * 拼接/标记信息。
+ *
  * Splice / marker information.
  *
  * Carried by `#EXT-X-CUE-OUT`, `#EXT-X-CUE-IN`, and raw SCTE-35 tags.
  */
 export interface SpliceInfo {
-  /** Marker type. */
+  /**
+   * 标记类型。
+   *
+   * Marker type.
+   */
   type: "OUT" | "IN" | "RAW";
-  /** Duration in seconds (for `OUT` type). */
+  /**
+   * 时长（秒）（适用于 OUT 类型）。
+   *
+   * Duration in seconds (for `OUT` type).
+   */
   duration?: number;
-  /** Original tag name (for `RAW` type). */
+  /**
+   * 原始标签名称（适用于 RAW 类型）。
+   *
+   * Original tag name (for `RAW` type).
+   */
   tagName?: string;
-  /** Raw tag value. */
+  /**
+   * 原始标签值。
+   *
+   * Raw tag value.
+   */
   value?: unknown;
 }
 
 /**
+ * 替代呈现方式（Alternative Rendition）。
+ *
  * Alternative Rendition.
  *
  * Corresponds to the `#EXT-X-MEDIA` tag.
@@ -256,40 +478,92 @@ export interface SpliceInfo {
  * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.4.1 | RFC 8216 §4.3.4.1}
  */
 export interface Rendition {
-  /** Media type: `"AUDIO"`, `"VIDEO"`, `"SUBTITLES"`, or `"CLOSED-CAPTIONS"`. */
+  /**
+   * 媒体类型：AUDIO、VIDEO、SUBTITLES 或 CLOSED-CAPTIONS。
+   *
+   * Media type: `"AUDIO"`, `"VIDEO"`, `"SUBTITLES"`, or `"CLOSED-CAPTIONS"`.
+   */
   type: string;
-  /** URI of the media playlist (optional for AUDIO/VIDEO). */
+  /**
+   * 媒体播放列表的 URI（AUDIO/VIDEO 可选）。
+   *
+   * URI of the media playlist (optional for AUDIO/VIDEO).
+   */
   uri?: string;
-  /** Rendition group ID. */
+  /**
+   * 呈现方式组 ID。
+   *
+   * Rendition group ID.
+   */
   groupId: string;
-  /** Primary language (RFC 5646 tag). */
+  /**
+   * 主要语言（RFC 5646 标签）。
+   *
+   * Primary language (RFC 5646 tag).
+   */
   language?: string;
-  /** Associated language (RFC 5646 tag). */
+  /**
+   * 关联语言（RFC 5646 标签）。
+   *
+   * Associated language (RFC 5646 tag).
+   */
   assocLanguage?: string;
-  /** Human-readable name. */
+  /**
+   * 人类可读名称。
+   *
+   * Human-readable name.
+   */
   name: string;
-  /** Whether this is the default rendition. */
+  /**
+   * 是否为默认呈现方式。
+   *
+   * Whether this is the default rendition.
+   */
   isDefault?: boolean;
-  /** Whether this can be auto-selected. */
+  /**
+   * 是否可自动选择。
+   *
+   * Whether this can be auto-selected.
+   */
   autoselect?: boolean;
-  /** Whether this is forced (SUBTITLES only). */
+  /**
+   * 是否为强制呈现（仅限 SUBTITLES）。
+   *
+   * Whether this is forced (SUBTITLES only).
+   */
   forced?: boolean;
   /**
+   * 流内 ID。
+   *
    * In-stream ID.
    *
    * @remarks Required when `type` is `"CLOSED-CAPTIONS"`.
    * Valid: `"CC1"`-`"CC4"`, `"SERVICE1"`-`"SERVICE63"`.
    */
   instreamId?: string;
-  /** Uniform Type Identifiers (UTIs), comma-separated. */
+  /**
+   * 统一类型标识符（UTI），逗号分隔。
+   *
+   * Uniform Type Identifiers (UTIs), comma-separated.
+   */
   characteristics?: string;
-  /** Audio channel count and parameters. */
+  /**
+   * 音频声道数及参数。
+   *
+   * Audio channel count and parameters.
+   */
   channels?: string;
-  /** Pathway ID for content steering. */
+  /**
+   * 内容引导的路径 ID。
+   *
+   * Pathway ID for content steering.
+   */
   pathwayId?: string;
 }
 
 /**
+ * 变体流（Variant Stream）。
+ *
  * Variant Stream.
  *
  * Corresponds to `#EXT-X-STREAM-INF` or `#EXT-X-I-FRAME-STREAM-INF`.
@@ -297,64 +571,145 @@ export interface Rendition {
  * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.4.2 | RFC 8216 §4.3.4.2}
  */
 export interface Variant {
-  /** URI of the media playlist. */
+  /**
+   * 媒体播放列表的 URI。
+   *
+   * URI of the media playlist.
+   */
   uri: string;
-  /** Peak bit rate in bits per second. */
+  /**
+   * 峰值比特率（bps）。
+   *
+   * Peak bit rate in bits per second.
+   */
   bandwidth: number;
-  /** Average bit rate in bits per second. */
+  /**
+   * 平均比特率（bps）。
+   *
+   * Average bit rate in bits per second.
+   */
   averageBandwidth?: number;
   /**
+   * 变体分数（LL-HLS），用于优先级播放列表重新加载。
+   *
    * Variant SCORE (LL-HLS), used for prioritised playlist reload.
    *
    * @remarks If any variant has a SCORE, all variants SHOULD have one.
    */
   score?: number;
-  /** Codec identifiers (RFC 6381). */
+  /**
+   * 编解码器标识符（RFC 6381）。
+   *
+   * Codec identifiers (RFC 6381).
+   */
   codecs?: string;
-  /** Optimal display resolution. */
+  /**
+   * 最佳显示分辨率。
+   *
+   * Optimal display resolution.
+   */
   resolution?: Resolution;
-  /** Maximum frame rate (rounded to 3 decimal places). */
+  /**
+   * 最大帧率（保留 3 位小数）。
+   *
+   * Maximum frame rate (rounded to 3 decimal places).
+   */
   frameRate?: number;
-  /** HDCP level: `"TYPE-0"` or `"NONE"`. */
+  /**
+   * HDCP 级别：TYPE-0 或 NONE。
+   *
+   * HDCP level: `"TYPE-0"` or `"NONE"`.
+   */
   hdcpLevel?: string;
-  /** Allowed Content Protection Configurations. */
+  /**
+   * 允许的内容保护配置。
+   *
+   * Allowed Content Protection Configurations.
+   */
   allowedCpc?: AllowedCpc[];
-  /** Video range: `"SDR"`, `"HLG"`, or `"PQ"`. */
+  /**
+   * 视频范围：SDR、HLG 或 PQ。
+   *
+   * Video range: `"SDR"`, `"HLG"`, or `"PQ"`.
+   */
   videoRange?: string;
-  /** Stable variant identifier. */
+  /**
+   * 稳定的变体标识符。
+   *
+   * Stable variant identifier.
+   */
   stableVariantId?: string;
-  /** Pathway ID for content steering. */
+  /**
+   * 内容引导的路径 ID。
+   *
+   * Pathway ID for content steering.
+   */
   pathwayId?: string;
-  /** Program ID.
+  /**
+   * 节目 ID。
+   *
+   * Program ID.
    *
    * @deprecated Removed in protocol version 6.
    */
   programId?: number;
-  /** Whether this is an I-frame variant (`#EXT-X-I-FRAME-STREAM-INF`). */
+  /**
+   * 是否为 I-frame 变体（#EXT-X-I-FRAME-STREAM-INF）。
+   *
+   * Whether this is an I-frame variant (`#EXT-X-I-FRAME-STREAM-INF`).
+   */
   isIFrameOnly?: boolean;
-  /** Audio renditions matching this variant's GROUP-ID. */
+  /**
+   * 与此变体 GROUP-ID 匹配的音频呈现方式。
+   *
+   * Audio renditions matching this variant's GROUP-ID.
+   */
   audio?: Rendition[];
-  /** Video renditions matching this variant's GROUP-ID. */
+  /**
+   * 与此变体 GROUP-ID 匹配的视频呈现方式。
+   *
+   * Video renditions matching this variant's GROUP-ID.
+   */
   video?: Rendition[];
-  /** Subtitle renditions matching this variant's GROUP-ID. */
+  /**
+   * 与此变体 GROUP-ID 匹配的字幕呈现方式。
+   *
+   * Subtitle renditions matching this variant's GROUP-ID.
+   */
   subtitles?: Rendition[];
-  /** Closed-caption renditions matching this variant's GROUP-ID. */
+  /**
+   * 与此变体 GROUP-ID 匹配的隐藏式字幕呈现方式。
+   *
+   * Closed-caption renditions matching this variant's GROUP-ID.
+   */
   closedCaptions?: Rendition[];
 }
 
 /**
+ * 允许的内容保护配置条目。
+ *
  * Allowed Content Protection Configuration entry.
  *
  * Part of the `ALLOWED-CPC` attribute value.
  */
 export interface AllowedCpc {
-  /** Content protection format identifier. */
+  /**
+   * 内容保护格式标识符。
+   *
+   * Content protection format identifier.
+   */
   format: string;
-  /** List of Content Protection Configurations. */
+  /**
+   * 内容保护配置列表。
+   *
+   * List of Content Protection Configurations.
+   */
   cpcList: string[];
 }
 
 /**
+ * 会话数据。
+ *
  * Session Data.
  *
  * Corresponds to the `#EXT-X-SESSION-DATA` tag.
@@ -362,29 +717,57 @@ export interface AllowedCpc {
  * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.4.4 | RFC 8216 §4.3.4.4}
  */
 export interface SessionData {
-  /** Data identifier (reverse-DNS recommended). */
+  /**
+   * 数据标识符（建议使用反向 DNS 格式）。
+   *
+   * Data identifier (reverse-DNS recommended).
+   */
   id: string;
-  /** Inline value (mutually exclusive with `uri`). */
+  /**
+   * 内联值（与 uri 互斥）。
+   *
+   * Inline value (mutually exclusive with `uri`).
+   */
   value?: string;
-  /** URI to a JSON resource (mutually exclusive with `value`). */
+  /**
+   * JSON 资源 URI（与 value 互斥）。
+   *
+   * URI to a JSON resource (mutually exclusive with `value`).
+   */
   uri?: string;
-  /** Language of the value (RFC 5646 tag). */
+  /**
+   * 值的语言（RFC 5646 标签）。
+   *
+   * Language of the value (RFC 5646 tag).
+   */
   language?: string;
 }
 
 /**
+ * 内容引导配置。
+ *
  * Content Steering configuration.
  *
  * Corresponds to the `#EXT-X-CONTENT-STEERING` tag.
  */
 export interface ContentSteering {
-  /** Server URI for the steering manifest. */
+  /**
+   * 引导清单的服务器 URI。
+   *
+   * Server URI for the steering manifest.
+   */
   serverUri: string;
-  /** Pathway ID to use. */
+  /**
+   * 要使用的路径 ID。
+   *
+   * Pathway ID to use.
+   */
   pathwayId?: string;
 }
 
 /**
+ * 低延迟 HLS 的呈现方式报告。
+ *
  * Rendition Report for Low-Latency HLS.
  *
  * Corresponds to the `#EXT-X-RENDITION-REPORT` tag.
@@ -392,15 +775,29 @@ export interface ContentSteering {
  * @beta LL-HLS feature
  */
 export interface RenditionReport {
-  /** URI of the rendition playlist (must be relative). */
+  /**
+   * 呈现方式播放列表的 URI（必须为相对路径）。
+   *
+   * URI of the rendition playlist (must be relative).
+   */
   uri: string;
-  /** Last Media Sequence Number. */
+  /**
+   * 最后的媒体序列号。
+   *
+   * Last Media Sequence Number.
+   */
   lastMSN?: number;
-  /** Last Part index. */
+  /**
+   * 最后的部分索引。
+   *
+   * Last Part index.
+   */
   lastPart?: number;
 }
 
 /**
+ * 首选起始位置。
+ *
  * Preferred start position.
  *
  * Corresponds to the `#EXT-X-START` tag.
@@ -409,12 +806,16 @@ export interface RenditionReport {
  */
 export interface StartData {
   /**
+   * 时间偏移量（秒）。
+   *
    * Time offset in seconds.
    *
    * @remarks Positive = from beginning, negative = from end.
    */
   offset: number;
   /**
+   * 是否精确定位到 TIME-OFFSET。
+   *
    * Whether to precisely seek to the TIME-OFFSET.
    *
    * @defaultValue `false`
@@ -423,6 +824,8 @@ export interface StartData {
 }
 
 /**
+ * 低延迟 HLS 服务器控制参数。
+ *
  * Low-Latency HLS server control parameters.
  *
  * Corresponds to the `#EXT-X-SERVER-CONTROL` tag.
@@ -430,23 +833,49 @@ export interface StartData {
  * @beta LL-HLS feature
  */
 export interface LowLatencyCompatibility {
-  /** Whether block reload is supported. */
+  /**
+   * 是否支持阻塞式重新加载。
+   *
+   * Whether block reload is supported.
+   */
   canBlockReload: boolean;
-  /** Maximum skip duration in seconds. */
+  /**
+   * 最大跳过时长（秒）。
+   *
+   * Maximum skip duration in seconds.
+   */
   canSkipUntil?: number;
-  /** Minimum hold-back time in seconds. */
+  /**
+   * 最小保持时间（秒）。
+   *
+   * Minimum hold-back time in seconds.
+   */
   holdBack?: number;
-  /** Minimum part hold-back time in seconds. */
+  /**
+   * 最小部分保持时间（秒）。
+   *
+   * Minimum part hold-back time in seconds.
+   */
   partHoldBack?: number;
 }
 
-/** Union of all possible parsed attribute values. */
+/**
+ * 所有已解析属性值的联合类型。
+ *
+ * Union of all possible parsed attribute values.
+ */
 export type AttrValue = string | number | boolean | Date | Uint8Array | Resolution | Byterange | AllowedCpc[];
 
-/** Map of parsed tag attributes. */
+/**
+ * 已解析标签属性的映射。
+ *
+ * Map of parsed tag attributes.
+ */
 export type ParsedAttrs = Record<string, AttrValue>;
 
 /**
+ * 标签参数元组：[value, attributes]。
+ *
  * Tag parameter tuple: `[value, attributes]`.
  *
  * @internal
@@ -454,6 +883,8 @@ export type ParsedAttrs = Record<string, AttrValue>;
 export type TagParam = [string | number | ExtInfo | Byterange | null, ParsedAttrs | null];
 
 /**
+ * 用户自定义属性值。
+ *
  * User-defined attribute value.
  *
  * @internal
@@ -461,6 +892,8 @@ export type TagParam = [string | number | ExtInfo | Byterange | null, ParsedAttr
 export type UserAttribute = string | number | Uint8Array;
 
 /**
+ * 主播放列表（Master Playlist）。
+ *
  * Master Playlist.
  *
  * Contains variant streams and renditions for adaptive bitrate streaming.
@@ -478,31 +911,77 @@ export type UserAttribute = string | number | Uint8Array;
  * ```
  */
 export interface MasterPlaylist {
-  /** Type discriminator — always `true` for Master Playlist. */
+  /**
+   * 类型判别器 — 主播放列表始终为 true。
+   *
+   * Type discriminator — always `true` for Master Playlist.
+   */
   isMasterPlaylist: true;
-  /** The raw playlist source text. */
+  /**
+   * 原始播放列表源文本。
+   *
+   * The raw playlist source text.
+   */
   source?: string;
-  /** Protocol compatibility version. */
+  /**
+   * 协议兼容版本。
+   *
+   * Protocol compatibility version.
+   */
   version?: number;
-  /** Whether independent segments are signaled. */
+  /**
+   * 是否标记了独立片段。
+   *
+   * Whether independent segments are signaled.
+   */
   independentSegments?: boolean;
-  /** Preferred start position. */
+  /**
+   * 首选起始位置。
+   *
+   * Preferred start position.
+   */
   start?: StartData;
-  /** Content steering configuration. */
+  /**
+   * 内容引导配置。
+   *
+   * Content steering configuration.
+   */
   contentSteering?: ContentSteering;
-  /** Variable definitions (`#EXT-X-DEFINE`). */
+  /**
+   * 变量定义（#EXT-X-DEFINE）。
+   *
+   * Variable definitions (`#EXT-X-DEFINE`).
+   */
   defines?: Record<string, AttrValue>[];
-  /** Session data entries. */
+  /**
+   * 会话数据条目。
+   *
+   * Session data entries.
+   */
   sessionDataList: SessionData[];
-  /** Session keys. */
+  /**
+   * 会话密钥。
+   *
+   * Session keys.
+   */
   sessionKeyList: Key[];
-  /** Variant streams (`#EXT-X-STREAM-INF` / `#EXT-X-I-FRAME-STREAM-INF`). */
+  /**
+   * 变体流（#EXT-X-STREAM-INF / #EXT-X-I-FRAME-STREAM-INF）。
+   *
+   * Variant streams (`#EXT-X-STREAM-INF` / `#EXT-X-I-FRAME-STREAM-INF`).
+   */
   variants: Variant[];
-  /** Custom/unknown tags. Tag `-` → `_`. */
+  /**
+   * 自定义/未知标签。标签中的 "-" → "_"。
+   *
+   * Custom/unknown tags. Tag `-` → `_`.
+   */
   customTags?: Record<string, unknown[]>;
 }
 
 /**
+ * 媒体播放列表（Media Playlist）。
+ *
  * Media Playlist.
  *
  * Contains segments and metadata for sequential playback.
@@ -520,51 +999,137 @@ export interface MasterPlaylist {
  * ```
  */
 export interface MediaPlaylist {
-  /** Type discriminator — always `false` for Media Playlist. */
+  /**
+   * 类型判别器 — 媒体播放列表始终为 false。
+   *
+   * Type discriminator — always `false` for Media Playlist.
+   */
   isMasterPlaylist: false;
-  /** The raw playlist source text. */
+  /**
+   * 原始播放列表源文本。
+   *
+   * The raw playlist source text.
+   */
   source?: string;
-  /** Protocol compatibility version. */
+  /**
+   * 协议兼容版本。
+   *
+   * Protocol compatibility version.
+   */
   version?: number;
-  /** Whether independent segments are signaled. */
+  /**
+   * 是否标记了独立片段。
+   *
+   * Whether independent segments are signaled.
+   */
   independentSegments?: boolean;
-  /** Preferred start position. */
+  /**
+   * 首选起始位置。
+   *
+   * Preferred start position.
+   */
   start?: StartData;
-  /** Variable definitions (`#EXT-X-DEFINE`). */
+  /**
+   * 变量定义（#EXT-X-DEFINE）。
+   *
+   * Variable definitions (`#EXT-X-DEFINE`).
+   */
   defines?: Record<string, AttrValue>[];
-  /** Maximum segment duration in seconds (`#EXT-X-TARGETDURATION`). */
+  /**
+   * 最大片段时长（秒）（#EXT-X-TARGETDURATION）。
+   *
+   * Maximum segment duration in seconds (`#EXT-X-TARGETDURATION`).
+   */
   targetDuration?: number;
-  /** Base media sequence number. */
+  /**
+   * 基础媒体序列号。
+   *
+   * Base media sequence number.
+   */
   mediaSequenceBase?: number;
-  /** Base discontinuity sequence number. */
+  /**
+   * 基础间断序列号。
+   *
+   * Base discontinuity sequence number.
+   */
   discontinuitySequenceBase?: number;
-  /** Whether the playlist is complete (`#EXT-X-ENDLIST`). */
+  /**
+   * 播放列表是否已完成（#EXT-X-ENDLIST）。
+   *
+   * Whether the playlist is complete (`#EXT-X-ENDLIST`).
+   */
   endlist?: boolean;
-  /** Playlist type: `"EVENT"` or `"VOD"`. */
+  /**
+   * 播放列表类型：EVENT 或 VOD。
+   *
+   * Playlist type: `"EVENT"` or `"VOD"`.
+   */
   playlistType?: string;
-  /** Whether this is an I-frame only playlist. */
+  /**
+   * 是否为仅 I-frame 的播放列表。
+   *
+   * Whether this is an I-frame only playlist.
+   */
   isIFrame?: boolean;
-  /** LL-HLS server control parameters. */
+  /**
+   * LL-HLS 服务器控制参数。
+   *
+   * LL-HLS server control parameters.
+   */
   lowLatencyCompatibility?: LowLatencyCompatibility;
-  /** Partial segment target duration (LL-HLS). */
+  /**
+   * 部分片段目标时长（LL-HLS）。
+   *
+   * Partial segment target duration (LL-HLS).
+   */
   partTargetDuration?: number;
-  /** Bitrate of the media playlist in bps (RFC 8216bis EXT-X-BITRATE). */
+  /**
+   * 媒体播放列表的比特率（bps）（RFC 8216bis EXT-X-BITRATE）。
+   *
+   * Bitrate of the media playlist in bps (RFC 8216bis EXT-X-BITRATE).
+   */
   bitrate?: number;
-  /** Number of skipped segments (LL-HLS `#EXT-X-SKIP`). */
+  /**
+   * 跳过的片段数（LL-HLS #EXT-X-SKIP）。
+   *
+   * Number of skipped segments (LL-HLS `#EXT-X-SKIP`).
+   */
   skip?: number;
-  /** Media segments. */
+  /**
+   * 媒体片段。
+   *
+   * Media segments.
+   */
   segments: Segment[];
-  /** Prefetch segments (LL-HLS). */
+  /**
+   * 预取片段（LL-HLS）。
+   *
+   * Prefetch segments (LL-HLS).
+   */
   prefetchSegments: PrefetchSegment[];
-  /** Rendition reports (LL-HLS). */
+  /**
+   * 呈现方式报告（LL-HLS）。
+   *
+   * Rendition reports (LL-HLS).
+   */
   renditionReports: RenditionReport[];
-  /** Date ranges in the playlist. */
+  /**
+   * 播放列表中的日期范围。
+   *
+   * Date ranges in the playlist.
+   */
   dateRanges: DateRange[];
-  /** Custom/unknown tags. Tag `-` → `_`. */
+  /**
+   * 自定义/未知标签。标签中的 "-" → "_"。
+   *
+   * Custom/unknown tags. Tag `-` → `_`.
+   */
   customTags?: Record<string, unknown[]>;
 }
 
 /**
+ * 任意已解析播放列表的联合类型。
+ *
  * Union type for any parsed playlist.
  *
  * @remarks
@@ -580,6 +1145,8 @@ export interface MediaPlaylist {
 export type Playlist = MasterPlaylist | MediaPlaylist;
 
 /**
+ * 自定义标签解析器函数。
+ *
  * Custom tag parser function.
  * Receives the parsed tag and returns structured data.
  *
@@ -599,10 +1166,14 @@ export type Playlist = MasterPlaylist | MediaPlaylist;
 export type CustomTagParser = (_tagName: string, _value: unknown, _attributes: Record<string, unknown>) => unknown;
 
 /**
+ * parser 函数的选项。
+ *
  * Options for the `parser` function.
  */
 export interface ParserOptions {
   /**
+   * 用于解析播放列表中相对 URL 的基础 URI。
+   *
    * Base URI for resolving relative URLs in the playlist.
    *
    * @remarks
@@ -617,6 +1188,8 @@ export interface ParserOptions {
    */
   uri?: string;
   /**
+   * 自定义标签解析器，键为标签名（不含 # 前缀）。
+   *
    * Custom tag parsers keyed by tag name (without `#` prefix).
    * When a matching tag is encountered, the parser is called and its
    * return value is stored on `playlist.customTags[tagName]`.
@@ -635,10 +1208,12 @@ export interface ParserOptions {
 }
 
 // ============================================================================
-// Type guard helpers
+// Type guard helpers — 类型守卫辅助函数
 // ============================================================================
 
 /**
+ * 类型守卫：如果解析后的播放列表是主播放列表，返回 true。
+ *
  * Type guard: returns `true` if the parsed playlist is a Master Playlist.
  *
  * @example
@@ -654,6 +1229,8 @@ export function isMasterPlaylist(pl: Playlist): pl is MasterPlaylist {
 }
 
 /**
+ * 类型守卫：如果解析后的播放列表是媒体播放列表，返回 true。
+ *
  * Type guard: returns `true` if the parsed playlist is a Media Playlist.
  *
  * @example

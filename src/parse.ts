@@ -1,5 +1,5 @@
 /**
- * HLS / M3U8 Playlist Parser
+ * HLS / M3U8 播放列表解析器。
  *
  * Parses M3U8 playlists according to RFC 8216 (HTTP Live Streaming),
  * including support for:
@@ -40,17 +40,17 @@ import * as utils from "./utils";
 import * as T from "./constants";
 
 // ---------------------------------------------------------------------------
-// Internal types
+// Internal types — 内部类型
 // ---------------------------------------------------------------------------
 
-/** Internal tag category for grouping tags */
+/** 内部标签类别 / Internal tag category for grouping tags */
 export type TagCategory = "Basic" | "Segment" | "MasterPlaylist" | "MediaPlaylist" | "MediaorMasterPlaylist" | "Unknown";
 
-/** Internal parsed attribute map — values are dynamically typed from M3U8 parsing */
+/** 内部解析属性映射 / Internal parsed attribute map — values are dynamically typed from M3U8 parsing */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type TagAttributes = Record<string, any>;
 
-/** Parsed tag representation */
+/** 解析后的标签表示 / Parsed tag representation */
 interface Tag {
   name: string;
   category: TagCategory;
@@ -58,10 +58,10 @@ interface Tag {
   attributes: TagAttributes;
 }
 
-/** A line in the playlist - either a parsed tag or a URI string */
+/** 播放列表中的一行 / A line in the playlist - either a parsed tag or a URI string */
 type Line = string | Tag;
 
-/** Internal parsing state */
+/** 内部解析状态 / Internal parsing state */
 interface ParseState {
   isMasterPlaylist?: boolean;
   hasMap: boolean;
@@ -69,12 +69,12 @@ interface ParseState {
   compatibleVersion: number;
   isClosedCaptionsNone: boolean;
   hash: Record<string, boolean>;
-  /** Custom tag parsers from ParserOptions */
+  /** 来自 ParserOptions 的自定义标签解析器 / Custom tag parsers from ParserOptions */
   customParsers?: Record<string, CustomTagParser>;
 }
 
 // ---------------------------------------------------------------------------
-// Tag category classification
+// Tag category classification — 标签分类
 // ---------------------------------------------------------------------------
 
 /**
@@ -113,11 +113,11 @@ function getTagCategory(tagName: string): TagCategory {
     case T.EXT_X_GAP:
       return "Segment";
 
-    // -- Custom tags
+    // 自定义标签 / Custom tags
     case T.EXT_X_DEVICE_TIME:
       return "Segment";
 
-    // -- RFC 8216bis
+    // RFC 8216bis 扩展 / RFC 8216bis
     case T.EXT_X_BITRATE:
       return "MediaPlaylist";
 
@@ -156,11 +156,13 @@ function getTagCategory(tagName: string): TagCategory {
 }
 
 // ---------------------------------------------------------------------------
-// Tag parameter parsers — all moved to utils.ts
+// Tag parameter parsers — 标签参数解析器 — all moved to utils.ts
 // Use utils.parseEXTINF, utils.parseAttributeList, utils.parseTagParam, etc.
 // ---------------------------------------------------------------------------
 
 /**
+ * 根据 Key 属性更新兼容版本号。
+ *
  * Updates compatible version based on Key attributes.
  */
 function setCompatibleVersionOfKey(params: ParseState, attributes: TagAttributes) {
@@ -172,7 +174,7 @@ function setCompatibleVersionOfKey(params: ParseState, attributes: TagAttributes
   }
 }
 
-// parseAttributeList, splitTag, parseTagParam — all moved to utils.ts
+// 已移至 utils.ts / parseAttributeList, splitTag, parseTagParam — all moved to utils.ts
 
 /**
  * Throws a mixed tags error when a playlist contains both
@@ -185,7 +187,7 @@ function MIXEDTAGS() {
 }
 
 // ---------------------------------------------------------------------------
-// Tag line parsing
+// Tag line parsing — 标签行解析
 // ---------------------------------------------------------------------------
 
 /**
@@ -198,8 +200,8 @@ function parseTag(line: string, params: ParseState): Tag | null {
   const category = getTagCategory(name);
   CHECKTAGCATEGORY(category, params);
   if (category === "Unknown") {
-    // If a custom parser is registered, use it; otherwise pass raw value.
-    // Detect attribute-list syntax (contains = before first comma) for proper parsing.
+    // 如有注册自定义解析器则使用 / 否则传递原始值 / If a custom parser is registered, use it; otherwise pass raw value.
+    // 检测属性列表语法 / 在第一个逗号前包含 = / Detect attribute-list syntax (contains = before first comma) for proper parsing.
     const looksLikeAttrs = param && /^[A-Z0-9-]+=/.test(param);
     const [value, attributes] = looksLikeAttrs ? [null, utils.parseAttributeList(param)] : utils.parseTagParam(name, param);
     let customResult: unknown = value ?? param;
@@ -240,73 +242,75 @@ function parseTag(line: string, params: ParseState): Tag | null {
  */
 function CHECKTAGCATEGORY(category: TagCategory, params: ParseState) {
   if (category === "Segment" || category === "MediaPlaylist") {
-    // 媒体标签 → 判定为 Media Playlist
+    // 媒体标签 → 判定为 Media Playlist / Media tag → determined as Media Playlist
     if (params.isMasterPlaylist === undefined) {
       params.isMasterPlaylist = false;
       return;
     }
     if (params.isMasterPlaylist) {
-      MIXEDTAGS(); // 之前判定为 Master，现在出现媒体标签 → 混用
+      MIXEDTAGS(); // 之前判定为 Master，现在出现媒体标签 → 混用 / Previously determined as Master, now media tag appears → mixed
     }
     return;
   }
   if (category === "MasterPlaylist") {
-    // 主播放列表标签 → 判定为 Master Playlist
+    // 主播放列表标签 → 判定为 Master Playlist / Master playlist tag → determined as Master Playlist
     if (params.isMasterPlaylist === undefined) {
       params.isMasterPlaylist = true;
       return;
     }
     if (params.isMasterPlaylist === false) {
-      MIXEDTAGS(); // 之前判定为 Media，现在出现主列表标签 → 混用
+      MIXEDTAGS(); // 之前判定为 Media，现在出现主列表标签 → 混用 / Previously determined as Media, now master tag appears → mixed
     }
   }
-  // Basic / MediaorMasterPlaylist / Unknown → 不改变类型判定
+  // Basic / MediaorMasterPlaylist / Unknown → 不改变类型判定 / Basic / MediaorMasterPlaylist / Unknown → do not change type determination
 }
 
 // ---------------------------------------------------------------------------
-// Lexical analysis (line-by-line parsing)
+// Lexical analysis (line-by-line parsing) — 词法分析（逐行解析）
 // ---------------------------------------------------------------------------
 
 /**
+ * 对原始播放列表文本执行初始词法解析。
+ *
  * Performs the initial lexical parsing of the raw playlist text.
  * Splits into lines, categorizes tags, and returns an array of Lines.
  */
 function lexicalParser(text: string, params: ParseState): Line[] {
   const lines: Line[] = [];
 
-  // Strip UTF-8 BOM if present (RFC 8216 §4.1: MUST NOT contain BOM)
+  // 去除 UTF-8 BOM / Strip UTF-8 BOM if present (RFC 8216 §4.1: MUST NOT contain BOM)
   let normalized = text;
   if (normalized.charCodeAt(0) === 0xfeff) {
     normalized = normalized.slice(1);
   }
 
-  // Split by common line endings
+  // 按常见换行符分割 / Split by common line endings
   const rawLines = normalized.split(/\r?\n/);
 
   for (const l of rawLines) {
-    // Trim whitespace (V8 optimization: create a new string)
+    // 去除空白 / V8 优化：创建新字符串 / Trim whitespace (V8 optimization: create a new string)
     const line = l.trim();
     if (!line) {
-      // Empty line - skip
+      // 空行 — 跳过 / Empty line - skip
       continue;
     }
 
     if (line.startsWith("#")) {
       if (line.startsWith("#EXT")) {
-        // Tag line
+        // 标签行 / Tag line
         const tag = parseTag(line, params);
         if (tag) {
           lines.push(tag);
         }
       }
-      // Comment line (##... or other) - skip
+      // 注释行（##... 或其他）— 跳过 / Comment line (##... or other) - skip
       continue;
     }
-    // URI line
+    // URI 行 / URI line
     lines.push(line);
   }
 
-  // Validate that the first line is EXTM3U
+  // 验证第一行必须是 EXTM3U / Validate that the first line is EXTM3U
   if (lines.length === 0 || typeof lines[0] !== "object" || (lines[0] as Tag).name !== T.EXTM3U) {
     utils.INVALIDPLAYLIST("The EXTM3U tag MUST be the first line.");
   }
@@ -315,10 +319,12 @@ function lexicalParser(text: string, params: ParseState): Line[] {
 }
 
 // ---------------------------------------------------------------------------
-// Master Playlist parsing
+// Master Playlist parsing — 主播放列表解析
 // ---------------------------------------------------------------------------
 
 /**
+ * 从 EXT-X-MEDIA 标签解析出 Rendition 对象。
+ *
  * Parses a Rendition from an EXT-X-MEDIA tag.
  */
 function parseRendition(tag: Tag): Rendition {
@@ -341,6 +347,8 @@ function parseRendition(tag: Tag): Rendition {
 }
 
 /**
+ * 验证 Variant 属性引用的 rendition 组是否有效。
+ *
  * Validates that variant attributes reference valid rendition groups.
  */
 function matchTypes(attrs: TagAttributes, variant: Variant, params: ParseState) {
@@ -349,14 +357,16 @@ function matchTypes(attrs: TagAttributes, variant: Variant, params: ParseState) 
       params.isClosedCaptionsNone = true;
       variant.closedCaptions = [];
     }
-    // Non-NONE attribute values are pre-validated by parseVariant's media group matching
+    // 非 NONE 属性值由 parseVariant 的媒体组匹配预验证 / Non-NONE attribute values are pre-validated by parseVariant's media group matching
   }
 }
 
 /**
+ * 从 EXT-X-STREAM-INF 或 EXT-X-I-FRAME-STREAM-INF 解析出变体流。
+ *
  * Parses a Variant Stream from EXT-X-STREAM-INF or EXT-X-I-FRAME-STREAM-INF.
  *
- * @param mediaGroups — pre-indexed Map<TYPE, Map<GROUP-ID, Rendition[]>>
+ * @param mediaGroups — 预索引的 Map<TYPE, Map<GROUP-ID, Rendition[]>>
  */
 function parseVariant(variantAttrs: TagAttributes, uri: string, iFrameOnly: boolean, params: ParseState, mediaGroups: Map<string, Map<string, Rendition[]>>): Variant {
   const variant: Variant = {
@@ -376,7 +386,7 @@ function parseVariant(variantAttrs: TagAttributes, uri: string, iFrameOnly: bool
     isIFrameOnly: iFrameOnly,
   };
 
-  // Attach matching renditions using pre-indexed map (O(1) per group)
+  // 使用预索引映射关联匹配的 rendition / O(1) 每组 / Attach matching renditions using pre-indexed map (O(1) per group)
   for (const type of ["AUDIO", "VIDEO", "SUBTITLES", "CLOSED-CAPTIONS"]) {
     const attrsGroupId = variantAttrs[type];
     if (!attrsGroupId) continue;
@@ -394,7 +404,7 @@ function parseVariant(variantAttrs: TagAttributes, uri: string, iFrameOnly: bool
   return variant;
 }
 
-/** Add an already-parsed Rendition to a variant's list */
+/** 将已解析的 Rendition 添加到 Variant 列表中 / Add an already-parsed Rendition to a variant's list */
 function addRenditionToList(variant: Variant, rendition: Rendition, type: string) {
   const key = utils.camelify(type) as "audio" | "video" | "subtitles" | "closedCaptions";
   let renditions = variant[key];
@@ -406,6 +416,8 @@ function addRenditionToList(variant: Variant, rendition: Rendition, type: string
 }
 
 /**
+ * 比较两个 Key 对象是否相等。
+ *
  * Compares two Key objects for equality.
  */
 function sameKey(key1: Key, key2: Key): boolean {
@@ -426,6 +438,8 @@ function sameKey(key1: Key, key2: Key): boolean {
 }
 
 /**
+ * 将 EXT-X-MEDIA 标签预索引为 Map<TYPE, Map<GROUP-ID, Rendition[]>>。
+ *
  * Pre-index EXT-X-MEDIA tags into Map<TYPE, Map<GROUP-ID, Rendition[]>>.
  * This allows O(1) lookup when attaching renditions to variants,
  * replacing the previous O(V × N) per-variant scan.
@@ -450,11 +464,11 @@ function buildMediaGroupIndex(lines: Line[]): Map<string, Map<string, Rendition[
         group = [];
         typeMap.set(groupId, group);
       }
-      // Validate uniqueness (same GROUP, same NAME)
+      // 验证唯一性 / 同一 GROUP 中 NAME 必须唯一 / Validate uniqueness (same GROUP, same NAME)
       if (group.some((r) => r.name === rendition.name)) {
         utils.INVALIDPLAYLIST("All EXT-X-MEDIA tags in the same Group MUST have different NAME attributes.");
       }
-      // Validate only one DEFAULT per group
+      // 验证每组只能有一个 DEFAULT / Validate only one DEFAULT per group
       if (rendition.isDefault && group.some((r) => r.isDefault)) {
         utils.INVALIDPLAYLIST("A Group MUST NOT have more than one member with a DEFAULT attribute of YES.");
       }
@@ -468,11 +482,13 @@ function addCustomTag(playlist: MasterPlaylist | MediaPlaylist, name: string, va
   if (!playlist.customTags) playlist.customTags = {};
   const key = name.replace(/-/g, "_");
   if (!playlist.customTags[key]) playlist.customTags[key] = [];
-  // Prefer value (which may be a custom parser result), fallback to attributes
+  // 优先使用 value / 可能是自定义解析器结果 / 回退到 attributes / Prefer value (which may be a custom parser result), fallback to attributes
   playlist.customTags[key].push(value && typeof value === "object" && !Array.isArray(value) ? value : attributes && Object.keys(attributes).length > 0 ? attributes : value);
 }
 
 /**
+ * 解析主播放列表（包含 EXT-X-STREAM-INF、EXT-X-MEDIA 等标签）。
+ *
  * Parses a Master Playlist (contains EXT-X-STREAM-INF, EXT-X-MEDIA, etc.).
  */
 function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist {
@@ -483,7 +499,8 @@ function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist 
     sessionKeyList: [],
   };
 
-  // Pre-index EXT-X-MEDIA tags into Map<TYPE, Map<GROUP-ID, Rendition[]>>
+  // 预索引 EXT-X-MEDIA 标签为 Map<TYPE, Map<GROUP-ID, Rendition[]>>
+  // 避免在 parseVariant 中进行 O(V×N) 扫描 / Pre-index EXT-X-MEDIA tags into Map<TYPE, Map<GROUP-ID, Rendition[]>>
   // This avoids O(V×N) scanning in parseVariant.
   const mediaGroups = buildMediaGroupIndex(lines);
 
@@ -567,7 +584,7 @@ function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist 
     }
   }
 
-  // Validate scores
+  // 验证分数一致性 / Validate scores
   if (variantIsScored) {
     for (const variant of playlist.variants) {
       if (typeof variant.score !== "number") {
@@ -576,7 +593,7 @@ function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist 
     }
   }
 
-  // Validate closed-captions consistency
+  // 验证闭路字幕一致性 / Validate closed-captions consistency
   if (params.isClosedCaptionsNone) {
     for (const variant of playlist.variants) {
       const cc = variant.closedCaptions;
@@ -590,10 +607,12 @@ function parseMasterPlaylist(lines: Line[], params: ParseState): MasterPlaylist 
 }
 
 // ---------------------------------------------------------------------------
-// Media Playlist parsing
+// Media Playlist parsing — 媒体播放列表解析
 // ---------------------------------------------------------------------------
 
 /**
+ * 将 EXT-X-DATERANGE 标签属性解析为 DateRange 对象。
+ *
  * Parses an EXT-X-DATERANGE tag's attributes into a DateRange object.
  */
 function parseDateRange(attributes: TagAttributes): DateRange {
@@ -617,6 +636,8 @@ function parseDateRange(attributes: TagAttributes): DateRange {
 }
 
 /**
+ * 从播放列表中指定行范围解析出一个媒体片段。
+ *
  * Parses a Media Segment from a range of lines in the playlist.
  * Collects all the segment-level tags that apply to a URI.
  */
@@ -750,6 +771,8 @@ function parseSegment(lines: Line[], uri: string, start: number, end: number, me
 }
 
 /**
+ * 解析 LL-HLS 的预取片段（EXT-X-PREFETCH）。
+ *
  * Parses a Prefetch Segment (EXT-X-PREFETCH) for LL-HLS.
  */
 function parsePrefetchSegment(lines: Line[], uri: string, start: number, end: number, mediaSequenceNumber: number, discontinuitySequence: number, params: ParseState): PrefetchSegment {
@@ -786,6 +809,8 @@ function parsePrefetchSegment(lines: Line[], uri: string, start: number, end: nu
 }
 
 /**
+ * 将片段添加到播放列表，解析继承的属性。
+ *
  * Adds a segment to the playlist, resolving inherited properties
  * (key, map, discontinuity sequence, byterange offset).
  */
@@ -798,22 +823,22 @@ function addSegment(
 ): [number, Key | null, MediaInitializationSection | null] {
   const { discontinuity, key, map, byterange, uri } = segment;
 
-  // Calculate discontinuity sequence
+  // 计算不连续序列号 / Calculate discontinuity sequence
   if (discontinuity) {
     segment.discontinuitySequence = discontinuitySequence + 1;
   }
 
-  // Inherit key from previous segment if not specified
+  // 如果未指定则从前一片段继承 Key / Inherit key from previous segment if not specified
   if (!key) {
     segment.key = currentKey;
   }
 
-  // Inherit map from previous segment if not specified
+  // 如果未指定则从前一片段继承 Map / Inherit map from previous segment if not specified
   if (!map) {
     segment.map = currentMap;
   }
 
-  // Resolve implicit byterange offset
+  // 解析隐式 byte range 偏移量 / Resolve implicit byterange offset
   if (byterange && byterange.offset === -1) {
     const { segments } = playlist;
     if (segments.length > 0) {
@@ -834,6 +859,8 @@ function addSegment(
 }
 
 /**
+ * 验证所有片段的 DateRange 约束。
+ *
  * Validates DateRange constraints across all segments.
  */
 function checkDateRange(segments: Segment[]) {
@@ -850,7 +877,7 @@ function checkDateRange(segments: Segment[]) {
     if (dateRange && dateRange.start) {
       hasDateRange = true;
 
-      // END-ON-NEXT cannot coexist with DURATION or END-DATE
+      // END-ON-NEXT 不能与 DURATION 或 END-DATE 共存 / END-ON-NEXT cannot coexist with DURATION or END-DATE
       if (dateRange.endOnNext && (dateRange.end || dateRange.duration)) {
         utils.INVALIDPLAYLIST("An EXT-X-DATERANGE tag with an END-ON-NEXT=YES attribute MUST NOT contain DURATION or END-DATE attributes.");
       }
@@ -858,14 +885,14 @@ function checkDateRange(segments: Segment[]) {
       const start = dateRange.start.getTime();
       const duration = dateRange.duration || 0;
 
-      // END-DATE must equal START-DATE + DURATION
+      // END-DATE 必须等于 START-DATE + DURATION / END-DATE must equal START-DATE + DURATION
       if (dateRange.end && dateRange.duration) {
         if (start + duration * 1000 !== dateRange.end.getTime()) {
           utils.INVALIDPLAYLIST("END-DATE MUST be equal to the value of the START-DATE attribute plus the value of the DURATION");
         }
       }
 
-      // Resolve END-ON-NEXT
+      // 解析 END-ON-NEXT / Resolve END-ON-NEXT
       if (dateRange.endOnNext && dateRange.classId) {
         dateRange.end = earliestDates.get(dateRange.classId);
       }
@@ -874,7 +901,7 @@ function checkDateRange(segments: Segment[]) {
 
       const end = dateRange.end ? dateRange.end.getTime() : start + duration * 1000;
 
-      // Check overlapping ranges with same CLASS
+      // 检查相同 CLASS 的范围是否重叠 / Check overlapping ranges with same CLASS
       if (dateRange.classId) {
         const range = rangeList.get(dateRange.classId);
         if (range) {
@@ -891,26 +918,28 @@ function checkDateRange(segments: Segment[]) {
     }
   }
 
-  // If any DateRange exists, there must be at least one PROGRAM-DATE-TIME
+  // 如果存在任何 DateRange，则必须至少有一个 PROGRAM-DATE-TIME / If any DateRange exists, there must be at least one PROGRAM-DATE-TIME
   if (hasDateRange && !hasProgramDateTime) {
     utils.INVALIDPLAYLIST("If a Playlist contains an EXT-X-DATERANGE tag, it MUST also contain at least one EXT-X-PROGRAM-DATE-TIME tag.");
   }
 }
 
 /**
+ * 验证 LL-HLS / 低延迟 HLS 的兼容性约束。
+ *
  * Validates LL-HLS (Low-Latency HLS) compatibility constraints.
  */
 function checkLowLatencyCompatibility(playlist: MediaPlaylist, containsParts: boolean) {
   const { lowLatencyCompatibility, targetDuration, partTargetDuration } = playlist;
   const { canSkipUntil, holdBack, partHoldBack } = lowLatencyCompatibility!;
 
-  // Skip boundary must be at least 6x target duration
+  // Skip 边界必须至少为目标时长的 6 倍 / Skip boundary must be at least 6x target duration
   // https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.3.1
   if (canSkipUntil !== undefined && canSkipUntil < targetDuration! * 6) {
     utils.INVALIDPLAYLIST("The Skip Boundary must be at least six times the EXT-X-TARGETDURATION.");
   }
 
-  // HOLD-BACK must be at least 3x target duration
+  // HOLD-BACK 必须至少为目标时长的 3 倍 / HOLD-BACK must be at least 3x target duration
   if (holdBack !== undefined && holdBack < targetDuration! * 3) {
     utils.INVALIDPLAYLIST("HOLD-BACK must be at least three times the EXT-X-TARGETDURATION.");
   }
@@ -926,7 +955,7 @@ function checkLowLatencyCompatibility(playlist: MediaPlaylist, containsParts: bo
       utils.INVALIDPLAYLIST("PART-HOLD-BACK must be at least PART-TARGET");
     }
 
-    // Validate partial segment durations
+    // 验证部分片段的时长 / Validate partial segment durations
     for (const [segmentIndex, { parts }] of playlist.segments.entries()) {
       if (!parts || parts.length === 0) continue;
       if (segmentIndex < playlist.segments.length - 3) {
@@ -943,7 +972,7 @@ function checkLowLatencyCompatibility(playlist: MediaPlaylist, containsParts: bo
       }
     }
 
-    // Fill in rendition report defaults
+    // 填充 rendition report 的默认值 / Fill in rendition report defaults
     for (const report of playlist.renditionReports) {
       const lastSegment = playlist.segments[playlist.segments.length - 1];
       if (report.lastMSN === undefined && lastSegment) {
@@ -957,6 +986,8 @@ function checkLowLatencyCompatibility(playlist: MediaPlaylist, containsParts: bo
 }
 
 /**
+ * 解析媒体播放列表（包含片段和媒体级别标签）。
+ *
  * Parses a Media Playlist (contains segments and media-level tags).
  */
 function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
@@ -978,7 +1009,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
 
   for (const [index, line] of lines.entries()) {
     if (typeof line === "string") {
-      // URI line - finalize the current segment
+      // URI 行 — 完成当前片段 / URI line - finalize the current segment
       if (segmentStart === -1) {
         utils.INVALIDPLAYLIST("A URI line is not preceded by any segment tags");
       }
@@ -1004,10 +1035,10 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       continue;
     }
 
-    // Tag line
+    // 标签行 / Tag line
     const { name, value, attributes, category } = line as Tag;
 
-    // Handle EXT-X-DATERANGE at playlist level (before category segmentation)
+    // 在播放列表级别处理 EXT-X-DATERANGE / 在分类分段之前 / Handle EXT-X-DATERANGE at playlist level (before category segmentation)
     if (name === T.EXT_X_DATERANGE) {
       const dateRange = parseDateRange(attributes);
       playlist.dateRanges.push(dateRange);
@@ -1035,7 +1066,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
       playlist.mediaSequenceBase = value as number;
       mediaSequence = value as number;
     } else if (name === T.EXT_X_BITRATE) {
-      // RFC 8216bis: segment bitrate of the media playlist
+      // RFC 8216bis：媒体播放列表的片段比特率 / RFC 8216bis: segment bitrate of the media playlist
       playlist.bitrate = value as number;
     } else if (name === T.EXT_X_DISCONTINUITY_SEQUENCE) {
       if (playlist.segments.length > 0) {
@@ -1127,7 +1158,7 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
     }
   }
 
-  // Handle trailing segments (no URI line at end)
+  // 处理尾部片段 / 末尾没有 URI 行 / Handle trailing segments (no URI line at end)
   if (segmentStart !== -1) {
     const segment = parseSegment(lines, "", segmentStart, lines.length - 1, mediaSequence++, discontinuitySequence, params);
     const { parts } = segment;
@@ -1140,10 +1171,10 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
     }
   }
 
-  // Validate DateRanges
+  // 验证 DateRange 约束 / Validate DateRanges
   checkDateRange(playlist.segments);
 
-  // Validate LL-HLS compatibility
+  // 验证 LL-HLS 兼容性 / Validate LL-HLS compatibility
   if (playlist.lowLatencyCompatibility) {
     checkLowLatencyCompatibility(playlist, containsParts);
   }
@@ -1152,10 +1183,12 @@ function parseMediaPlaylist(lines: Line[], params: ParseState): MediaPlaylist {
 }
 
 // ---------------------------------------------------------------------------
-// Semantic analysis (structured parsing)
+// Semantic analysis (structured parsing) — 语义分析（结构化解析）
 // ---------------------------------------------------------------------------
 
 /**
+ * 对解析后的行执行语义分析，生成结构化的 MasterPlaylist 或 MediaPlaylist。
+ *
  * Performs semantic analysis on the parsed lines to produce
  * a structured MasterPlaylist or MediaPlaylist.
  */
@@ -1171,9 +1204,9 @@ function semanticParser(lines: Line[], params: ParseState): MasterPlaylist | Med
     }
   }
 
-  // Validate protocol version compatibility
-  // Only throw if an explicit EXT-X-VERSION tag is present and is too low.
-  // If no version tag is specified, we accept the playlist for interoperability.
+  // 验证协议版本兼容性 / Validate protocol version compatibility
+  // 仅当存在显式 EXT-X-VERSION 标签且版本过低时才抛出异常 / Only throw if an explicit EXT-X-VERSION tag is present and is too low.
+  // 如果没有版本标签，为互操作性接受播放列表 / If no version tag is specified, we accept the playlist for interoperability.
   if (params.compatibleVersion > 1) {
     if (playlist.version !== undefined && playlist.version !== null && playlist.version < params.compatibleVersion) {
       utils.INVALIDPLAYLIST(`EXT-X-VERSION needs to be ${params.compatibleVersion} or higher.`);
@@ -1184,10 +1217,12 @@ function semanticParser(lines: Line[], params: ParseState): MasterPlaylist | Med
 }
 
 // ---------------------------------------------------------------------------
-// URI resolution
+// URI resolution — URI 解析
 // ---------------------------------------------------------------------------
 
 /**
+ * 将播放列表中所有相对 URI 相对于基准 URI 进行解析。
+ *
  * Resolves all relative URIs in a playlist against a base URI.
  * This supports both Master Playlists and Media Playlists.
  */
@@ -1195,11 +1230,11 @@ function resolvePlaylistUris(playlist: MasterPlaylist | MediaPlaylist, baseUri: 
   if (playlist.isMasterPlaylist) {
     const master = playlist as MasterPlaylist;
 
-    // Resolve variant URIs
+    // 解析 Variant URI / Resolve variant URIs
     for (const variant of master.variants) {
       variant.uri = utils.resolveUrl(baseUri, variant.uri);
 
-      // Resolve rendition URIs inside each variant (audio / video / subtitles)
+      // 解析每个 Variant 内部的 Rendition URI / audio / video / subtitles / Resolve rendition URIs inside each variant (audio / video / subtitles)
       for (const type of ["audio", "video", "subtitles", "closedCaptions"] as const) {
         const renditions = variant[type];
         if (renditions) {
@@ -1212,28 +1247,28 @@ function resolvePlaylistUris(playlist: MasterPlaylist | MediaPlaylist, baseUri: 
       }
     }
 
-    // Resolve session data URIs
+    // 解析 Session Data URI / Resolve session data URIs
     for (const sd of master.sessionDataList) {
       if (sd.uri) {
         sd.uri = utils.resolveUrl(baseUri, sd.uri);
       }
     }
 
-    // Resolve session key URIs
+    // 解析 Session Key URI / Resolve session key URIs
     for (const sk of master.sessionKeyList) {
       if (sk.uri) {
         sk.uri = utils.resolveUrl(baseUri, sk.uri);
       }
     }
 
-    // Resolve content steering URI
+    // 解析 Content Steering URI / Resolve content steering URI
     const steering = master.contentSteering;
     if (steering) {
       steering.serverUri = utils.resolveUrl(baseUri, steering.serverUri);
     }
   } else {
     const mp = playlist as MediaPlaylist;
-    // Resolve segment URIs
+    // 解析 Segment URI / Resolve segment URIs
     for (const segment of mp.segments) {
       segment.uri = utils.resolveUrl(baseUri, segment.uri);
       if (segment.key && segment.key.uri) {
@@ -1248,14 +1283,14 @@ function resolvePlaylistUris(playlist: MasterPlaylist | MediaPlaylist, baseUri: 
         }
       }
     }
-    // Resolve prefetch segment URIs
+    // 解析 Prefetch Segment URI / Resolve prefetch segment URIs
     for (const prefetch of mp.prefetchSegments) {
       prefetch.uri = utils.resolveUrl(baseUri, prefetch.uri);
       if (prefetch.key && prefetch.key.uri) {
         prefetch.key.uri = utils.resolveUrl(baseUri, prefetch.key.uri);
       }
     }
-    // Resolve rendition report URIs
+    // 解析 Rendition Report URI / Resolve rendition report URIs
     for (const report of mp.renditionReports) {
       report.uri = utils.resolveUrl(baseUri, report.uri);
     }
@@ -1263,10 +1298,12 @@ function resolvePlaylistUris(playlist: MasterPlaylist | MediaPlaylist, baseUri: 
 }
 
 // ---------------------------------------------------------------------------
-// Main parse function
+// Main parse function — 主解析函数
 // ---------------------------------------------------------------------------
 
 /**
+ * 将 M3U8 播放列表字符串解析为结构化对象。
+ *
  * Parses an M3U8 playlist string into a structured object.
  *
  * Automatically detects whether the playlist is a Master Playlist or
@@ -1313,7 +1350,7 @@ function parser(text: string, options?: ParserOptions): MasterPlaylist | MediaPl
   const playlist = semanticParser(lines, params);
   playlist.source = text;
 
-  // Resolve relative URIs if a base URI is provided
+  // 如果提供了基准 URI 则解析相对 URI / Resolve relative URIs if a base URI is provided
   if (options?.uri) {
     resolvePlaylistUris(playlist, options.uri);
   }

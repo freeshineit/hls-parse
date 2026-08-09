@@ -183,7 +183,7 @@ export const EXT_X_PRELOAD_HINT = "EXT-X-PRELOAD-HINT";
  */
 export const EXT_X_GAP = "EXT-X-GAP";
 
-// -- RFC 8216bis: EXT-X-BITRATE (Media Playlist tag)
+// -- RFC 8216bis: EXT-X-BITRATE (Media Playlist tag) — RFC 8216bis：EXT-X-BITRATE（媒体播放列表标签）
 /**
  * 媒体播放列表码率
  *
@@ -194,7 +194,7 @@ export const EXT_X_GAP = "EXT-X-GAP";
  */
 export const EXT_X_BITRATE = "EXT-X-BITRATE";
 
-// -- Custom: EXT-X-DEVICE-TIME (device timestamp on segment)
+// -- Custom: EXT-X-DEVICE-TIME (device timestamp on segment) — Custom：EXT-X-DEVICE-TIME（段上的设备时间戳）
 /**
  * 流片段设备时间
  *

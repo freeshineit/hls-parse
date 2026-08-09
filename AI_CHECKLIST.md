@@ -97,11 +97,73 @@ pnpm run build
 - [ ] 向后兼容（无 breaking change 或版本号提升）
 - [ ] 相关错误消息清晰可定位
 
-### 注释规范
+### 注释规范（TypeDoc）
 
-- [ ] 函数级：JSDoc `@param` / `@returns` / `@throws` / `@example`
-- [ ] tag 级：`中文说明 / English description`
-- [ ] 关键逻辑：行内注释解释"为什么"而非"是什么"
+项目使用 [TypeDoc](https://typedoc.org/) 生成 API 文档，注释需遵循以下规范：
+
+#### 双语格式
+
+````ts
+/**
+ * 中文摘要（首行）。
+ *
+ * English detailed description.
+ * Additional context in English.
+ *
+ * @param name — 参数说明 / Description
+ * @returns 返回值说明 / Return value description
+ * @throws {@link InvalidPlaylistError} 抛出条件 / When thrown
+ * @see {@link https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.1 | RFC 8216 §4.3.2.1}
+ *
+ * @example 使用示例
+ * ```ts
+ * const result = fn(input);
+ * ```
+ */
+````
+
+#### 标记规范
+
+| 标记                    | 要求                     | 示例                                               |
+| ----------------------- | ------------------------ | -------------------------------------------------- |
+| `@param`                | 所有参数必须标注，含中文 | `@param text — 原始 M3U8 文本 / Raw playlist text` |
+| `@returns`              | 有返回值时必须标注       | `@returns 解析后的播放列表 / Parsed playlist`      |
+| `@throws`               | 可能抛出异常时标注       | `@throws {@link InvalidPlaylistError}`             |
+| `@see`                  | RFC 引用、相关文档链接   | `@see {@link https://... \| RFC 8216 §4.1}`        |
+| `@example`              | public API 必须包含示例  | 见上方示例                                         |
+| `@remarks`              | 额外说明、注意事项       | `@remarks 当提供 uri 时，所有相对路径将被解析`     |
+| `@defaultValue`         | 有默认值时标注           | `@defaultValue 0`                                  |
+| `@deprecated`           | 废弃 API 标注            | `@deprecated 自 v2.0 起，请使用 newMethod`         |
+| `@beta`                 | 实验性 API 标注          | `@beta LL-HLS 特性`                                |
+| `@internal`             | 内部 API，不对外文档     | `@internal`                                        |
+| `@module`               | 模块描述（文件头部）     | `@module hls-parse`                                |
+| `@packageDocumentation` | 包入口文档               | `@packageDocumentation`                            |
+
+#### 注释层级
+
+| 层级     | 要求                                                         |
+| -------- | ------------------------------------------------------------ |
+| 文件头部 | `@module` + 功能概述（中英双语）                             |
+| 导出函数 | 完整 JSDoc（`@param` / `@returns` / `@throws` / `@example`） |
+| 导出类型 | JSDoc + `@see` RFC 引用                                      |
+| 接口属性 | `/** 中文 / English */` 单行注释                             |
+| 内部函数 | 中文摘要 + English description                               |
+| 章节分隔 | `// Section Name — 中文名称`                                 |
+| 行内注释 | `// 中文说明 / English description`                          |
+| 关键逻辑 | 解释「为什么」而非「是什么」                                 |
+
+#### 文档生成
+
+```bash
+pnpm docs         # 生成英文 API 文档 → docs/
+pnpm docs:zh      # 生成中文 API 文档 → docs/zh/
+pnpm docs:all     # 同时生成中英文文档
+```
+
+- [ ] 新增/修改 public API 后运行 `pnpm docs:all` 验证无 warning
+- [ ] `@param` 名称与函数签名参数名一致
+- [ ] `{@link}` 引用的目标在文档中存在
+- [ ] 无 TypeDoc warning
 
 ---
 
