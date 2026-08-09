@@ -31,12 +31,12 @@ export default {
     ...(isZh
       ? {
           示例: "https://github.com/freeshineit/hls-parse/tree/main/examples",
-          "English Docs": "../",
+          English: "../",
           Github: "https://github.com/freeshineit/hls-parse",
         }
       : {
           Examples: "https://github.com/freeshineit/hls-parse/tree/main/examples",
-          中文文档: "./zh/",
+          中文: "./zh/",
           Github: "https://github.com/freeshineit/hls-parse",
         }),
   },
