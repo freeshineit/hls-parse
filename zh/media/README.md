@@ -80,7 +80,7 @@ console.log(playlist.segments[0].uri); // https://example.com/hls/segment1.ts
 
 ## API Reference
 
-### `parser(text: string, options?: ParserOptions): Playlist`
+### parser(text: string, options?: ParserOptions): Playlist
 
 Parses an M3U8 playlist string into a structured object.
 
@@ -93,21 +93,25 @@ Parses an M3U8 playlist string into a structured object.
 
 **Throws:** `InvalidPlaylistError` if the playlist violates RFC 8216 syntax rules.
 
-### `resolveUrl(base: string | undefined, relative: string): string`
+### Relative URI
+
+```ts
+resolveUrl(base: string | undefined, relative: string): string
+```
 
 Resolves a relative URI against a base URI.
 
-### `InvalidPlaylistError`
+### InvalidPlaylistError
 
 Error class thrown when parsing invalid playlists.
 
 ## Types
 
-### `Playlist`
+### Playlist
 
 Union type of `MasterPlaylist` and `MediaPlaylist`.
 
-### `MasterPlaylist`
+### MasterPlaylist
 
 | Property               | Type                    | Description                                  |
 | ---------------------- | ----------------------- | -------------------------------------------- |
@@ -121,7 +125,7 @@ Union type of `MasterPlaylist` and `MediaPlaylist`.
 | `contentSteering?`     | `ContentSteering`       | Content steering configuration               |
 | `defines?`             | `Record<string, any>[]` | Variable definitions                         |
 
-### `MediaPlaylist`
+### MediaPlaylist
 
 | Property                     | Type                      | Description                              |
 | ---------------------------- | ------------------------- | ---------------------------------------- |
@@ -141,7 +145,7 @@ Union type of `MasterPlaylist` and `MediaPlaylist`.
 | `partTargetDuration?`        | `number`                  | Partial segment target duration (LL-HLS) |
 | `skip?`                      | `number`                  | Skipped segments (LL-HLS)                |
 
-### `Segment`
+### Segment
 
 | Property                | Type                                 | Description                             |
 | ----------------------- | ------------------------------------ | --------------------------------------- |
@@ -160,7 +164,7 @@ Union type of `MasterPlaylist` and `MediaPlaylist`.
 | `markers?`              | `SpliceInfo[]`                       | Splice/marker information               |
 | `parts?`                | `PartialSegment[]`                   | Partial segments (LL-HLS)               |
 
-### `PartialSegment` (LL-HLS)
+### PartialSegment (LL-HLS)
 
 | Property       | Type        | Description                     |
 | -------------- | ----------- | ------------------------------- |
@@ -171,7 +175,7 @@ Union type of `MasterPlaylist` and `MediaPlaylist`.
 | `independent?` | `boolean`   | Whether independently decodable |
 | `gap?`         | `boolean`   | Whether this is a gap           |
 
-### `Variant`
+### Variant
 
 | Property            | Type          | Description               |
 | ------------------- | ------------- | ------------------------- |

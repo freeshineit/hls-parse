@@ -117,21 +117,25 @@ if (isMasterPlaylist(pl)) {
 }
 ```
 
-### `resolveUrl(base: string | undefined, relative: string): string`
+### 绝对地址
+
+```ts
+resolveUrl(base: string | undefined, relative: string): string
+```
 
 将相对 URI 基于基准 URI 解析为绝对地址。
 
-### `InvalidPlaylistError`
+### InvalidPlaylistError
 
 解析到无效播放列表时抛出的错误类，继承自 `Error`。
 
 ## 类型定义
 
-### `Playlist`
+### Playlist
 
 `MasterPlaylist` 和 `MediaPlaylist` 的联合类型。
 
-### `MasterPlaylist`
+### MasterPlaylist
 
 | 属性                   | 类型                          | 描述               |
 | ---------------------- | ----------------------------- | ------------------ |
@@ -147,7 +151,7 @@ if (isMasterPlaylist(pl)) {
 | `defines?`             | `Record<string, AttrValue>[]` | 变量定义           |
 | `customTags?`          | `Record<string, unknown[]>`   | 自定义/未知标签    |
 
-### `MediaPlaylist`
+### MediaPlaylist
 
 | 属性                         | 类型                          | 描述                       |
 | ---------------------------- | ----------------------------- | -------------------------- |
@@ -170,7 +174,7 @@ if (isMasterPlaylist(pl)) {
 | `defines?`                   | `Record<string, AttrValue>[]` | 变量定义                   |
 | `customTags?`                | `Record<string, unknown[]>`   | 自定义/未知标签            |
 
-### `Segment`（媒体分片）
+### Segment（媒体分片）
 
 | 属性                    | 类型                                 | 描述               |
 | ----------------------- | ------------------------------------ | ------------------ |
@@ -190,7 +194,7 @@ if (isMasterPlaylist(pl)) {
 | `markers?`              | `SpliceInfo[]`                       | 拼接/标记信息      |
 | `parts?`                | `PartialSegment[]`                   | 部分分片（LL-HLS） |
 
-### `PartialSegment`（部分分片，LL-HLS）
+### PartialSegment（部分分片，LL-HLS）
 
 | 属性           | 类型        | 描述             |
 | -------------- | ----------- | ---------------- |
@@ -201,7 +205,7 @@ if (isMasterPlaylist(pl)) {
 | `independent?` | `boolean`   | 是否可独立解码   |
 | `gap?`         | `boolean`   | 是否为间隙       |
 
-### `Rendition`（替代呈现）
+### Rendition（替代呈现）
 
 | 属性               | 类型      | 描述               |
 | ------------------ | --------- | ------------------ |
@@ -218,7 +222,7 @@ if (isMasterPlaylist(pl)) {
 | `characteristics?` | `string`  | 统一类型标识符     |
 | `channels?`        | `string`  | 音频声道参数       |
 
-### `Variant`（变体流）
+### Variant（变体流）
 
 | 属性                | 类型           | 描述                     |
 | ------------------- | -------------- | ------------------------ |
@@ -237,7 +241,7 @@ if (isMasterPlaylist(pl)) {
 | `subtitles?`        | `Rendition[]`  | 字幕呈现                 |
 | `closedCaptions?`   | `Rendition[]`  | 隐藏字幕呈现             |
 
-### `Key`（加密密钥）
+### Key（加密密钥）
 
 | 属性             | 类型         | 描述           |
 | ---------------- | ------------ | -------------- |
@@ -247,7 +251,7 @@ if (isMasterPlaylist(pl)) {
 | `format?`        | `string`     | 密钥格式标识符 |
 | `formatVersion?` | `string`     | 密钥格式版本   |
 
-### `DateRange`（日期范围）
+### DateRange（日期范围）
 
 | 属性               | 类型                        | 描述                              |
 | ------------------ | --------------------------- | --------------------------------- |
@@ -261,7 +265,7 @@ if (isMasterPlaylist(pl)) {
 | `endOnNext?`       | `boolean`                   | 是否在下个同 CLASS 范围开始时结束 |
 | `attributes?`      | `Record<string, AttrValue>` | 自定义属性                        |
 
-### `LowLatencyCompatibility`（LL-HLS 兼容性参数）
+### LowLatencyCompatibility（LL-HLS 兼容性参数）
 
 | 属性             | 类型      | 描述                   |
 | ---------------- | --------- | ---------------------- |
